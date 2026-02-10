@@ -1,0 +1,193 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Multi-tenant support - Centers/Tenants
+model Center {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  description String?
+  settings    Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  users       User[]
+  courses     Course[]
+}
+
+// User model with role-based access
+enum Role {
+  SUPER_ADMIN      // Full system access across all centers
+  CENTER_ADMIN     // Admin for a specific center
+  CENTER_SUPERVISOR // Supervisor for a specific center
+  TEACHER          // Teacher/Tutor role
+  STUDENT          // Student role
+}
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  name          String
+  password      String    // Hashed password
+  role          Role      @default(STUDENT)
+  avatar        String?
+  bio           String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  // Multi-tenant relationship
+  centerId      String
+  center        Center    @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  
+  // Teaching relationships
+  taughtCourses Course[]  @relation("TeacherCourses")
+  
+  // Student relationships
+  enrollments   Enrollment[]
+  progress      Progress[]
+  
+  @@index([centerId])
+  @@index([email])
+}
+
+// Course model
+model Course {
+  id          String   @id @default(cuid())
+  title       String
+  slug        String
+  description String?
+  thumbnail   String?
+  status      CourseStatus @default(DRAFT)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Multi-tenant relationship
+  centerId    String
+  center      Center   @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  
+  // Teacher relationship
+  teacherId   String
+  teacher     User     @relation("TeacherCourses", fields: [teacherId], references: [id])
+  
+  // Course hierarchy
+  modules     Module[]
+  enrollments Enrollment[]
+  
+  @@unique([centerId, slug])
+  @@index([centerId])
+  @@index([teacherId])
+}
+
+enum CourseStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+// Module model - course hierarchy
+model Module {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  courseId    String
+  course      Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  lessons     Lesson[]
+  
+  @@index([courseId])
+}
+
+// Lesson model - module hierarchy
+model Lesson {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  moduleId    String
+  module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
+  
+  contents    Content[]
+  progress    Progress[]
+  
+  @@index([moduleId])
+}
+
+// Content model - supports multiple content types
+enum ContentType {
+  DOCUMENT  // PDF, Word, etc.
+  VIDEO     // MP4, WebM, etc.
+  SCORM     // SCORM packages
+  XAPI      // xAPI/TinCan content
+  EMBED     // Embedded content (YouTube, etc.)
+  QUIZ      // Quiz/Assessment
+}
+
+model Content {
+  id          String      @id @default(cuid())
+  title       String
+  type        ContentType
+  url         String      // File URL or embed URL
+  duration    Int?        // Duration in minutes for videos
+  fileSize    Int?        // File size in bytes
+  metadata    Json?       // Additional metadata for SCORM/xAPI
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  
+  lessonId    String
+  lesson      Lesson      @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@index([lessonId])
+}
+
+// Enrollment model - student course enrollment
+model Enrollment {
+  id            String   @id @default(cuid())
+  enrolledAt    DateTime @default(now())
+  completedAt   DateTime?
+  progress      Float    @default(0) // Percentage 0-100
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  courseId      String
+  course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, courseId])
+  @@index([userId])
+  @@index([courseId])
+}
+
+// Progress tracking model
+model Progress {
+  id            String   @id @default(cuid())
+  completed     Boolean  @default(false)
+  startedAt     DateTime @default(now())
+  completedAt   DateTime?
+  timeSpent     Int      @default(0) // Time spent in minutes
+  
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  lessonId      String
+  lesson        Lesson   @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  @@unique([userId, lessonId])
+  @@index([userId])
+  @@index([lessonId])
+}
