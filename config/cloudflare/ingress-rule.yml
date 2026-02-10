@@ -1,0 +1,35 @@
+# CloudFlare Tunnel Ingress Rule for LMS
+#
+# This file contains the ingress rule that needs to be added to
+# /etc/cloudflared/config.yml
+#
+# Add this BEFORE the catch-all rule in the ingress section:
+#
+# ingress:
+#   - hostname: lms.gagneet.com
+#     service: http://localhost:80
+#   # ... other rules ...
+#   - service: http_status:404  # catch-all rule
+#
+# After modifying /etc/cloudflared/config.yml:
+# 1. Test config: sudo cloudflared tunnel ingress validate
+# 2. Restart tunnel: sudo systemctl restart cloudflared
+# 3. Check status: sudo systemctl status cloudflared
+# 4. View logs: sudo journalctl -u cloudflared -f
+
+- hostname: lms.gagneet.com
+  service: http://localhost:80
+  originRequest:
+    # Connection settings
+    connectTimeout: 30s
+    tcpKeepAlive: 30s
+    noHappyEyeballs: false
+    keepAliveTimeout: 90s
+    keepAliveConnections: 100
+
+    # HTTP settings
+    httpHostHeader: lms.gagneet.com
+    originServerName: lms.gagneet.com
+
+    # Disable TLS verification for localhost
+    noTLSVerify: true

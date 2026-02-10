@@ -161,6 +161,91 @@ learning-management-system/
 - `npm run db:push` - Push schema to database
 - `npm run db:seed` - Seed database with sample data
 
+## 🚀 Production Deployment
+
+The LMS application is deployed to production at **https://lms.gagneet.com**.
+
+### Quick Deployment
+
+For regular updates to production:
+
+```bash
+./scripts/build-and-deploy.sh
+```
+
+This automated script handles:
+- Prerequisites validation
+- Automated backups
+- Dependency installation
+- Database migrations
+- Application build
+- PM2 restart
+- Health verification
+- Automatic rollback on failure
+
+### Deployment Scripts
+
+- **`./scripts/database-setup.sh`** - Initial database setup
+- **`./scripts/generate-env-production.sh`** - Generate production environment file
+- **`./scripts/build-and-deploy.sh`** - Automated deployment
+- **`./scripts/rollback.sh`** - Rollback to previous backup
+- **`./scripts/health-check.sh`** - Health monitoring
+- **`./scripts/configure-cloudflare-tunnel.sh`** - CloudFlare tunnel configuration
+
+### Rollback
+
+If a deployment fails or issues are discovered:
+
+```bash
+# List available backups
+./scripts/rollback.sh
+
+# Rollback to latest backup
+./scripts/rollback.sh latest
+
+# Rollback to specific backup
+./scripts/rollback.sh backup-20260210-120000
+```
+
+### Health Check
+
+Monitor application health:
+
+```bash
+# Quick health check
+./scripts/health-check.sh
+
+# Detailed health check with verbose output
+./scripts/health-check.sh --verbose
+
+# Check from public URL
+./scripts/health-check.sh --url https://lms.gagneet.com/api/health
+```
+
+### Complete Documentation
+
+For comprehensive production deployment documentation, including:
+- Architecture overview
+- Initial setup instructions
+- Configuration details
+- Monitoring and maintenance
+- Troubleshooting guide
+- Security considerations
+
+See: **[Production Deployment Guide](docs/DEPLOYMENT_PRODUCTION.md)**
+
+### Production Architecture
+
+```
+Internet → CloudFlare (SSL/CDN) → CloudFlare Tunnel → Nginx → LMS App (PM2) → PostgreSQL
+```
+
+- **Application**: Next.js on port 3001 (PM2 cluster mode)
+- **Web Server**: Nginx on ports 80/443
+- **Database**: PostgreSQL on port 5432
+- **SSL/CDN**: CloudFlare with Origin Certificate
+- **Process Manager**: PM2 with auto-restart and clustering
+
 ## 🤝 Contributing
 
 Contributions are welcome! Please feel free to submit a Pull Request.
