@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { calculateLevel } from "@/lib/config/gamification";
 
 // POST /api/gamification/award-xp - Award XP to a user
 export async function POST(request: NextRequest) {
@@ -55,7 +56,7 @@ export async function POST(request: NextRequest) {
 
     // Calculate new XP and level
     const newXp = profile.xp + xp;
-    const newLevel = Math.floor(newXp / 100) + 1; // Simple level calculation: 100 XP per level
+    const newLevel = calculateLevel(newXp);
 
     // Update streak if active today
     const now = new Date();

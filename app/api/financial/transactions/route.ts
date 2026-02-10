@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { APP_CONFIG } from "@/lib/config/constants";
 
 // GET /api/financial/transactions - List financial transactions
 export async function GET(request: NextRequest) {
@@ -16,6 +17,11 @@ export async function GET(request: NextRequest) {
   const centerId = searchParams.get("centerId");
   const type = searchParams.get("type");
   const status = searchParams.get("status");
+  const page = parseInt(searchParams.get("page") || "1");
+  const limit = Math.min(
+    parseInt(searchParams.get("limit") || String(APP_CONFIG.DEFAULT_PAGE_SIZE)),
+    APP_CONFIG.MAX_TRANSACTIONS_PER_PAGE
+  );
 
   try {
     const where: any = {};
@@ -42,30 +48,44 @@ export async function GET(request: NextRequest) {
       where.status = status;
     }
 
-    const transactions = await prisma.financialTransaction.findMany({
-      where,
-      include: {
-        user: {
-          select: {
-            id: true,
-            name: true,
-            email: true,
-          },
-        },
-        center: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-      take: 100, // Limit to 100 transactions
-    });
+    const skip = (page - 1) * limit;
 
-    return NextResponse.json(transactions);
+    const [transactions, total] = await Promise.all([
+      prisma.financialTransaction.findMany({
+        where,
+        include: {
+          user: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
+            },
+          },
+          center: {
+            select: {
+              id: true,
+              name: true,
+            },
+          },
+        },
+        orderBy: {
+          createdAt: "desc",
+        },
+        skip,
+        take: limit,
+      }),
+      prisma.financialTransaction.count({ where }),
+    ]);
+
+    return NextResponse.json({
+      transactions,
+      pagination: {
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      },
+    });
   } catch (error) {
     console.error("Error fetching transactions:", error);
     return NextResponse.json(

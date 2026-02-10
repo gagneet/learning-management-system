@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { APP_CONFIG } from "@/lib/config/constants";
 
 export default async function SupervisorDashboardPage() {
   const session = await auth();
@@ -311,7 +312,7 @@ export default async function SupervisorDashboardPage() {
               <tbody className="divide-y divide-gray-200 dark:divide-gray-700">
                 {tutorStats.map((tutor) => {
                   const utilization = tutor.totalCourses > 0 
-                    ? Math.min(100, (tutor.totalStudents / (tutor.totalCourses * 20)) * 100)
+                    ? Math.min(100, (tutor.totalStudents / (tutor.totalCourses * APP_CONFIG.DEFAULT_STUDENTS_PER_COURSE)) * 100)
                     : 0;
                   return (
                     <tr key={tutor.id}>
