@@ -11,6 +11,16 @@ export default async function DashboardPage() {
 
   const { user } = session;
 
+  // Redirect students to their enhanced dashboard
+  if (user.role === "STUDENT") {
+    redirect("/dashboard/student");
+  }
+
+  // Redirect teachers to their tutor dashboard
+  if (user.role === "TEACHER") {
+    redirect("/dashboard/tutor");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 shadow-sm">
