@@ -16,12 +16,15 @@ model Center {
   name        String
   slug        String   @unique
   description String?
+  region      String?  // Region for multi-region support
+  branding    Json?    // Branding settings (logo, colors, etc.)
   settings    Json?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
   
   users       User[]
   courses     Course[]
+  financialTransactions FinancialTransaction[]
 }
 
 // User model with role-based access
@@ -41,6 +44,9 @@ model User {
   role          Role      @default(STUDENT)
   avatar        String?
   bio           String?
+  languagePreference String @default("en") // Language preference
+  accessibilitySettings Json? // Accessibility settings (font size, contrast, etc.)
+  specialNeeds  Json?     // Special needs indicators (Autism, ADHD, etc.)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
@@ -54,6 +60,18 @@ model User {
   // Student relationships
   enrollments   Enrollment[]
   progress      Progress[]
+  
+  // Academic profile
+  academicProfile AcademicProfile?
+  
+  // Gamification
+  gamificationProfile GamificationProfile?
+  
+  // Financial transactions
+  financialTransactions FinancialTransaction[]
+  
+  // Session attendance
+  sessionAttendance SessionAttendance[]
   
   @@index([centerId])
   @@index([email])
@@ -124,6 +142,7 @@ model Lesson {
   
   contents    Content[]
   progress    Progress[]
+  sessions    Session[]
   
   @@index([moduleId])
 }
@@ -168,9 +187,13 @@ model Enrollment {
   courseId      String
   course        Course   @relation(fields: [courseId], references: [id], onDelete: Cascade)
   
+  // Tutor allocation
+  tutorId       String?  // Assigned tutor for this enrollment
+  
   @@unique([userId, courseId])
   @@index([userId])
   @@index([courseId])
+  @@index([tutorId])
 }
 
 // Progress tracking model
@@ -190,4 +213,174 @@ model Progress {
   @@unique([userId, lessonId])
   @@index([userId])
   @@index([lessonId])
+}
+
+// Academic Profile - tracks student academic age and performance
+model AcademicProfile {
+  id                  String   @id @default(cuid())
+  chronologicalAge    Float?   // Age in years
+  readingAge          Float?   // Reading age in years
+  numeracyAge         Float?   // Numeracy/Math age in years
+  comprehensionIndex  Float?   // Comprehension level (0-100)
+  writingProficiency  Float?   // Writing proficiency level (0-100)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+  
+  userId              String   @unique
+  user                User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+}
+
+// Financial Transaction - tracks payments and billing
+enum TransactionType {
+  STUDENT_FEE      // Fee charged to student
+  STUDENT_PAYMENT  // Payment received from student
+  TUTOR_PAYMENT    // Payment to tutor
+  OPERATIONAL_COST // Other operational costs
+  REFUND           // Refund to student
+}
+
+model FinancialTransaction {
+  id          String          @id @default(cuid())
+  amount      Float
+  type        TransactionType
+  description String?
+  status      String          @default("pending") // pending, completed, failed
+  metadata    Json?           // Additional transaction details
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  centerId    String
+  center      Center          @relation(fields: [centerId], references: [id], onDelete: Cascade)
+  
+  @@index([userId])
+  @@index([centerId])
+  @@index([type])
+  @@index([createdAt])
+}
+
+// Session - Live classroom sessions (Teams/Zoom integration)
+enum SessionProvider {
+  TEAMS
+  ZOOM
+  CHIME
+  OTHER
+}
+
+enum SessionStatus {
+  SCHEDULED
+  LIVE
+  COMPLETED
+  CANCELLED
+}
+
+model Session {
+  id              String         @id @default(cuid())
+  title           String
+  description     String?
+  provider        SessionProvider
+  providerMeetingId String?      // Meeting ID from provider
+  joinUrl         String?        // Join URL for the session
+  startTime       DateTime
+  endTime         DateTime?
+  status          SessionStatus  @default(SCHEDULED)
+  recordingUrl    String?        // Recording URL after session
+  transcriptUrl   String?        // Transcript URL
+  metadata        Json?          // Provider-specific metadata
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  
+  lessonId        String
+  lesson          Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  
+  tutorId         String?
+  
+  attendance      SessionAttendance[]
+  
+  @@index([lessonId])
+  @@index([startTime])
+  @@index([status])
+}
+
+// Session Attendance - track student attendance in live sessions
+model SessionAttendance {
+  id          String   @id @default(cuid())
+  joinedAt    DateTime?
+  leftAt      DateTime?
+  attended    Boolean  @default(false)
+  
+  sessionId   String
+  session     Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@unique([sessionId, userId])
+  @@index([sessionId])
+  @@index([userId])
+}
+
+// Gamification Profile - XP, levels, and achievements
+model GamificationProfile {
+  id              String   @id @default(cuid())
+  xp              Int      @default(0)
+  level           Int      @default(1)
+  streak          Int      @default(0) // Consecutive days of activity
+  lastActivityAt  DateTime?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  userId          String   @unique
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  badges          Badge[]
+  achievements    Achievement[]
+  
+  @@index([userId])
+  @@index([level])
+  @@index([xp])
+}
+
+// Badge - Achievement badges
+enum BadgeType {
+  COMPLETION      // Course/lesson completion
+  STREAK          // Activity streak
+  MASTERY         // Subject mastery
+  PARTICIPATION   // Active participation
+  SPECIAL         // Special achievements
+}
+
+model Badge {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  type        BadgeType
+  iconUrl     String?
+  earnedAt    DateTime @default(now())
+  
+  profileId   String
+  profile     GamificationProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@index([type])
+}
+
+// Achievement - Milestones and accomplishments
+model Achievement {
+  id          String   @id @default(cuid())
+  title       String
+  description String?
+  category    String   // e.g., "reading", "math", "attendance"
+  value       Float?   // Achievement value (e.g., 100% completion)
+  earnedAt    DateTime @default(now())
+  
+  profileId   String
+  profile     GamificationProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  
+  @@index([profileId])
+  @@index([category])
 }
