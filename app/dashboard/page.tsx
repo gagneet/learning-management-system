@@ -21,6 +21,11 @@ export default async function DashboardPage() {
     redirect("/dashboard/tutor");
   }
 
+  // Redirect supervisors and center admins to supervisor dashboard
+  if (user.role === "CENTER_SUPERVISOR" || user.role === "CENTER_ADMIN") {
+    redirect("/dashboard/supervisor");
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 shadow-sm">

@@ -160,10 +160,350 @@ Create a new course.
 
 ---
 
+### Academic Profiles
+
+#### GET /api/academic-profile/[userId]
+Get academic profile for a specific user.
+
+**Authorization:**
+- Students: Can view their own profile only
+- Teachers/Supervisors/Admins: Can view profiles in their center
+
+**Response:**
+```json
+{
+  "id": "profile_id",
+  "userId": "user_id",
+  "chronologicalAge": 12.5,
+  "readingAge": 13.2,
+  "numeracyAge": 11.8,
+  "comprehensionIndex": 85.5,
+  "writingProficiency": 78.0,
+  "createdAt": "2024-01-01T00:00:00.000Z",
+  "updatedAt": "2024-01-15T00:00:00.000Z",
+  "user": {
+    "id": "user_id",
+    "name": "Student Name",
+    "email": "student@example.com"
+  }
+}
+```
+
+#### PUT /api/academic-profile/[userId]
+Update academic profile for a user.
+
+**Authorization:**
+- TEACHER, CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "chronologicalAge": 12.5,
+  "readingAge": 13.2,
+  "numeracyAge": 11.8,
+  "comprehensionIndex": 85.5,
+  "writingProficiency": 78.0
+}
+```
+
+---
+
+### Gamification
+
+#### GET /api/gamification/[userId]
+Get gamification profile for a user.
+
+**Authorization:**
+- Students: Can view their own profile only
+- Others: Can view profiles in their center
+
+**Response:**
+```json
+{
+  "id": "profile_id",
+  "userId": "user_id",
+  "xp": 1250,
+  "level": 13,
+  "streak": 7,
+  "lastActivityAt": "2024-01-15T00:00:00.000Z",
+  "badges": [
+    {
+      "id": "badge_id",
+      "name": "First Course Completed",
+      "description": "Completed your first course",
+      "type": "COMPLETION",
+      "iconUrl": "🏆",
+      "earnedAt": "2024-01-10T00:00:00.000Z"
+    }
+  ],
+  "achievements": [
+    {
+      "id": "achievement_id",
+      "title": "Reading Master",
+      "description": "Achieved 100% in reading comprehension",
+      "category": "reading",
+      "value": 100,
+      "earnedAt": "2024-01-12T00:00:00.000Z"
+    }
+  ]
+}
+```
+
+#### POST /api/gamification/award-xp
+Award XP points to a user.
+
+**Authorization:**
+- TEACHER, CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "userId": "user_id",
+  "xp": 50,
+  "reason": "Completed quiz with 100% score"
+}
+```
+
+**Response:**
+```json
+{
+  "profile": {
+    "id": "profile_id",
+    "xp": 1300,
+    "level": 14,
+    "streak": 7
+  },
+  "awarded": {
+    "xp": 50,
+    "reason": "Completed quiz with 100% score",
+    "levelUp": true
+  }
+}
+```
+
+#### POST /api/gamification/award-badge
+Award a badge to a user.
+
+**Authorization:**
+- TEACHER, CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "userId": "user_id",
+  "name": "Perfect Attendance",
+  "description": "Attended all sessions for a month",
+  "type": "PARTICIPATION",
+  "iconUrl": "🎖️"
+}
+```
+
+---
+
+### Financial Transactions
+
+#### GET /api/financial/transactions
+Get list of financial transactions.
+
+**Query Parameters:**
+- `userId` (optional): Filter by user ID
+- `centerId` (optional): Filter by center ID (Super Admin only)
+- `type` (optional): Filter by transaction type
+- `status` (optional): Filter by status (pending, completed, failed)
+
+**Authorization:**
+- CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+- Students can only view their own transactions
+
+**Response:**
+```json
+[
+  {
+    "id": "transaction_id",
+    "amount": 150.00,
+    "type": "STUDENT_PAYMENT",
+    "description": "Monthly tuition fee",
+    "status": "completed",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "user": {
+      "id": "user_id",
+      "name": "Student Name",
+      "email": "student@example.com"
+    },
+    "center": {
+      "id": "center_id",
+      "name": "Main Campus"
+    }
+  }
+]
+```
+
+#### POST /api/financial/transactions
+Create a new financial transaction.
+
+**Authorization:**
+- CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "userId": "user_id",
+  "amount": 150.00,
+  "type": "STUDENT_FEE",
+  "description": "Monthly tuition fee",
+  "status": "pending",
+  "metadata": {
+    "invoiceNumber": "INV-2024-001"
+  }
+}
+```
+
+**Transaction Types:**
+- `STUDENT_FEE`: Fee charged to student
+- `STUDENT_PAYMENT`: Payment received from student
+- `TUTOR_PAYMENT`: Payment to tutor
+- `OPERATIONAL_COST`: Other operational costs
+- `REFUND`: Refund to student
+
+#### GET /api/financial/reports
+Get financial summary and reports.
+
+**Query Parameters:**
+- `centerId` (optional): Filter by center ID (Super Admin only)
+
+**Authorization:**
+- CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Response:**
+```json
+{
+  "summary": {
+    "totalRevenue": 15000.00,
+    "totalTutorPayments": 8000.00,
+    "totalOperationalCosts": 2000.00,
+    "totalRefunds": 500.00,
+    "pendingPayments": 1200.00,
+    "completedPayments": 14500.00,
+    "transactionCount": 125,
+    "netRevenue": 14500.00,
+    "totalCosts": 10000.00,
+    "profitMargin": 4500.00,
+    "profitMarginPercentage": 31.03
+  },
+  "currency": "USD"
+}
+```
+
+---
+
+### Live Sessions
+
+#### POST /api/sessions/create
+Create a new live session (Teams/Zoom).
+
+**Authorization:**
+- TEACHER, CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "lessonId": "lesson_id",
+  "title": "Introduction to Algebra",
+  "description": "Live session covering basic algebra concepts",
+  "provider": "TEAMS",
+  "startTime": "2024-01-20T10:00:00.000Z",
+  "endTime": "2024-01-20T11:00:00.000Z",
+  "tutorId": "tutor_id"
+}
+```
+
+**Session Providers:**
+- `TEAMS`: Microsoft Teams
+- `ZOOM`: Zoom
+- `CHIME`: Amazon Chime
+- `OTHER`: Other video providers
+
+**Response:**
+```json
+{
+  "id": "session_id",
+  "title": "Introduction to Algebra",
+  "description": "Live session covering basic algebra concepts",
+  "provider": "TEAMS",
+  "startTime": "2024-01-20T10:00:00.000Z",
+  "endTime": "2024-01-20T11:00:00.000Z",
+  "status": "SCHEDULED",
+  "lesson": {
+    "id": "lesson_id",
+    "title": "Algebra Basics"
+  }
+}
+```
+
+#### GET /api/sessions/[sessionId]
+Get session details.
+
+**Authorization:**
+- Users in the same center as the session
+
+**Response:**
+```json
+{
+  "id": "session_id",
+  "title": "Introduction to Algebra",
+  "provider": "TEAMS",
+  "providerMeetingId": "meeting_123",
+  "joinUrl": "https://teams.microsoft.com/...",
+  "startTime": "2024-01-20T10:00:00.000Z",
+  "endTime": "2024-01-20T11:00:00.000Z",
+  "status": "LIVE",
+  "recordingUrl": null,
+  "transcriptUrl": null,
+  "attendance": [
+    {
+      "id": "attendance_id",
+      "userId": "user_id",
+      "joinedAt": "2024-01-20T10:02:00.000Z",
+      "leftAt": null,
+      "attended": true,
+      "user": {
+        "id": "user_id",
+        "name": "Student Name",
+        "email": "student@example.com"
+      }
+    }
+  ]
+}
+```
+
+#### PUT /api/sessions/[sessionId]
+Update session details.
+
+**Authorization:**
+- TEACHER, CENTER_SUPERVISOR, CENTER_ADMIN, SUPER_ADMIN roles
+
+**Request Body:**
+```json
+{
+  "title": "Updated Session Title",
+  "status": "COMPLETED",
+  "recordingUrl": "https://recordings.example.com/session123",
+  "transcriptUrl": "https://transcripts.example.com/session123"
+}
+```
+
+**Session Status:**
+- `SCHEDULED`: Session is scheduled
+- `LIVE`: Session is currently active
+- `COMPLETED`: Session has ended
+- `CANCELLED`: Session was cancelled
+
+---
+
 ## Data Models
 
 ### User Roles
-
+```
 - **SUPER_ADMIN**: Full system access across all centers
 - **CENTER_ADMIN**: Administrative control within a specific center
 - **CENTER_SUPERVISOR**: Supervisory access within a specific center
