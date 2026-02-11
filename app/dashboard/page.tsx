@@ -54,8 +54,9 @@ export default async function DashboardPage() {
   ]);
 
   const avgProgress = enrollmentCount > 0
+  const avgProgress = enrollmentCount > 0
     ? await prisma.enrollment.aggregate({
-        where: { course: centerFilter },
+        where: { course: centerFilter.centerId ? { centerId: centerFilter.centerId } : {} },
         _avg: { progress: true },
       }).then(r => r._avg.progress || 0)
     : 0;
