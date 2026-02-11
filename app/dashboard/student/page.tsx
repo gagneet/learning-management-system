@@ -142,7 +142,7 @@ export default async function StudentDashboardPage() {
 
   const MAX_PENDING_LESSONS = 10;
 
-  outerLoop: for (const enrollment of enrollments) {
+  enrollmentLoop: for (const enrollment of enrollments) {
     if (enrollment.completedAt) continue;
     for (const mod of enrollment.course.modules) {
       for (const lesson of mod.lessons) {
@@ -156,7 +156,7 @@ export default async function StudentDashboardPage() {
           });
           // Break early once we have enough pending lessons
           if (pendingLessons.length >= MAX_PENDING_LESSONS) {
-            break outerLoop;
+            break enrollmentLoop;
           }
         }
       }

@@ -3,6 +3,25 @@ import bcrypt from 'bcryptjs';
 
 const prisma = new PrismaClient();
 
+// Constants for time calculations
+const ONE_DAY_MS = 24 * 60 * 60 * 1000;
+const TWO_DAYS_MS = 2 * ONE_DAY_MS;
+const FIVE_DAYS_MS = 5 * ONE_DAY_MS;
+const TEN_DAYS_MS = 10 * ONE_DAY_MS;
+const FIFTEEN_DAYS_MS = 15 * ONE_DAY_MS;
+const TWENTY_DAYS_MS = 20 * ONE_DAY_MS;
+const TWENTYFIVE_DAYS_MS = 25 * ONE_DAY_MS;
+const TWENTYEIGHT_DAYS_MS = 28 * ONE_DAY_MS;
+const THIRTY_DAYS_MS = 30 * ONE_DAY_MS;
+const THIRTYFIVE_DAYS_MS = 35 * ONE_DAY_MS;
+const FORTY_DAYS_MS = 40 * ONE_DAY_MS;
+const FORTYTHREE_DAYS_MS = 43 * ONE_DAY_MS;
+const FORTYFIVE_DAYS_MS = 45 * ONE_DAY_MS;
+const FIFTY_DAYS_MS = 50 * ONE_DAY_MS;
+const FIFTYFIVE_DAYS_MS = 55 * ONE_DAY_MS;
+const FIFTYEIGHT_DAYS_MS = 58 * ONE_DAY_MS;
+const SIXTY_DAYS_MS = 60 * ONE_DAY_MS;
+
 async function main() {
   console.log('🌱 Starting database seed...');
 
@@ -270,7 +289,7 @@ async function main() {
       xp: 450,
       level: 2,
       streak: 1,
-      lastActivityAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+      lastActivityAt: new Date(Date.now() - TWO_DAYS_MS), // 2 days ago
     },
   });
 
@@ -657,7 +676,7 @@ async function main() {
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 85,
-      enrolledAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
+      enrolledAt: new Date(Date.now() - SIXTY_DAYS_MS), // 60 days ago
     },
   });
 
@@ -667,7 +686,7 @@ async function main() {
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 45,
-      enrolledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+      enrolledAt: new Date(Date.now() - THIRTY_DAYS_MS), // 30 days ago
     },
   });
 
@@ -677,7 +696,7 @@ async function main() {
       courseId: course3.id,
       tutorId: teacher2.id,
       progress: 30,
-      enrolledAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+      enrolledAt: new Date(Date.now() - FIFTEEN_DAYS_MS), // 15 days ago
     },
   });
 
@@ -688,7 +707,7 @@ async function main() {
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 55,
-      enrolledAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+      enrolledAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
     },
   });
 
@@ -698,7 +717,7 @@ async function main() {
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 38,
-      enrolledAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      enrolledAt: new Date(Date.now() - TWENTY_DAYS_MS),
     },
   });
 
@@ -709,7 +728,7 @@ async function main() {
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 15,
-      enrolledAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+      enrolledAt: new Date(Date.now() - FORTY_DAYS_MS),
     },
   });
 
@@ -719,7 +738,7 @@ async function main() {
       courseId: course3.id,
       tutorId: teacher2.id,
       progress: 8,
-      enrolledAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+      enrolledAt: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
     },
   });
 
@@ -730,7 +749,7 @@ async function main() {
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 0,
-      enrolledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      enrolledAt: new Date(Date.now() - TWO_DAYS_MS),
     },
   });
 
@@ -744,28 +763,28 @@ async function main() {
         userId: student1.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FIFTYFIVE_DAYS_MS),
         timeSpent: 25,
       },
       {
         userId: student1.id,
         lessonId: lesson1_1_2.id,
         completed: true,
-        completedAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FIFTY_DAYS_MS),
         timeSpent: 30,
       },
       {
         userId: student1.id,
         lessonId: lesson1_1_3.id,
         completed: true,
-        completedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
         timeSpent: 35,
       },
       {
         userId: student1.id,
         lessonId: lesson1_2_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FORTY_DAYS_MS),
         timeSpent: 28,
       },
       {
@@ -778,7 +797,7 @@ async function main() {
         userId: student1.id,
         lessonId: lesson2_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
         timeSpent: 32,
       },
       {
@@ -797,14 +816,14 @@ async function main() {
         userId: student2.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FORTY_DAYS_MS),
         timeSpent: 28,
       },
       {
         userId: student2.id,
         lessonId: lesson1_1_2.id,
         completed: true,
-        completedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
         timeSpent: 32,
       },
       {
@@ -817,7 +836,7 @@ async function main() {
         userId: student2.id,
         lessonId: lesson2_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - FIFTEEN_DAYS_MS),
         timeSpent: 30,
       },
     ],
@@ -830,7 +849,7 @@ async function main() {
         userId: student3.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
+        completedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
         timeSpent: 20,
       },
       {
@@ -846,13 +865,13 @@ async function main() {
 
   // Create Sessions
   const today = new Date();
-  const tomorrow = new Date(today);
+  const tomorrow = new Date(today.getTime());
   tomorrow.setDate(tomorrow.getDate() + 1);
-  const dayAfterTomorrow = new Date(today);
+  const dayAfterTomorrow = new Date(today.getTime());
   dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
-  const yesterday = new Date(today);
+  const yesterday = new Date(today.getTime());
   yesterday.setDate(yesterday.getDate() - 1);
-  const lastWeek = new Date(today);
+  const lastWeek = new Date(today.getTime());
   lastWeek.setDate(lastWeek.getDate() - 7);
 
   // Today's sessions
@@ -1149,7 +1168,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1158,7 +1177,7 @@ async function main() {
         description: 'Course enrollment fee - Web Development Basics',
         userId: student1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1167,7 +1186,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student2.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1176,7 +1195,7 @@ async function main() {
         description: 'Course enrollment fee - Web Development Basics',
         userId: student2.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - TWENTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1185,7 +1204,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student3.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - FORTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1194,7 +1213,7 @@ async function main() {
         description: 'Course enrollment fee - Web Development Basics',
         userId: student4.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - TWO_DAYS_MS),
       },
       // Student payments
       {
@@ -1213,7 +1232,7 @@ async function main() {
         description: 'Payment received for Web Development Basics',
         userId: student1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - TWENTYEIGHT_DAYS_MS),
       },
       {
         type: 'STUDENT_PAYMENT',
@@ -1231,7 +1250,7 @@ async function main() {
         description: 'Payment received for Web Development Basics',
         userId: student4.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - ONE_DAY_MS),
       },
       // Tutor payments
       {
@@ -1241,7 +1260,7 @@ async function main() {
         description: 'Monthly payment - January',
         userId: teacher1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
       },
       {
         type: 'TUTOR_PAYMENT',
@@ -1250,7 +1269,7 @@ async function main() {
         description: 'Monthly payment - February',
         userId: teacher1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - ONE_DAY_MS),
       },
       {
         type: 'TUTOR_PAYMENT',
@@ -1259,7 +1278,7 @@ async function main() {
         description: 'Monthly payment - January',
         userId: teacher2.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
       },
       {
         type: 'TUTOR_PAYMENT',
@@ -1268,7 +1287,7 @@ async function main() {
         description: 'Monthly payment - February',
         userId: teacher2.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - ONE_DAY_MS),
       },
       // Operational costs
       {
@@ -1278,7 +1297,7 @@ async function main() {
         description: 'Office supplies and materials',
         userId: centerAdmin.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - FIFTEEN_DAYS_MS),
       },
       {
         type: 'OPERATIONAL_COST',
@@ -1287,7 +1306,7 @@ async function main() {
         description: 'Software licenses',
         userId: centerAdmin.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - TEN_DAYS_MS),
       },
       {
         type: 'OPERATIONAL_COST',
@@ -1296,7 +1315,7 @@ async function main() {
         description: 'Facility maintenance',
         userId: centerAdmin.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+        createdAt: new Date(Date.now() - FIVE_DAYS_MS),
       },
     ],
   });
