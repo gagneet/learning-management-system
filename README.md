@@ -90,12 +90,28 @@ npm run dev
 
 ### Demo Credentials
 
-After seeding the database, you can log in with these credentials:
+After seeding the database (with 3 months of historical data), you can log in with these credentials:
 
+**Administrators:**
 - **Super Admin**: admin@lms.com / admin123
-- **Center Admin**: centeradmin@lms.com / admin123
-- **Teacher**: teacher@lms.com / teacher123
-- **Student**: student@lms.com / student123
+- **Center Admin (Centre Head)**: centeradmin@lms.com / admin123
+- **Supervisor**: supervisor@lms.com / admin123
+- **Finance Admin**: finance@lms.com / admin123
+
+**Teachers:**
+- **Teacher 1 (Programming)**: teacher@lms.com / teacher123
+- **Teacher 2 (Mathematics)**: teacher2@lms.com / teacher123
+
+**Parents:**
+- **Parent 1 (2 children)**: parent1@lms.com / admin123
+- **Parent 2 (1 child)**: parent2@lms.com / admin123
+- **Parent 3 (1 child)**: parent3@lms.com / admin123
+
+**Students:**
+- **Student 1 - Jane (High performer)**: student@lms.com / student123
+- **Student 2 - Alex (Average)**: student2@lms.com / student123
+- **Student 3 - Michael (Needs attention)**: student3@lms.com / student123
+- **Student 4 - Sophia (New student)**: student4@lms.com / student123
 
 ## 📁 Project Structure
 

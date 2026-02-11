@@ -60,12 +60,14 @@ The system uses a **center-based multi-tenancy** architecture where each center 
 - **Password Hashing**: bcrypt with 10 salt rounds
 - **Auth Configuration**: `lib/auth.ts`
 
-### User Roles (5-tier RBAC)
+### User Roles (7-tier RBAC)
 1. **SUPER_ADMIN**: Full system access across all centers
 2. **CENTER_ADMIN**: Administrative control within their center
 3. **CENTER_SUPERVISOR**: Supervisory access within their center
-4. **TEACHER**: Course creation and student management
-5. **STUDENT**: Course enrollment and learning activities
+4. **FINANCE_ADMIN**: Financial management and billing oversight within their center
+5. **TEACHER**: Course creation and student management
+6. **PARENT**: View their children's progress and academic information
+7. **STUDENT**: Course enrollment and learning activities
 
 ### Course Hierarchy
 ```
@@ -79,6 +81,7 @@ Course (status: DRAFT/PUBLISHED/ARCHIVED)
 ### Database Schema Patterns
 - **Prisma Client**: Singleton pattern in `lib/prisma.ts`
 - **Multi-tenancy**: `centerId` foreign key on most models
+- **Parent-Student Relationships**: Self-referential relationship on User model (parentId/children)
 - **Soft Deletes**: Use `ARCHIVED` status instead of deletion
 - **Cascade Deletes**: Most relationships use `onDelete: Cascade`
 - **Indexing**: All foreign keys and frequently queried fields are indexed
@@ -307,11 +310,20 @@ If deployment fails or issues occur:
   - Verify CSS contains classes like `text-5xl`, `from-blue-50`, `font-bold`
 
 ### Testing User Flows
-Use demo credentials from database seed:
+Use demo credentials from database seed (3-month history):
 - Super Admin: admin@lms.com / admin123
-- Center Admin: centeradmin@lms.com / admin123
-- Teacher: teacher@lms.com / teacher123
-- Student: student@lms.com / student123
+- Center Admin (Centre Head): centeradmin@lms.com / admin123
+- Supervisor: supervisor@lms.com / admin123
+- Finance Admin: finance@lms.com / admin123
+- Teacher 1 (Programming): teacher@lms.com / teacher123
+- Teacher 2 (Mathematics): teacher2@lms.com / teacher123
+- Parent 1 (2 children): parent1@lms.com / admin123
+- Parent 2 (1 child): parent2@lms.com / admin123
+- Parent 3 (1 child): parent3@lms.com / admin123
+- Student 1 (High performer): student@lms.com / student123
+- Student 2 (Average): student2@lms.com / student123
+- Student 3 (Needs attention): student3@lms.com / student123
+- Student 4 (New): student4@lms.com / student123
 
 ### Common Gotchas
 - Always scope API queries by `centerId` unless user is SUPER_ADMIN
