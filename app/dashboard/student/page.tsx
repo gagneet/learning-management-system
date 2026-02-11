@@ -132,6 +132,7 @@ export default async function StudentDashboardPage() {
     : 0;
 
   // Find next incomplete lessons for each enrolled course (assignments due)
+  // Limit to 10 for display performance
   const pendingLessons: Array<{
     lessonTitle: string;
     courseTitle: string;
@@ -139,7 +140,9 @@ export default async function StudentDashboardPage() {
     moduleName: string;
   }> = [];
 
-  for (const enrollment of enrollments) {
+  const MAX_PENDING_LESSONS = 10;
+
+  outerLoop: for (const enrollment of enrollments) {
     if (enrollment.completedAt) continue;
     for (const mod of enrollment.course.modules) {
       for (const lesson of mod.lessons) {
@@ -151,6 +154,10 @@ export default async function StudentDashboardPage() {
             courseSlug: enrollment.course.slug,
             moduleName: mod.title,
           });
+          // Break early once we have enough pending lessons
+          if (pendingLessons.length >= MAX_PENDING_LESSONS) {
+            break outerLoop;
+          }
         }
       }
     }
