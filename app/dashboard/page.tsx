@@ -33,9 +33,11 @@ export default async function DashboardPage() {
   const [courseCount, userCount, enrollmentCount, activeStudents, recentEnrollments] = await Promise.all([
     prisma.course.count({ where: centerFilter }),
     prisma.user.count({ where: centerFilter }),
-    prisma.enrollment.count({
-      where: { course: centerFilter },
-    }),
+  prisma.enrollment.count({
+    where: { 
+      course: centerFilter.centerId ? { centerId: centerFilter.centerId } : {} 
+    },
+  }),
     prisma.user.count({
       where: {
         ...centerFilter,
