@@ -132,6 +132,7 @@ export default async function StudentDashboardPage() {
     : 0;
 
   // Find next incomplete lessons for each enrolled course (assignments due)
+  // Limit to 10 for display performance
   const pendingLessons: Array<{
     lessonTitle: string;
     courseTitle: string;
@@ -139,7 +140,9 @@ export default async function StudentDashboardPage() {
     moduleName: string;
   }> = [];
 
-  for (const enrollment of enrollments) {
+  const MAX_PENDING_LESSONS = 10;
+
+  enrollmentLoop: for (const enrollment of enrollments) {
     if (enrollment.completedAt) continue;
     for (const mod of enrollment.course.modules) {
       for (const lesson of mod.lessons) {
@@ -151,6 +154,10 @@ export default async function StudentDashboardPage() {
             courseSlug: enrollment.course.slug,
             moduleName: mod.title,
           });
+          // Break early once we have enough pending lessons
+          if (pendingLessons.length >= MAX_PENDING_LESSONS) {
+            break enrollmentLoop;
+          }
         }
       }
     }
@@ -202,7 +209,7 @@ export default async function StudentDashboardPage() {
                 <p className="text-4xl font-bold">{todaySessions.length}</p>
                 <p className="text-sm opacity-90">scheduled today</p>
               </div>
-              <div className="text-5xl opacity-80">📅</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">📅</div>
             </div>
           </div>
 
@@ -212,7 +219,7 @@ export default async function StudentDashboardPage() {
                 <h3 className="text-lg font-semibold mb-1">Total XP</h3>
                 <p className="text-4xl font-bold">{gamificationProfile?.xp || 0}</p>
               </div>
-              <div className="text-5xl opacity-80">⭐</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">⭐</div>
             </div>
           </div>
 
@@ -225,7 +232,7 @@ export default async function StudentDashboardPage() {
                 </p>
                 {academicProfile?.readingAge && <p className="text-sm opacity-90">years</p>}
               </div>
-              <div className="text-5xl opacity-80">📖</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">📖</div>
             </div>
           </div>
 
@@ -235,7 +242,7 @@ export default async function StudentDashboardPage() {
                 <h3 className="text-lg font-semibold mb-1">Level</h3>
                 <p className="text-4xl font-bold">{gamificationProfile?.level || 1}</p>
               </div>
-              <div className="text-5xl opacity-80">🏆</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">🏆</div>
             </div>
           </div>
         </div>
@@ -244,7 +251,7 @@ export default async function StudentDashboardPage() {
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🔥</div>
+              <div className="text-4xl" aria-hidden="true">🔥</div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Streak</h3>
                 <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
@@ -255,7 +262,7 @@ export default async function StudentDashboardPage() {
           </div>
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <div className="flex items-center gap-4">
-              <div className="text-4xl">🎖️</div>
+              <div className="text-4xl" aria-hidden="true">🎖️</div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Badges Earned</h3>
                 <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">

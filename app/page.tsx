@@ -35,7 +35,7 @@ export default function Home() {
               href="/login"
               className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-blue-500"
             >
-              <div className="text-5xl mb-4">🎓</div>
+              <div className="text-5xl mb-4" aria-hidden="true">🎓</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Students
               </h3>
@@ -51,7 +51,7 @@ export default function Home() {
               href="/login"
               className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-green-500"
             >
-              <div className="text-5xl mb-4">👨‍👩‍👧‍👦</div>
+              <div className="text-5xl mb-4" aria-hidden="true">👨‍👩‍👧‍👦</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Parents
               </h3>
@@ -67,7 +67,7 @@ export default function Home() {
               href="/login"
               className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 border-2 border-transparent hover:border-purple-500"
             >
-              <div className="text-5xl mb-4">👨‍🏫</div>
+              <div className="text-5xl mb-4" aria-hidden="true">👨‍🏫</div>
               <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                 Tutors
               </h3>
