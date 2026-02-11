@@ -171,11 +171,12 @@ const courses = await prisma.course.findMany({
 ### Environment Variables
 - Development: `.env` (not committed)
 - Production: `.env.production` (not committed)
-- Template: `.env.example` (committed)
+- Template: `.env.production.template` (committed)
 - Required variables:
   - `DATABASE_URL`: PostgreSQL connection string
-  - `NEXTAUTH_URL`: Application URL
-  - `NEXTAUTH_SECRET`: Secret for NextAuth sessions
+  - `NEXTAUTH_URL`: Application URL (must match public URL exactly)
+  - `NEXTAUTH_SECRET`: Secret for NextAuth sessions (generate with `openssl rand -base64 32`)
+  - `AUTH_TRUST_HOST`: Must be `true` for production (NextAuth v5 requirement)
 
 ## Database Operations
 

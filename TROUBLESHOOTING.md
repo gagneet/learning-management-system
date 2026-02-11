@@ -41,6 +41,40 @@ Tailwind CSS v4 compatibility issue with Next.js 16 causing incomplete CSS gener
 
 5. Purge CloudFlare cache
 
+## Login Fails with "Server Error" / UntrustedHost Error
+
+### Symptoms
+- Cannot login to the application
+- Error page shows "Server error" or "There is a problem with the server configuration"
+- Browser console shows HTTP 500 error on `/api/auth/error`
+- PM2 logs show: `[auth][error] UntrustedHost: Host must be trusted`
+
+### Cause
+NextAuth.js v5 security requirement - the production domain must be explicitly trusted.
+
+### Solution
+Add `AUTH_TRUST_HOST=true` to `.env.production`:
+
+```bash
+echo 'AUTH_TRUST_HOST=true' >> .env.production
+pm2 restart lms-nextjs --update-env
+```
+
+### Verification
+1. Check logs for the error:
+   ```bash
+   pm2 logs lms-nextjs --lines 20 | grep UntrustedHost
+   ```
+   Should return no results if fixed.
+
+2. Test auth endpoint:
+   ```bash
+   curl http://localhost:3001/api/auth/providers
+   ```
+   Should return JSON with provider information.
+
+3. Try logging in again through the browser.
+
 ## Site Not Accessible (404)
 
 ### Check CloudFlare Tunnel
