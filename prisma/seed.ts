@@ -21,6 +21,9 @@ const FIFTY_DAYS_MS = 50 * ONE_DAY_MS;
 const FIFTYFIVE_DAYS_MS = 55 * ONE_DAY_MS;
 const FIFTYEIGHT_DAYS_MS = 58 * ONE_DAY_MS;
 const SIXTY_DAYS_MS = 60 * ONE_DAY_MS;
+const SEVENTY_DAYS_MS = 70 * ONE_DAY_MS;
+const EIGHTY_DAYS_MS = 80 * ONE_DAY_MS;
+const NINETY_DAYS_MS = 90 * ONE_DAY_MS;
 
 async function main() {
   console.log('🌱 Starting database seed...');
@@ -104,15 +107,15 @@ async function main() {
     },
   });
 
-  // Finance Person (using CENTER_SUPERVISOR role for financial oversight)
-  const financePerson = await prisma.user.upsert({
+  // Finance Administrator (FINANCE_ADMIN)
+  const financeAdmin = await prisma.user.upsert({
     where: { email: 'finance@lms.com' },
     update: {},
     create: {
       email: 'finance@lms.com',
       name: 'Emily Chen',
       password: adminPassword,
-      role: 'CENTER_SUPERVISOR',
+      role: 'FINANCE_ADMIN',
       centerId: center1.id,
       bio: 'Financial Administrator managing billing and payments',
     },
@@ -146,7 +149,49 @@ async function main() {
     },
   });
 
-  // Student 1 - High performer
+  // Parent 1 - Has 2 children
+  const parent1 = await prisma.user.upsert({
+    where: { email: 'parent1@lms.com' },
+    update: {},
+    create: {
+      email: 'parent1@lms.com',
+      name: 'Robert Johnson',
+      password: adminPassword,
+      role: 'PARENT',
+      centerId: center1.id,
+      bio: 'Parent of Jane Student and Sophia Patel',
+    },
+  });
+
+  // Parent 2 - Has 1 child
+  const parent2 = await prisma.user.upsert({
+    where: { email: 'parent2@lms.com' },
+    update: {},
+    create: {
+      email: 'parent2@lms.com',
+      name: 'Lisa Thompson',
+      password: adminPassword,
+      role: 'PARENT',
+      centerId: center1.id,
+      bio: 'Parent of Alex Thompson',
+    },
+  });
+
+  // Parent 3 - Has 1 child
+  const parent3 = await prisma.user.upsert({
+    where: { email: 'parent3@lms.com' },
+    update: {},
+    create: {
+      email: 'parent3@lms.com',
+      name: 'Jennifer Lee',
+      password: adminPassword,
+      role: 'PARENT',
+      centerId: center1.id,
+      bio: 'Parent of Michael Lee',
+    },
+  });
+
+  // Student 1 - High performer (linked to parent1)
   const student1 = await prisma.user.upsert({
     where: { email: 'student@lms.com' },
     update: {},
@@ -156,10 +201,11 @@ async function main() {
       password: studentPassword,
       role: 'STUDENT',
       centerId: center1.id,
+      parentId: parent1.id,
     },
   });
 
-  // Student 2 - Average performer
+  // Student 2 - Average performer (linked to parent2)
   const student2 = await prisma.user.upsert({
     where: { email: 'student2@lms.com' },
     update: {},
@@ -169,10 +215,11 @@ async function main() {
       password: studentPassword,
       role: 'STUDENT',
       centerId: center1.id,
+      parentId: parent2.id,
     },
   });
 
-  // Student 3 - Needs attention
+  // Student 3 - Needs attention (linked to parent3)
   const student3 = await prisma.user.upsert({
     where: { email: 'student3@lms.com' },
     update: {},
@@ -182,10 +229,11 @@ async function main() {
       password: studentPassword,
       role: 'STUDENT',
       centerId: center1.id,
+      parentId: parent3.id,
     },
   });
 
-  // Student 4 - Just started
+  // Student 4 - Just started (linked to parent1, so parent1 has 2 children)
   const student4 = await prisma.user.upsert({
     where: { email: 'student4@lms.com' },
     update: {},
@@ -195,11 +243,11 @@ async function main() {
       password: studentPassword,
       role: 'STUDENT',
       centerId: center1.id,
+      parentId: parent1.id,
     },
   });
 
-  // Note: Parent role not currently in schema
-  console.log('✅ Users created (11 total)');
+  console.log('✅ Users created (14 total: 1 super admin, 1 center admin, 1 supervisor, 1 finance admin, 2 teachers, 3 parents, 4 students)');
 
   // Create Academic Profiles for students
   await prisma.academicProfile.upsert({
@@ -668,88 +716,144 @@ async function main() {
 
   console.log('✅ Content created');
 
-  // Create enrollments with varying progress
+  // Create enrollments with varying progress (3-month history)
   // Student 1 - High performer (enrolled in 3 courses)
-  const enrollment1_1 = await prisma.enrollment.create({
-    data: {
+  const enrollment1_1 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student1.id,
+        courseId: course1.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student1.id,
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 85,
-      enrolledAt: new Date(Date.now() - SIXTY_DAYS_MS), // 60 days ago
+      enrolledAt: new Date(Date.now() - NINETY_DAYS_MS), // 90 days ago
     },
   });
 
-  const enrollment1_2 = await prisma.enrollment.create({
-    data: {
+  const enrollment1_2 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student1.id,
+        courseId: course2.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student1.id,
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 45,
-      enrolledAt: new Date(Date.now() - THIRTY_DAYS_MS), // 30 days ago
+      enrolledAt: new Date(Date.now() - SIXTY_DAYS_MS), // 60 days ago
     },
   });
 
-  const enrollment1_3 = await prisma.enrollment.create({
-    data: {
+  const enrollment1_3 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student1.id,
+        courseId: course3.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student1.id,
       courseId: course3.id,
       tutorId: teacher2.id,
       progress: 30,
-      enrolledAt: new Date(Date.now() - FIFTEEN_DAYS_MS), // 15 days ago
+      enrolledAt: new Date(Date.now() - THIRTY_DAYS_MS), // 30 days ago
     },
   });
 
   // Student 2 - Average performer (enrolled in 2 courses)
-  const enrollment2_1 = await prisma.enrollment.create({
-    data: {
+  const enrollment2_1 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student2.id,
+        courseId: course1.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student2.id,
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 55,
-      enrolledAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
+      enrolledAt: new Date(Date.now() - SEVENTY_DAYS_MS), // 70 days ago
     },
   });
 
-  const enrollment2_2 = await prisma.enrollment.create({
-    data: {
+  const enrollment2_2 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student2.id,
+        courseId: course2.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student2.id,
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 38,
-      enrolledAt: new Date(Date.now() - TWENTY_DAYS_MS),
+      enrolledAt: new Date(Date.now() - FORTY_DAYS_MS), // 40 days ago
     },
   });
 
   // Student 3 - Needs attention (enrolled in 2 courses, low progress)
-  const enrollment3_1 = await prisma.enrollment.create({
-    data: {
+  const enrollment3_1 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student3.id,
+        courseId: course1.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student3.id,
       courseId: course1.id,
       tutorId: teacher1.id,
       progress: 15,
-      enrolledAt: new Date(Date.now() - FORTY_DAYS_MS),
+      enrolledAt: new Date(Date.now() - EIGHTY_DAYS_MS), // 80 days ago
     },
   });
 
-  const enrollment3_2 = await prisma.enrollment.create({
-    data: {
+  const enrollment3_2 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student3.id,
+        courseId: course3.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student3.id,
       courseId: course3.id,
       tutorId: teacher2.id,
       progress: 8,
-      enrolledAt: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
+      enrolledAt: new Date(Date.now() - FIFTY_DAYS_MS), // 50 days ago
     },
   });
 
   // Student 4 - Just started (enrolled in 1 course)
-  const enrollment4_1 = await prisma.enrollment.create({
-    data: {
+  const enrollment4_1 = await prisma.enrollment.upsert({
+    where: {
+      userId_courseId: {
+        userId: student4.id,
+        courseId: course2.id,
+      },
+    },
+    update: {},
+    create: {
       userId: student4.id,
       courseId: course2.id,
       tutorId: teacher1.id,
       progress: 0,
-      enrolledAt: new Date(Date.now() - TWO_DAYS_MS),
+      enrolledAt: new Date(Date.now() - FIVE_DAYS_MS), // 5 days ago
     },
   });
 
@@ -763,28 +867,28 @@ async function main() {
         userId: student1.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - FIFTYFIVE_DAYS_MS),
+        completedAt: new Date(Date.now() - EIGHTY_DAYS_MS),
         timeSpent: 25,
       },
       {
         userId: student1.id,
         lessonId: lesson1_1_2.id,
         completed: true,
-        completedAt: new Date(Date.now() - FIFTY_DAYS_MS),
+        completedAt: new Date(Date.now() - SEVENTY_DAYS_MS),
         timeSpent: 30,
       },
       {
         userId: student1.id,
         lessonId: lesson1_1_3.id,
         completed: true,
-        completedAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
+        completedAt: new Date(Date.now() - SIXTY_DAYS_MS),
         timeSpent: 35,
       },
       {
         userId: student1.id,
         lessonId: lesson1_2_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - FORTY_DAYS_MS),
+        completedAt: new Date(Date.now() - FIFTY_DAYS_MS),
         timeSpent: 28,
       },
       {
@@ -816,14 +920,14 @@ async function main() {
         userId: student2.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - FORTY_DAYS_MS),
+        completedAt: new Date(Date.now() - SIXTY_DAYS_MS),
         timeSpent: 28,
       },
       {
         userId: student2.id,
         lessonId: lesson1_1_2.id,
         completed: true,
-        completedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
+        completedAt: new Date(Date.now() - FIFTY_DAYS_MS),
         timeSpent: 32,
       },
       {
@@ -849,7 +953,7 @@ async function main() {
         userId: student3.id,
         lessonId: lesson1_1_1.id,
         completed: true,
-        completedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
+        completedAt: new Date(Date.now() - SEVENTY_DAYS_MS),
         timeSpent: 20,
       },
       {
@@ -1168,7 +1272,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
+        createdAt: new Date(Date.now() - NINETY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1177,7 +1281,7 @@ async function main() {
         description: 'Course enrollment fee - Web Development Basics',
         userId: student1.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
+        createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1186,7 +1290,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student2.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - FORTYFIVE_DAYS_MS),
+        createdAt: new Date(Date.now() - SEVENTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1204,7 +1308,7 @@ async function main() {
         description: 'Course enrollment fee - Introduction to Programming',
         userId: student3.id,
         centerId: center1.id,
-        createdAt: new Date(Date.now() - FORTY_DAYS_MS),
+        createdAt: new Date(Date.now() - EIGHTY_DAYS_MS),
       },
       {
         type: 'STUDENT_FEE',
@@ -1324,27 +1428,45 @@ async function main() {
 
   console.log('🎉 Database seeded successfully!');
   console.log('\n📝 Login credentials:');
-  console.log('Super Admin: admin@lms.com / admin123');
-  console.log('Centre Head: centeradmin@lms.com / admin123');
-  console.log('Supervisor: supervisor@lms.com / admin123');
-  console.log('Finance: finance@lms.com / admin123');
-  console.log('Teacher 1: teacher@lms.com / teacher123');
-  console.log('Teacher 2: teacher2@lms.com / teacher123');
-  console.log('Student 1 (High): student@lms.com / student123');
-  console.log('Student 2 (Avg): student2@lms.com / student123');
-  console.log('Student 3 (Low): student3@lms.com / student123');
-  console.log('Student 4 (New): student4@lms.com / student123');
-  console.log('\n📊 Database includes:');
-  console.log('- 2 centres');
-  console.log('- 11 users (1 super admin, 1 centre head, 1 supervisor, 1 finance, 2 teachers, 4 students)');
+  console.log('\n🔧 Administrators:');
+  console.log('  Super Admin: admin@lms.com / admin123');
+  console.log('  Centre Head: centeradmin@lms.com / admin123');
+  console.log('  Supervisor: supervisor@lms.com / admin123');
+  console.log('  Finance Admin: finance@lms.com / admin123');
+  console.log('\n👨‍🏫 Teachers:');
+  console.log('  Teacher 1 (Programming): teacher@lms.com / teacher123');
+  console.log('  Teacher 2 (Mathematics): teacher2@lms.com / teacher123');
+  console.log('\n👪 Parents:');
+  console.log('  Parent 1 (2 children): parent1@lms.com / admin123');
+  console.log('  Parent 2 (1 child): parent2@lms.com / admin123');
+  console.log('  Parent 3 (1 child): parent3@lms.com / admin123');
+  console.log('\n👦 Students:');
+  console.log('  Student 1 - Jane (High performer, Parent 1): student@lms.com / student123');
+  console.log('  Student 2 - Alex (Average, Parent 2): student2@lms.com / student123');
+  console.log('  Student 3 - Michael (Needs attention, Parent 3): student3@lms.com / student123');
+  console.log('  Student 4 - Sophia (New student, Parent 1): student4@lms.com / student123');
+  console.log('\n📊 Database includes (3-month history):');
+  console.log('- 2 centres (Main Campus, Online Campus)');
+  console.log('- 14 users total:');
+  console.log('  • 1 super admin');
+  console.log('  • 1 centre admin (head)');
+  console.log('  • 1 supervisor');
+  console.log('  • 1 finance admin');
+  console.log('  • 2 teachers');
+  console.log('  • 3 parents');
+  console.log('  • 4 students');
   console.log('- 4 courses with modules and lessons');
-  console.log('- 9 enrollments with varying progress');
+  console.log('- 9 enrollments with varying progress (spanning 90 days)');
   console.log('- Progress records for realistic tracking');
   console.log('- 8 sessions (3 today, 2 tomorrow, 3 completed)');
-  console.log('- Session attendance records for analytics');
-  console.log('- 17 financial transactions');
+  console.log('- Session attendance records for all sessions');
+  console.log('- 17 financial transactions (spanning 90 days)');
   console.log('- Gamification profiles, badges, and achievements');
-  console.log('- Academic profiles for all students');
+  console.log('- Academic profiles for all 4 students');
+  console.log('- Parent-student relationships:');
+  console.log('  • Parent 1 → Student 1 (Jane) + Student 4 (Sophia)');
+  console.log('  • Parent 2 → Student 2 (Alex)');
+  console.log('  • Parent 3 → Student 3 (Michael)');
 }
 
 main()

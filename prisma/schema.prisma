@@ -32,7 +32,9 @@ enum Role {
   SUPER_ADMIN      // Full system access across all centers
   CENTER_ADMIN     // Admin for a specific center
   CENTER_SUPERVISOR // Supervisor for a specific center
+  FINANCE_ADMIN    // Financial administrator for a center
   TEACHER          // Teacher/Tutor role
+  PARENT           // Parent/Guardian role
   STUDENT          // Student role
 }
 
@@ -72,9 +74,15 @@ model User {
   
   // Session attendance
   sessionAttendance SessionAttendance[]
-  
+
+  // Parent-Student relationships
+  parentId      String?
+  parent        User?    @relation("ParentStudents", fields: [parentId], references: [id], onDelete: SetNull)
+  children      User[]   @relation("ParentStudents")
+
   @@index([centerId])
   @@index([email])
+  @@index([parentId])
 }
 
 // Course model
