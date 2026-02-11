@@ -13,7 +13,7 @@ export default async function SupervisorDashboardPage() {
 
   const { user } = session;
 
-  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "FINANCE_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     redirect("/dashboard");
   }
 

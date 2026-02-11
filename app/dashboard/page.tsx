@@ -22,8 +22,13 @@ export default async function DashboardPage() {
     redirect("/dashboard/tutor");
   }
 
-  // Redirect supervisors and center admins to supervisor dashboard
-  if (user.role === "CENTER_SUPERVISOR" || user.role === "CENTER_ADMIN") {
+  // Redirect parents to their parent dashboard
+  if (user.role === "PARENT") {
+    redirect("/dashboard/parent");
+  }
+
+  // Redirect supervisors, finance admins, and center admins to supervisor dashboard
+  if (user.role === "CENTER_SUPERVISOR" || user.role === "CENTER_ADMIN" || user.role === "FINANCE_ADMIN") {
     redirect("/dashboard/supervisor");
   }
 
@@ -55,7 +60,6 @@ export default async function DashboardPage() {
     }),
   ]);
 
-  const avgProgress = enrollmentCount > 0
   const avgProgress = enrollmentCount > 0
     ? await prisma.enrollment.aggregate({
         where: { course: centerFilter.centerId ? { centerId: centerFilter.centerId } : {} },
