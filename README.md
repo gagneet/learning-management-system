@@ -1,6 +1,6 @@
 # Learning Management System (LMS)
 
-A comprehensive web-based platform for managing courses, users, and learning content. Built with Next.js 14, TypeScript, Prisma, and PostgreSQL.
+A comprehensive web-based platform for managing courses, users, and learning content. Built with Next.js 16, React 19, TypeScript, Prisma, and PostgreSQL.
 
 ## 🌟 Key Features
 
@@ -145,7 +145,7 @@ learning-management-system/
 
 ## 🛠️ Technology Stack
 
-- **Frontend**: Next.js 14, React 19, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 16, React 19, TypeScript, Tailwind CSS
 - **Backend**: Next.js API Routes
 - **Database**: PostgreSQL with Prisma ORM
 - **Authentication**: NextAuth.js v5
@@ -232,7 +232,28 @@ For comprehensive production deployment documentation, including:
 - Troubleshooting guide
 - Security considerations
 
-See: **[Production Deployment Guide](docs/DEPLOYMENT_PRODUCTION.md)**
+See: **[Production Deployment Guide](docs/deployment-production.md)**
+
+## Documentation
+
+All project documentation is organized under the `docs/` directory:
+
+| Document | Description |
+|----------|-------------|
+| [API Documentation](docs/api.md) | REST API endpoints, request/response formats |
+| [Features](docs/features.md) | Complete feature inventory |
+| [Deployment Guide](docs/deployment.md) | Local, Vercel, and Docker deployment |
+| [Production Deployment](docs/deployment-production.md) | Full production setup guide |
+| [Deployment Quick Start](docs/deployment-quickstart.md) | Quick setup reference |
+| [Deployment Status](docs/deployment-status.md) | Current production status |
+| [Deployment Notes](docs/deployment-notes.md) | Tailwind CSS/build notes |
+| [CloudFlare Tunnel Setup](docs/cloudflare-tunnel-setup.md) | Tunnel configuration |
+| [CloudFlare Dashboard](docs/cloudflare-dashboard-setup.md) | Dashboard hostname setup |
+| [Troubleshooting](docs/troubleshooting.md) | Common issues and solutions |
+| [Implementation Summary](docs/implementation-summary.md) | Deployment implementation details |
+| [Business Analysis](docs/business-technical-analysis.md) | Business vision and architecture |
+| [Technical Implementation](docs/technical-implementation.md) | Technical specs and wireframes |
+| [Quick Reference](docs/quickstart.md) | Common operations cheat sheet |
 
 ### Production Architecture
 

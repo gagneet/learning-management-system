@@ -10,7 +10,10 @@
     "lint": "next lint",
     "db:generate": "prisma generate",
     "db:push": "prisma db push",
-    "db:seed": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} prisma/seed.ts"
+    "db:seed": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} prisma/seed.ts",
+    "test": "playwright test",
+    "test:ui": "playwright test --ui",
+    "test:headed": "playwright test --headed"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} prisma/seed.ts"
@@ -36,6 +39,7 @@
     "react-dom": "^19.2.4"
   },
   "devDependencies": {
+    "@playwright/test": "^1.58.2",
     "@types/bcryptjs": "^2.4.6",
     "@types/node": "^25.2.2",
     "@types/react": "^19.2.13",

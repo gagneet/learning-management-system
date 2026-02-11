@@ -323,9 +323,24 @@ Use demo credentials from database seed:
 - **Tailwind CSS v3 only** - v4 causes incomplete CSS generation (known issue)
 - After deployment, purge CloudFlare cache if CSS doesn't load
 
+## Testing
+
+### Playwright E2E Tests
+```bash
+npx playwright test              # Run all tests
+npx playwright test --ui         # Run with UI mode
+npx playwright test --headed     # Run in headed browser mode
+npx playwright show-report       # Show test report
+```
+
+Test files are located in `tests/` directory:
+- `tests/home.spec.ts` - Home page and login portal tests
+- `tests/login.spec.ts` - Authentication flow tests
+- `tests/dashboard.spec.ts` - Dashboard rendering and role-based routing tests
+
 ## API Documentation
 
-Full API documentation is available in `API.md` including:
+Full API documentation is available in `docs/api.md` including:
 - All endpoints with request/response formats
 - Authorization requirements per role
 - Query parameters and filtering
@@ -334,8 +349,19 @@ Full API documentation is available in `API.md` including:
 
 ## Additional Resources
 
-- **Feature List**: See `FEATURES.md` for complete feature inventory
-- **Deployment Guide**: See `DEPLOYMENT.md` for deployment options
-- **Deployment Status**: See `DEPLOYMENT_STATUS.md` for current system state
-- **CloudFlare Setup**: See `CLOUDFLARE_TUNNEL_SETUP.md`
-- **Quick Reference**: See `QUICKSTART.txt` for common operations
+All documentation is organized under the `docs/` directory:
+
+- **API Documentation**: See `docs/api.md` for endpoint details
+- **Feature List**: See `docs/features.md` for complete feature inventory
+- **Deployment Guide**: See `docs/deployment.md` for deployment options
+- **Production Deployment**: See `docs/deployment-production.md` for production setup
+- **Deployment Quick Start**: See `docs/deployment-quickstart.md` for quick setup
+- **Deployment Status**: See `docs/deployment-status.md` for current system state
+- **Deployment Notes**: See `docs/deployment-notes.md` for Tailwind/CSS notes
+- **CloudFlare Setup**: See `docs/cloudflare-tunnel-setup.md`
+- **CloudFlare Dashboard**: See `docs/cloudflare-dashboard-setup.md`
+- **Troubleshooting**: See `docs/troubleshooting.md` for common issues
+- **Implementation Summary**: See `docs/implementation-summary.md`
+- **Business Analysis**: See `docs/business-technical-analysis.md`
+- **Technical Implementation**: See `docs/technical-implementation.md`
+- **Quick Reference**: See `docs/quickstart.md` for common operations
