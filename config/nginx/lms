@@ -11,7 +11,7 @@ upstream lms_backend {
 }
 
 # Rate limiting zones
-limit_req_zone $binary_remote_addr zone=lms_login:10m rate=5r/m;
+limit_req_zone $binary_remote_addr zone=lms_login:10m rate=20r/m;
 limit_req_zone $binary_remote_addr zone=lms_api:10m rate=100r/m;
 limit_req_zone $binary_remote_addr zone=lms_general:10m rate=200r/m;
 
@@ -92,9 +92,9 @@ server {
         proxy_read_timeout 60s;
     }
 
-    # Login endpoint with stricter rate limiting
+    # Login endpoint with rate limiting
     location /api/auth/ {
-        limit_req zone=lms_login burst=3 nodelay;
+        limit_req zone=lms_login burst=10 nodelay;
         limit_req_status 429;
 
         proxy_pass http://lms_backend;
