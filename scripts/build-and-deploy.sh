@@ -284,10 +284,33 @@ fi
 # Step 7: Build Application
 print_step "Step 7/9: Building application"
 
+# Clean previous build for fresh CSS generation (Tailwind CSS)
+if [ -d ".next" ]; then
+    print_step "Cleaning previous build (.next directory)"
+    rm -rf .next
+    print_success "Previous build cleaned"
+fi
+
+# Build application
 npm run build || {
     print_error "Failed to build application"
     exit 1
 }
+
+# Verify CSS file size (should be > 15KB with Tailwind v3)
+CSS_FILES=$(find .next/static/chunks -name "*.css" 2>/dev/null || true)
+if [ -n "$CSS_FILES" ]; then
+    for css_file in $CSS_FILES; do
+        CSS_SIZE=$(stat -f%z "$css_file" 2>/dev/null || stat -c%s "$css_file" 2>/dev/null)
+        if [ "$CSS_SIZE" -lt 15000 ]; then
+            print_warning "CSS file is smaller than expected ($CSS_SIZE bytes)"
+            print_warning "This may indicate Tailwind CSS compilation issues"
+            print_warning "Expected size: ~21KB with Tailwind v3"
+        else
+            print_success "CSS generated successfully ($CSS_SIZE bytes)"
+        fi
+    done
+fi
 
 print_success "Application built successfully"
 

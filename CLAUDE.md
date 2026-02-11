@@ -295,6 +295,16 @@ If deployment fails or issues occur:
 - JSX: `react-jsx` (new JSX transform)
 - Target: ES2017
 
+### Tailwind CSS Configuration
+- **Version**: Tailwind CSS v3 (stable)
+- **Important**: Do NOT upgrade to Tailwind v4 - it has compatibility issues with Next.js 16
+- PostCSS config uses `tailwindcss` and `autoprefixer` plugins
+- If CSS is not applying after build, check:
+  - PostCSS config should use `tailwindcss: {}`, not `@tailwindcss/postcss: {}`
+  - Run `rm -rf .next && npm run build` for clean rebuild
+  - CSS file should be ~21KB, not ~5KB
+  - Verify CSS contains classes like `text-5xl`, `from-blue-50`, `font-bold`
+
 ### Testing User Flows
 Use demo credentials from database seed:
 - Super Admin: admin@lms.com / admin123
@@ -309,6 +319,8 @@ Use demo credentials from database seed:
 - PM2 runs on port 3001 (not 3000) in production
 - Session data includes role and centerId - use these for authorization
 - Prisma client must be imported from `@/lib/prisma` (singleton pattern)
+- **Tailwind CSS v3 only** - v4 causes incomplete CSS generation (known issue)
+- After deployment, purge CloudFlare cache if CSS doesn't load
 
 ## API Documentation
 
