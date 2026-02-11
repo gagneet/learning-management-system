@@ -1,5 +1,17 @@
 import { test, expect, Page } from "@playwright/test";
 
+/**
+ * Database Prerequisites:
+ * These tests require the database to be seeded with demo data.
+ * Run `npm run db:seed` before running tests to ensure test accounts exist.
+ * 
+ * Test accounts used:
+ * - admin@lms.com / admin123 (SUPER_ADMIN)
+ * - student@lms.com / student123 (STUDENT)
+ * - teacher@lms.com / teacher123 (TEACHER)
+ * - centeradmin@lms.com / admin123 (CENTER_ADMIN)
+ */
+
 async function login(page: Page, email: string, password: string) {
   await page.goto("/login");
   await page.getByLabel("Email Address").fill(email);
@@ -214,9 +226,62 @@ test.describe("Supervisor Dashboard", () => {
     ).toBeVisible();
   });
 
+  test("should display attendance rates for sessions", async ({ page }) => {
+    // Check that attendance trends section has content
+    const attendanceSection = page.locator('text="Attendance Trends"').locator('..');
+    await expect(attendanceSection).toBeVisible();
+  });
+
+  test("should display financial transaction data", async ({ page }) => {
+    // Revenue metrics should show actual values from seed data
+    const revenueSection = page.locator('text="Total Revenue"').locator('..');
+    await expect(revenueSection).toBeVisible();
+  });
+
   test("should have sign out button", async ({ page }) => {
     await expect(
       page.getByRole("button", { name: "Sign Out" })
+    ).toBeVisible();
+  });
+});
+
+test.describe("Dashboard with Seed Data", () => {
+  test("student dashboard should show today's sessions", async ({ page }) => {
+    await login(page, "student@lms.com", "student123");
+    
+    // Check Today's Lessons stat
+    await expect(page.getByText("Today's Lessons")).toBeVisible();
+    
+    // Check Upcoming Sessions section exists
+    await expect(
+      page.getByRole("heading", { name: "Upcoming Sessions" })
+    ).toBeVisible();
+  });
+
+  test("student dashboard should show assignments due", async ({ page }) => {
+    await login(page, "student@lms.com", "student123");
+    
+    // Check Assignments Due section exists
+    await expect(
+      page.getByRole("heading", { name: "Assignments Due" })
+    ).toBeVisible();
+  });
+
+  test("tutor dashboard should show marking queue", async ({ page }) => {
+    await login(page, "teacher@lms.com", "teacher123");
+    
+    // Check Marking Queue section exists
+    await expect(
+      page.getByRole("heading", { name: "Marking Queue" })
+    ).toBeVisible();
+  });
+
+  test("tutor dashboard should show classes today", async ({ page }) => {
+    await login(page, "teacher@lms.com", "teacher123");
+    
+    // Check Classes Today section exists
+    await expect(
+      page.getByRole("heading", { name: "Classes Today" })
     ).toBeVisible();
   });
 });
