@@ -16,8 +16,12 @@ export default async function StudentDashboardPage() {
     redirect("/dashboard");
   }
 
+  const now = new Date();
+  const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
+
   // Fetch student data
-  const [academicProfile, gamificationProfile, enrollments] = await Promise.all([
+  const [academicProfile, gamificationProfile, enrollments, upcomingSessions, todaySessions] = await Promise.all([
     prisma.academicProfile.findUnique({
       where: { userId: user.id },
     }),
@@ -45,17 +49,119 @@ export default async function StudentDashboardPage() {
                 email: true,
               },
             },
+            modules: {
+              include: {
+                lessons: {
+                  include: {
+                    progress: {
+                      where: { userId: user.id },
+                    },
+                  },
+                  orderBy: { order: "asc" },
+                },
+              },
+              orderBy: { order: "asc" },
+            },
           },
         },
       },
       orderBy: { enrolledAt: "desc" },
     }),
+    // Upcoming sessions (next 7 days) for courses the student is enrolled in
+    prisma.session.findMany({
+      where: {
+        startTime: { gte: now },
+        status: { in: ["SCHEDULED", "LIVE"] },
+        lesson: {
+          module: {
+            course: {
+              enrollments: {
+                some: { userId: user.id },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        lesson: {
+          include: {
+            module: {
+              include: {
+                course: { select: { title: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { startTime: "asc" },
+      take: 5,
+    }),
+    // Today's sessions
+    prisma.session.findMany({
+      where: {
+        startTime: { gte: todayStart, lt: todayEnd },
+        status: { in: ["SCHEDULED", "LIVE"] },
+        lesson: {
+          module: {
+            course: {
+              enrollments: {
+                some: { userId: user.id },
+              },
+            },
+          },
+        },
+      },
+      include: {
+        lesson: {
+          include: {
+            module: {
+              include: {
+                course: { select: { title: true } },
+              },
+            },
+          },
+        },
+      },
+      orderBy: { startTime: "asc" },
+    }),
   ]);
 
   const completedCourses = enrollments.filter(e => e.completedAt).length;
-  const avgProgress = enrollments.length > 0 
-    ? enrollments.reduce((sum, e) => sum + e.progress, 0) / enrollments.length 
+  const avgProgress = enrollments.length > 0
+    ? enrollments.reduce((sum, e) => sum + e.progress, 0) / enrollments.length
     : 0;
+
+  // Find next incomplete lessons for each enrolled course (assignments due)
+  // Limit to 10 for display performance
+  const pendingLessons: Array<{
+    lessonTitle: string;
+    courseTitle: string;
+    courseSlug: string;
+    moduleName: string;
+  }> = [];
+
+  const MAX_PENDING_LESSONS = 10;
+
+  enrollmentLoop: for (const enrollment of enrollments) {
+    if (enrollment.completedAt) continue;
+    for (const mod of enrollment.course.modules) {
+      for (const lesson of mod.lessons) {
+        const isCompleted = lesson.progress.some(p => p.completed);
+        if (!isCompleted) {
+          pendingLessons.push({
+            lessonTitle: lesson.title,
+            courseTitle: enrollment.course.title,
+            courseSlug: enrollment.course.slug,
+            moduleName: mod.title,
+          });
+          // Break early once we have enough pending lessons
+          if (pendingLessons.length >= MAX_PENDING_LESSONS) {
+            break enrollmentLoop;
+          }
+        }
+      }
+    }
+  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800">
@@ -64,18 +170,20 @@ export default async function StudentDashboardPage() {
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              🎓 My Learning Dashboard
+              My Learning Dashboard
             </h1>
             <div className="flex items-center gap-4">
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user.name}
               </span>
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg text-sm"
-              >
-                Back to Dashboard
-              </Link>
+              <form action="/api/auth/signout" method="POST">
+                <button
+                  type="submit"
+                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
+                >
+                  Sign Out
+                </button>
+              </form>
             </div>
           </div>
         </div>
@@ -85,22 +193,23 @@ export default async function StudentDashboardPage() {
         {/* Welcome Section */}
         <div className="mb-8">
           <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Welcome back, {user.name}! 👋
+            Welcome back, {user.name}!
           </h2>
           <p className="text-gray-600 dark:text-gray-400">
             Keep learning and growing every day!
           </p>
         </div>
 
-        {/* Gamification Stats */}
+        {/* Top Stats Row: Today's Lessons | XP | Reading Age | Level */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-xl shadow-lg text-white">
+          <div className="bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-xl shadow-lg text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold mb-1">Level</h3>
-                <p className="text-4xl font-bold">{gamificationProfile?.level || 1}</p>
+                <h3 className="text-lg font-semibold mb-1">Today&apos;s Lessons</h3>
+                <p className="text-4xl font-bold">{todaySessions.length}</p>
+                <p className="text-sm opacity-90">scheduled today</p>
               </div>
-              <div className="text-5xl opacity-80">🏆</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">📅</div>
             </div>
           </div>
 
@@ -110,45 +219,73 @@ export default async function StudentDashboardPage() {
                 <h3 className="text-lg font-semibold mb-1">Total XP</h3>
                 <p className="text-4xl font-bold">{gamificationProfile?.xp || 0}</p>
               </div>
-              <div className="text-5xl opacity-80">⭐</div>
-            </div>
-          </div>
-
-          <div className="bg-gradient-to-br from-purple-400 to-purple-600 p-6 rounded-xl shadow-lg text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Streak</h3>
-                <p className="text-4xl font-bold">{gamificationProfile?.streak || 0}</p>
-                <p className="text-sm opacity-90">days</p>
-              </div>
-              <div className="text-5xl opacity-80">🔥</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">⭐</div>
             </div>
           </div>
 
           <div className="bg-gradient-to-br from-green-400 to-green-600 p-6 rounded-xl shadow-lg text-white">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold mb-1">Badges</h3>
-                <p className="text-4xl font-bold">{gamificationProfile?.badges.length || 0}</p>
+                <h3 className="text-lg font-semibold mb-1">Reading Age</h3>
+                <p className="text-4xl font-bold">
+                  {academicProfile?.readingAge ? `${academicProfile.readingAge.toFixed(1)}` : "N/A"}
+                </p>
+                {academicProfile?.readingAge && <p className="text-sm opacity-90">years</p>}
               </div>
-              <div className="text-5xl opacity-80">🎖️</div>
+              <div className="text-5xl opacity-80" aria-hidden="true">📖</div>
+            </div>
+          </div>
+
+          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-xl shadow-lg text-white">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-semibold mb-1">Level</h3>
+                <p className="text-4xl font-bold">{gamificationProfile?.level || 1}</p>
+              </div>
+              <div className="text-5xl opacity-80" aria-hidden="true">🏆</div>
             </div>
           </div>
         </div>
 
-        {/* Academic Profile */}
+        {/* Streak & Badges Row */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl" aria-hidden="true">🔥</div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Streak</h3>
+                <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                  {gamificationProfile?.streak || 0} days
+                </p>
+              </div>
+            </div>
+          </div>
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl" aria-hidden="true">🎖️</div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Badges Earned</h3>
+                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                  {gamificationProfile?.badges.length || 0}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Academic Profile - Progress Charts */}
         {academicProfile && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              📊 Academic Profile
+              Academic Profile
             </h3>
-            <div className="grid md:grid-cols-3 gap-6">
+            <div className="grid md:grid-cols-4 gap-6">
               {academicProfile.readingAge && (
                 <div className="text-center p-4 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
                   <div className="text-3xl mb-2">📖</div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Reading Age</h4>
                   <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-                    {academicProfile.readingAge.toFixed(1)} years
+                    {academicProfile.readingAge.toFixed(1)} yrs
                   </p>
                 </div>
               )}
@@ -157,7 +294,7 @@ export default async function StudentDashboardPage() {
                   <div className="text-3xl mb-2">🔢</div>
                   <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Numeracy Age</h4>
                   <p className="text-2xl font-bold text-green-600 dark:text-green-400">
-                    {academicProfile.numeracyAge.toFixed(1)} years
+                    {academicProfile.numeracyAge.toFixed(1)} yrs
                   </p>
                 </div>
               )}
@@ -170,11 +307,20 @@ export default async function StudentDashboardPage() {
                   </p>
                 </div>
               )}
+              {academicProfile.writingProficiency && (
+                <div className="text-center p-4 bg-orange-50 dark:bg-orange-900/20 rounded-lg">
+                  <div className="text-3xl mb-2">✍️</div>
+                  <h4 className="font-semibold text-gray-900 dark:text-white mb-1">Writing</h4>
+                  <p className="text-2xl font-bold text-orange-600 dark:text-orange-400">
+                    {academicProfile.writingProficiency.toFixed(0)}%
+                  </p>
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {/* Course Progress */}
+        {/* Course Progress Summary */}
         <div className="grid md:grid-cols-3 gap-6 mb-8">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
@@ -204,10 +350,105 @@ export default async function StudentDashboardPage() {
           </div>
         </div>
 
+        {/* Upcoming Sessions */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Upcoming Sessions
+          </h3>
+          {upcomingSessions.length > 0 ? (
+            <div className="space-y-4">
+              {upcomingSessions.map((s) => (
+                <div
+                  key={s.id}
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition"
+                >
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
+                        {s.title}
+                      </h4>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
+                        {s.lesson.module.course.title} - {s.lesson.title}
+                      </p>
+                      <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
+                        <span>{new Date(s.startTime).toLocaleDateString()}</span>
+                        <span>{new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                        <span className="px-2 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded text-xs">
+                          {s.provider}
+                        </span>
+                        {s.status === "LIVE" && (
+                          <span className="px-2 py-1 bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 rounded text-xs font-semibold animate-pulse">
+                            LIVE NOW
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                    {s.joinUrl && (
+                      <a
+                        href={s.joinUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm whitespace-nowrap"
+                      >
+                        Join
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <p className="text-gray-600 dark:text-gray-400 text-center py-4">
+              No upcoming sessions scheduled.
+            </p>
+          )}
+        </div>
+
+        {/* Assignments Due (Pending Lessons) */}
+        <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
+          <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
+            Assignments Due
+          </h3>
+          {pendingLessons.length > 0 ? (
+            <div className="space-y-3">
+              {pendingLessons.slice(0, 10).map((lesson, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between border border-gray-200 dark:border-gray-700 rounded-lg p-4"
+                >
+                  <div>
+                    <h4 className="font-semibold text-gray-900 dark:text-white">
+                      {lesson.lessonTitle}
+                    </h4>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {lesson.courseTitle} &middot; {lesson.moduleName}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/courses/${lesson.courseSlug}`}
+                    className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm whitespace-nowrap"
+                  >
+                    Start
+                  </Link>
+                </div>
+              ))}
+              {pendingLessons.length > 10 && (
+                <p className="text-sm text-gray-500 dark:text-gray-400 text-center">
+                  + {pendingLessons.length - 10} more pending lessons
+                </p>
+              )}
+            </div>
+          ) : (
+            <p className="text-gray-600 dark:text-gray-400 text-center py-4">
+              All caught up! No pending assignments.
+            </p>
+          )}
+        </div>
+
         {/* My Courses */}
         <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6 mb-8">
           <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            📚 My Courses
+            My Courses
           </h3>
           {enrollments.length > 0 ? (
             <div className="space-y-4">
@@ -248,7 +489,7 @@ export default async function StudentDashboardPage() {
             </div>
           ) : (
             <p className="text-gray-600 dark:text-gray-400 text-center py-8">
-              You haven't enrolled in any courses yet.{" "}
+              You haven&apos;t enrolled in any courses yet.{" "}
               <Link href="/courses" className="text-blue-600 hover:underline">
                 Browse courses
               </Link>
@@ -260,7 +501,7 @@ export default async function StudentDashboardPage() {
         {gamificationProfile && gamificationProfile.badges.length > 0 && (
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-lg p-6">
             <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-              🎖️ Recent Badges
+              Recent Badges
             </h3>
             <div className="grid md:grid-cols-5 gap-4">
               {gamificationProfile.badges.map((badge) => (
