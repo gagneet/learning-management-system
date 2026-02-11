@@ -25,6 +25,16 @@ model Center {
   users       User[]
   courses     Course[]
   financialTransactions FinancialTransaction[]
+  
+  // Phase 1 relationships
+  auditEvents     AuditEvent[]       @relation("AuditEvents")
+  approvalRequests ApprovalRequest[] @relation("ApprovalRequests")
+  classes         ClassCohort[]      @relation("Classes")
+  tickets         Ticket[]           @relation("Tickets")
+  slaConfigs      SLAConfig[]        @relation("SLAConfigs")
+  feePlans        FeePlan[]          @relation("FeePlans")
+  studentAccounts StudentAccount[]   @relation("StudentAccounts")
+  invoices        Invoice[]          @relation("Invoices")
 }
 
 // User model with role-based access
@@ -79,6 +89,23 @@ model User {
   parentId      String?
   parent        User?    @relation("ParentStudents", fields: [parentId], references: [id], onDelete: SetNull)
   children      User[]   @relation("ParentStudents")
+  
+  // Phase 1 relationships
+  requestedApprovals ApprovalRequest[] @relation("RequestedApprovals")
+  approvedApprovals  ApprovalRequest[] @relation("ApprovedApprovals")
+  taughtClasses      ClassCohort[]     @relation("TaughtClasses")
+  classMemberships   ClassMembership[] @relation("ClassMemberships")
+  attendanceRecords  AttendanceRecord[] @relation("AttendanceRecords")
+  markedAttendance   AttendanceRecord[] @relation("MarkedAttendance")
+  catchUpPackages    CatchUpPackage[]   @relation("CatchUpPackages")
+  createdTickets     Ticket[]           @relation("CreatedTickets")
+  assignedTickets    Ticket[]           @relation("AssignedTickets")
+  ticketComments     TicketComment[]    @relation("TicketComments")
+  ticketAttachments  TicketAttachment[] @relation("TicketAttachments")
+  studentAccount     StudentAccount?    @relation("StudentAccount")
+  recordedPayments   Payment[]          @relation("RecordedPayments")
+  requestedRefunds   Refund[]           @relation("RequestedRefunds")
+  approvedRefunds    Refund[]           @relation("ApprovedRefunds")
 
   @@index([centerId])
   @@index([email])
@@ -307,11 +334,18 @@ model Session {
   
   tutorId         String?
   
+  // Phase 1: Link to ClassCohort
+  classId         String?
+  class           ClassCohort?   @relation("ClassSessions", fields: [classId], references: [id])
+  
   attendance      SessionAttendance[]
+  attendanceRecords AttendanceRecord[] @relation("AttendanceRecords")
+  catchUpPackages CatchUpPackage[]   @relation("CatchUpPackages")
   
   @@index([lessonId])
   @@index([startTime])
   @@index([status])
+  @@index([classId])
 }
 
 // Session Attendance - track student attendance in live sessions
@@ -391,4 +425,585 @@ model Achievement {
   
   @@index([profileId])
   @@index([category])
+}
+
+// ============================================================================
+// PHASE 1 MODELS - Governance, Academic, Operations, Finance
+// ============================================================================
+
+// Governance Domain - Audit Logging
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  APPROVE
+  REJECT
+  ESCALATE
+}
+
+model AuditEvent {
+  id            String      @id @default(cuid())
+  userId        String      // Actor who performed the action
+  userName      String      // Denormalized for reporting
+  userRole      Role        // Role at time of action
+  
+  action        AuditAction
+  resourceType  String      // e.g., "Refund", "Invoice", "Ticket"
+  resourceId    String      // ID of the affected resource
+  
+  beforeState   Json?       // State before the action (UPDATE/DELETE)
+  afterState    Json?       // State after the action (CREATE/UPDATE)
+  
+  centreId      String      // Multi-tenancy
+  centre        Center      @relation("AuditEvents", fields: [centreId], references: [id])
+  
+  ipAddress     String?     // Client IP address
+  metadata      Json?       // Additional context
+  
+  createdAt     DateTime    @default(now())
+  
+  @@index([centreId])
+  @@index([userId])
+  @@index([resourceType, resourceId])
+  @@index([action])
+  @@index([createdAt])
+}
+
+// Governance Domain - Approval Workflow
+enum ApprovalType {
+  REFUND
+  TUTOR_OVERRIDE
+  PAYROLL_EXCEPTION
+  FEE_WAIVER
+}
+
+enum ApprovalStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  EXPIRED
+}
+
+model ApprovalRequest {
+  id              String          @id @default(cuid())
+  type            ApprovalType
+  
+  requestedById   String
+  requestedBy     User            @relation("RequestedApprovals", fields: [requestedById], references: [id])
+  requestedByName String          // Denormalized
+  
+  status          ApprovalStatus  @default(PENDING)
+  
+  approvedById    String?
+  approvedBy      User?           @relation("ApprovedApprovals", fields: [approvedById], references: [id])
+  approvedByName  String?         // Denormalized
+  approvedAt      DateTime?
+  
+  resourceType    String          // e.g., "Refund"
+  resourceId      String          // e.g., refund_123
+  
+  metadata        Json            // Type-specific data (amount, reason, etc.)
+  comment         String?         // Approver's comment
+  
+  centreId        String
+  centre          Center          @relation("ApprovalRequests", fields: [centreId], references: [id])
+  
+  expiresAt       DateTime        // Auto-reject if not actioned
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  refunds         Refund[]
+  
+  @@index([centreId, status])
+  @@index([requestedById])
+  @@index([approvedById])
+  @@index([type])
+  @@index([expiresAt])
+}
+
+// Academic Domain - Classes/Cohorts
+enum ClassStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+}
+
+model ClassCohort {
+  id                String            @id @default(cuid())
+  name              String            // "Math Grade 5 - Spring 2026"
+  subject           String            // "Mathematics"
+  description       String?
+  
+  startDate         DateTime
+  endDate           DateTime
+  
+  maxCapacity       Int               @default(20)
+  currentEnrollment Int               @default(0)
+  
+  status            ClassStatus       @default(ACTIVE)
+  
+  teacherId         String
+  teacher           User              @relation("TaughtClasses", fields: [teacherId], references: [id])
+  
+  centreId          String
+  centre            Center            @relation("Classes", fields: [centreId], references: [id])
+  
+  members           ClassMembership[]
+  sessions          Session[]         @relation("ClassSessions")
+  
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+  
+  @@index([centreId])
+  @@index([teacherId])
+  @@index([status])
+  @@index([startDate, endDate])
+}
+
+// Academic Domain - Class Membership
+enum MembershipStatus {
+  ACTIVE
+  DROPPED
+  COMPLETED
+}
+
+model ClassMembership {
+  id          String           @id @default(cuid())
+  
+  classId     String
+  class       ClassCohort      @relation(fields: [classId], references: [id], onDelete: Cascade)
+  
+  studentId   String
+  student     User             @relation("ClassMemberships", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  status      MembershipStatus @default(ACTIVE)
+  joinedAt    DateTime         @default(now())
+  leftAt      DateTime?
+  
+  centreId    String           // Denormalized for efficient queries
+  
+  @@unique([classId, studentId])
+  @@index([classId])
+  @@index([studentId])
+  @@index([centreId, status])
+}
+
+// Academic Domain - Attendance Records
+enum AttendanceStatus {
+  PENDING
+  PRESENT
+  ABSENT
+  LATE
+  EXCUSED
+  CANCELLED
+}
+
+model AttendanceRecord {
+  id          String            @id @default(cuid())
+  
+  sessionId   String
+  session     Session           @relation("AttendanceRecords", fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  studentId   String
+  student     User              @relation("AttendanceRecords", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  status      AttendanceStatus  @default(PENDING)
+  
+  markedAt    DateTime?
+  markedById  String?
+  markedBy    User?             @relation("MarkedAttendance", fields: [markedById], references: [id])
+  
+  notes       String?
+  
+  centreId    String            // Denormalized
+  
+  catchUpPackage CatchUpPackage?
+  
+  createdAt   DateTime          @default(now())
+  updatedAt   DateTime          @updatedAt
+  
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([centreId, sessionId])
+  @@index([status])
+}
+
+// Academic Domain - Catch-Up Packages
+enum CatchUpStatus {
+  PENDING
+  IN_PROGRESS
+  COMPLETED
+  OVERDUE
+}
+
+model CatchUpPackage {
+  id          String        @id @default(cuid())
+  
+  studentId   String
+  student     User          @relation("CatchUpPackages", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  sessionId   String
+  session     Session       @relation("CatchUpPackages", fields: [sessionId], references: [id])
+  
+  attendanceId String       @unique
+  attendance  AttendanceRecord @relation(fields: [attendanceId], references: [id])
+  
+  status      CatchUpStatus @default(PENDING)
+  
+  dueDate     DateTime      // Auto-calculated: missedDate + 7 days
+  completedAt DateTime?
+  
+  resources   Json          // Array of { type, url, title, duration }
+  notes       String?
+  
+  centreId    String
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([studentId, status])
+  @@index([centreId])
+  @@index([dueDate])
+}
+
+// Operations Domain - Tickets
+enum TicketType {
+  IT
+  INVENTORY
+  COMPLAINT
+  MAINTENANCE
+  GENERAL
+}
+
+enum TicketPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+  ESCALATED
+}
+
+model Ticket {
+  id            String          @id @default(cuid())
+  ticketNumber  String          @unique // TICK-2026-0001
+  
+  type          TicketType
+  priority      TicketPriority
+  status        TicketStatus    @default(OPEN)
+  
+  subject       String          // 5-200 chars
+  description   String          @db.Text // 10-2000 chars
+  
+  createdById   String
+  createdBy     User            @relation("CreatedTickets", fields: [createdById], references: [id])
+  
+  assignedToId  String?
+  assignedTo    User?           @relation("AssignedTickets", fields: [assignedToId], references: [id])
+  
+  resolution    String?         @db.Text // Filled when RESOLVED/CLOSED
+  
+  slaDueAt      DateTime        // Auto-calculated from SLAConfig
+  isOverdue     Boolean         @default(false)
+  
+  centreId      String
+  centre        Center          @relation("Tickets", fields: [centreId], references: [id])
+  
+  comments      TicketComment[]
+  attachments   TicketAttachment[]
+  
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  
+  @@index([centreId, status])
+  @@index([createdById])
+  @@index([assignedToId])
+  @@index([ticketNumber])
+  @@index([slaDueAt])
+  @@index([centreId, status, slaDueAt])
+}
+
+model TicketComment {
+  id          String    @id @default(cuid())
+  
+  ticketId    String
+  ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  userId      String
+  user        User      @relation("TicketComments", fields: [userId], references: [id])
+  userName    String    // Denormalized
+  
+  text        String    @db.Text
+  isInternal  Boolean   @default(false) // Internal notes vs public comments
+  isSystem    Boolean   @default(false) // System-generated
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([ticketId])
+  @@index([userId])
+}
+
+model TicketAttachment {
+  id          String    @id @default(cuid())
+  
+  ticketId    String
+  ticket      Ticket    @relation(fields: [ticketId], references: [id], onDelete: Cascade)
+  
+  filename    String
+  url         String    // Cloud storage URL
+  mimeType    String
+  size        Int       // Bytes
+  
+  uploadedById String
+  uploadedBy  User      @relation("TicketAttachments", fields: [uploadedById], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([ticketId])
+}
+
+model SLAConfig {
+  id          String         @id @default(cuid())
+  
+  ticketType  TicketType
+  priority    TicketPriority
+  
+  responseTimeHours   Int    // Time to first response
+  resolutionTimeHours Int    // Time to resolution
+  
+  centreId    String
+  centre      Center         @relation("SLAConfigs", fields: [centreId], references: [id])
+  
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  
+  @@unique([centreId, ticketType, priority])
+  @@index([centreId])
+}
+
+// Finance Domain - Fee Plans
+enum BillingFrequency {
+  ONE_TIME
+  WEEKLY
+  MONTHLY
+  TERM
+  ANNUAL
+}
+
+enum FeePlanStatus {
+  ACTIVE
+  ARCHIVED
+}
+
+model FeePlan {
+  id          String          @id @default(cuid())
+  name        String
+  description String?
+  
+  amount      Decimal         @db.Decimal(10, 2)
+  currency    String          @default("USD")
+  
+  frequency   BillingFrequency
+  
+  // Optional filters
+  applicableCourses Json?     // Array of course IDs
+  applicableClasses Json?     // Array of class IDs
+  
+  status      FeePlanStatus   @default(ACTIVE)
+  
+  centreId    String
+  centre      Center          @relation("FeePlans", fields: [centreId], references: [id])
+  
+  invoices    Invoice[]
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@index([centreId, status])
+}
+
+// Finance Domain - Student Accounts
+model StudentAccount {
+  id          String    @id @default(cuid())
+  
+  studentId   String    @unique
+  student     User      @relation("StudentAccount", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  totalBilled    Decimal @db.Decimal(10, 2) @default(0)
+  totalPaid      Decimal @db.Decimal(10, 2) @default(0)
+  totalRefunded  Decimal @db.Decimal(10, 2) @default(0)
+  balance        Decimal @db.Decimal(10, 2) @default(0) // Calculated
+  
+  centreId    String
+  centre      Center    @relation("StudentAccounts", fields: [centreId], references: [id])
+  
+  invoices    Invoice[]
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  
+  @@index([centreId])
+  @@index([studentId])
+}
+
+// Finance Domain - Invoices
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  OVERDUE
+  CANCELLED
+}
+
+model Invoice {
+  id            String         @id @default(cuid())
+  invoiceNumber String         @unique // INV-2026-0001
+  
+  studentAccountId String
+  studentAccount StudentAccount @relation(fields: [studentAccountId], references: [id])
+  
+  studentId     String         // Denormalized for queries
+  
+  feePlanId     String?
+  feePlan       FeePlan?       @relation(fields: [feePlanId], references: [id])
+  
+  issueDate     DateTime       @default(now())
+  dueDate       DateTime
+  sentAt        DateTime?
+  
+  status        InvoiceStatus  @default(DRAFT)
+  
+  subtotal      Decimal        @db.Decimal(10, 2)
+  tax           Decimal        @db.Decimal(10, 2) @default(0)
+  total         Decimal        @db.Decimal(10, 2)
+  
+  paidAmount    Decimal        @db.Decimal(10, 2) @default(0)
+  balance       Decimal        @db.Decimal(10, 2) // Calculated: total - paidAmount
+  
+  notes         String?        @db.Text
+  
+  centreId      String
+  centre        Center         @relation("Invoices", fields: [centreId], references: [id])
+  
+  lineItems     InvoiceLine[]
+  payments      Payment[]
+  
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+  
+  @@index([centreId, status])
+  @@index([studentId])
+  @@index([invoiceNumber])
+  @@index([dueDate])
+  @@index([centreId, status, dueDate])
+}
+
+model InvoiceLine {
+  id          String    @id @default(cuid())
+  
+  invoiceId   String
+  invoice     Invoice   @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  
+  description String
+  quantity    Int       @default(1)
+  unitPrice   Decimal   @db.Decimal(10, 2)
+  amount      Decimal   @db.Decimal(10, 2) // quantity * unitPrice
+  
+  order       Int       @default(0) // Display order
+  
+  createdAt   DateTime  @default(now())
+  
+  @@index([invoiceId])
+}
+
+// Finance Domain - Payments
+enum PaymentMethod {
+  CASH
+  CHECK
+  BANK_TRANSFER
+  CARD
+  OTHER
+}
+
+model Payment {
+  id          String        @id @default(cuid())
+  
+  invoiceId   String
+  invoice     Invoice       @relation(fields: [invoiceId], references: [id])
+  
+  amount      Decimal       @db.Decimal(10, 2)
+  
+  method      PaymentMethod
+  paymentDate DateTime
+  reference   String?       // Check number, transaction ID, etc.
+  
+  notes       String?       @db.Text
+  
+  recordedById String
+  recordedBy  User          @relation("RecordedPayments", fields: [recordedById], references: [id])
+  
+  centreId    String
+  
+  refunds     Refund[]
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([invoiceId])
+  @@index([centreId])
+  @@index([paymentDate])
+}
+
+// Finance Domain - Refunds
+enum RefundStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  PROCESSED
+}
+
+model Refund {
+  id          String        @id @default(cuid())
+  refundNumber String       @unique // REF-2026-0001
+  
+  paymentId   String
+  payment     Payment       @relation(fields: [paymentId], references: [id])
+  
+  amount      Decimal       @db.Decimal(10, 2)
+  reason      String        @db.Text
+  
+  status      RefundStatus  @default(PENDING)
+  
+  refundMethod String?      // ORIGINAL_METHOD, BANK_TRANSFER, etc.
+  
+  processedDate DateTime?
+  processedReference String?
+  
+  requestedById String
+  requestedBy User          @relation("RequestedRefunds", fields: [requestedById], references: [id])
+  
+  approvedById String?
+  approvedBy  User?         @relation("ApprovedRefunds", fields: [approvedById], references: [id])
+  approvedAt  DateTime?
+  
+  approvalRequestId String?  @unique
+  approvalRequest ApprovalRequest? @relation(fields: [approvalRequestId], references: [id])
+  
+  centreId    String
+  
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  
+  @@index([centreId, status])
+  @@index([paymentId])
+  @@index([refundNumber])
 }
