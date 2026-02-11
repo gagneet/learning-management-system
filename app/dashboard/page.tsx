@@ -42,8 +42,8 @@ export default async function DashboardPage() {
         role: "STUDENT",
       },
     }),
-    prisma.enrollment.findMany({
-      where: { course: centerFilter },
+  prisma.enrollment.findMany({
+    where: { course: centerFilter.centerId ? { centerId: centerFilter.centerId } : {} },
       include: {
         user: { select: { name: true, email: true } },
         course: { select: { title: true } },
