@@ -856,19 +856,29 @@ async function main() {
   lastWeek.setDate(lastWeek.getDate() - 7);
 
   // Today's sessions
+  const todaySession1StartTime = new Date(today);
+  todaySession1StartTime.setHours(10, 0, 0, 0);
+  const todaySession1EndTime = new Date(today);
+  todaySession1EndTime.setHours(11, 0, 0, 0);
+
   const todaySession1 = await prisma.session.create({
     data: {
       title: 'Introduction to Programming - Live Q&A',
       description: 'Interactive Q&A session for programming concepts',
       provider: 'TEAMS',
       joinUrl: 'https://teams.microsoft.com/join/abc123',
-      startTime: new Date(today.setHours(10, 0, 0, 0)),
-      endTime: new Date(today.setHours(11, 0, 0, 0)),
+      startTime: todaySession1StartTime,
+      endTime: todaySession1EndTime,
       status: 'SCHEDULED',
       lessonId: lesson1_1_1.id,
       tutorId: teacher1.id,
     },
   });
+
+  const todaySession2StartTime = new Date(today);
+  todaySession2StartTime.setHours(14, 0, 0, 0);
+  const todaySession2EndTime = new Date(today);
+  todaySession2EndTime.setHours(15, 30, 0, 0);
 
   const todaySession2 = await prisma.session.create({
     data: {
@@ -876,13 +886,18 @@ async function main() {
       description: 'Hands-on HTML coding workshop',
       provider: 'ZOOM',
       joinUrl: 'https://zoom.us/j/123456789',
-      startTime: new Date(today.setHours(14, 0, 0, 0)),
-      endTime: new Date(today.setHours(15, 30, 0, 0)),
+      startTime: todaySession2StartTime,
+      endTime: todaySession2EndTime,
       status: 'SCHEDULED',
       lessonId: lesson2_1_1.id,
       tutorId: teacher1.id,
     },
   });
+
+  const todaySession3StartTime = new Date(today);
+  todaySession3StartTime.setHours(16, 0, 0, 0);
+  const todaySession3EndTime = new Date(today);
+  todaySession3EndTime.setHours(17, 0, 0, 0);
 
   const todaySession3 = await prisma.session.create({
     data: {
@@ -890,8 +905,8 @@ async function main() {
       description: 'Collaborative problem-solving session',
       provider: 'TEAMS',
       joinUrl: 'https://teams.microsoft.com/join/def456',
-      startTime: new Date(today.setHours(16, 0, 0, 0)),
-      endTime: new Date(today.setHours(17, 0, 0, 0)),
+      startTime: todaySession3StartTime,
+      endTime: todaySession3EndTime,
       status: 'SCHEDULED',
       lessonId: lesson3_1_1.id,
       tutorId: teacher2.id,
@@ -899,19 +914,29 @@ async function main() {
   });
 
   // Tomorrow's sessions
+  const tomorrowSession1StartTime = new Date(tomorrow);
+  tomorrowSession1StartTime.setHours(10, 0, 0, 0);
+  const tomorrowSession1EndTime = new Date(tomorrow);
+  tomorrowSession1EndTime.setHours(11, 30, 0, 0);
+
   const tomorrowSession1 = await prisma.session.create({
     data: {
       title: 'Variables Deep Dive',
       description: 'Advanced discussion on variables and data types',
       provider: 'TEAMS',
       joinUrl: 'https://teams.microsoft.com/join/ghi789',
-      startTime: new Date(tomorrow.setHours(10, 0, 0, 0)),
-      endTime: new Date(tomorrow.setHours(11, 30, 0, 0)),
+      startTime: tomorrowSession1StartTime,
+      endTime: tomorrowSession1EndTime,
       status: 'SCHEDULED',
       lessonId: lesson1_2_1.id,
       tutorId: teacher1.id,
     },
   });
+
+  const tomorrowSession2StartTime = new Date(tomorrow);
+  tomorrowSession2StartTime.setHours(15, 0, 0, 0);
+  const tomorrowSession2EndTime = new Date(tomorrow);
+  tomorrowSession2EndTime.setHours(16, 30, 0, 0);
 
   const tomorrowSession2 = await prisma.session.create({
     data: {
@@ -919,8 +944,8 @@ async function main() {
       description: 'Learn modern CSS styling methods',
       provider: 'ZOOM',
       joinUrl: 'https://zoom.us/j/987654321',
-      startTime: new Date(tomorrow.setHours(15, 0, 0, 0)),
-      endTime: new Date(tomorrow.setHours(16, 30, 0, 0)),
+      startTime: tomorrowSession2StartTime,
+      endTime: tomorrowSession2EndTime,
       status: 'SCHEDULED',
       lessonId: lesson2_1_2.id,
       tutorId: teacher1.id,
@@ -928,14 +953,19 @@ async function main() {
   });
 
   // Completed sessions (past week)
+  const completedSession1StartTime = new Date(lastWeek);
+  completedSession1StartTime.setHours(10, 0, 0, 0);
+  const completedSession1EndTime = new Date(lastWeek);
+  completedSession1EndTime.setHours(11, 0, 0, 0);
+
   const completedSession1 = await prisma.session.create({
     data: {
       title: 'Getting Started with Programming',
       description: 'Introductory session',
       provider: 'TEAMS',
       joinUrl: 'https://teams.microsoft.com/join/old123',
-      startTime: new Date(lastWeek.setHours(10, 0, 0, 0)),
-      endTime: new Date(lastWeek.setHours(11, 0, 0, 0)),
+      startTime: completedSession1StartTime,
+      endTime: completedSession1EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session1.mp4',
       lessonId: lesson1_1_1.id,
@@ -943,14 +973,19 @@ async function main() {
     },
   });
 
+  const completedSession2StartTime = new Date(yesterday);
+  completedSession2StartTime.setHours(14, 0, 0, 0);
+  const completedSession2EndTime = new Date(yesterday);
+  completedSession2EndTime.setHours(15, 30, 0, 0);
+
   const completedSession2 = await prisma.session.create({
     data: {
       title: 'HTML Fundamentals',
       description: 'Basic HTML structure and elements',
       provider: 'ZOOM',
       joinUrl: 'https://zoom.us/j/111222333',
-      startTime: new Date(yesterday.setHours(14, 0, 0, 0)),
-      endTime: new Date(yesterday.setHours(15, 30, 0, 0)),
+      startTime: completedSession2StartTime,
+      endTime: completedSession2EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session2.mp4',
       lessonId: lesson2_1_1.id,
@@ -958,14 +993,19 @@ async function main() {
     },
   });
 
+  const completedSession3StartTime = new Date(lastWeek);
+  completedSession3StartTime.setHours(16, 0, 0, 0);
+  const completedSession3EndTime = new Date(lastWeek);
+  completedSession3EndTime.setHours(17, 0, 0, 0);
+
   const completedSession3 = await prisma.session.create({
     data: {
       title: 'Algebraic Expressions Workshop',
       description: 'Practice with algebraic expressions',
       provider: 'TEAMS',
       joinUrl: 'https://teams.microsoft.com/join/old789',
-      startTime: new Date(lastWeek.setHours(16, 0, 0, 0)),
-      endTime: new Date(lastWeek.setHours(17, 0, 0, 0)),
+      startTime: completedSession3StartTime,
+      endTime: completedSession3EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session3.mp4',
       lessonId: lesson3_1_1.id,
