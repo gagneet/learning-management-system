@@ -14,8 +14,9 @@ async function main() {
       name: 'Main Campus',
       slug: 'main-campus',
       description: 'Primary learning center',
+      region: 'North America',
       settings: {
-        timezone: 'UTC',
+        timezone: 'America/New_York',
         language: 'en',
       },
     },
@@ -28,6 +29,7 @@ async function main() {
       name: 'Online Campus',
       slug: 'online-campus',
       description: 'Virtual learning center',
+      region: 'Global',
       settings: {
         timezone: 'UTC',
         language: 'en',
@@ -37,11 +39,12 @@ async function main() {
 
   console.log('✅ Centers created');
 
-  // Create users
+  // Create users with various roles
   const adminPassword = await bcrypt.hash('admin123', 10);
   const teacherPassword = await bcrypt.hash('teacher123', 10);
   const studentPassword = await bcrypt.hash('student123', 10);
 
+  // Super Admin
   const admin = await prisma.user.upsert({
     where: { email: 'admin@lms.com' },
     update: {},
@@ -54,19 +57,50 @@ async function main() {
     },
   });
 
+  // Centre Head (CENTER_ADMIN)
   const centerAdmin = await prisma.user.upsert({
     where: { email: 'centeradmin@lms.com' },
     update: {},
     create: {
       email: 'centeradmin@lms.com',
-      name: 'Center Administrator',
+      name: 'Sarah Johnson',
       password: adminPassword,
       role: 'CENTER_ADMIN',
       centerId: center1.id,
+      bio: 'Centre Head with 15 years of educational leadership experience',
     },
   });
 
-  const teacher = await prisma.user.upsert({
+  // Supervisor (CENTER_SUPERVISOR)
+  const supervisor = await prisma.user.upsert({
+    where: { email: 'supervisor@lms.com' },
+    update: {},
+    create: {
+      email: 'supervisor@lms.com',
+      name: 'David Martinez',
+      password: adminPassword,
+      role: 'CENTER_SUPERVISOR',
+      centerId: center1.id,
+      bio: 'Academic Supervisor overseeing curriculum and teaching quality',
+    },
+  });
+
+  // Finance Person (using CENTER_SUPERVISOR role for financial oversight)
+  const financePerson = await prisma.user.upsert({
+    where: { email: 'finance@lms.com' },
+    update: {},
+    create: {
+      email: 'finance@lms.com',
+      name: 'Emily Chen',
+      password: adminPassword,
+      role: 'CENTER_SUPERVISOR',
+      centerId: center1.id,
+      bio: 'Financial Administrator managing billing and payments',
+    },
+  });
+
+  // Teacher 1 - Programming
+  const teacher1 = await prisma.user.upsert({
     where: { email: 'teacher@lms.com' },
     update: {},
     create: {
@@ -75,10 +109,26 @@ async function main() {
       password: teacherPassword,
       role: 'TEACHER',
       centerId: center1.id,
+      bio: 'Computer Science educator specializing in programming fundamentals',
     },
   });
 
-  const student = await prisma.user.upsert({
+  // Teacher 2 - Mathematics
+  const teacher2 = await prisma.user.upsert({
+    where: { email: 'teacher2@lms.com' },
+    update: {},
+    create: {
+      email: 'teacher2@lms.com',
+      name: 'Maria Garcia',
+      password: teacherPassword,
+      role: 'TEACHER',
+      centerId: center1.id,
+      bio: 'Mathematics teacher with expertise in algebra and calculus',
+    },
+  });
+
+  // Student 1 - High performer
+  const student1 = await prisma.user.upsert({
     where: { email: 'student@lms.com' },
     update: {},
     create: {
@@ -90,9 +140,220 @@ async function main() {
     },
   });
 
-  console.log('✅ Users created');
+  // Student 2 - Average performer
+  const student2 = await prisma.user.upsert({
+    where: { email: 'student2@lms.com' },
+    update: {},
+    create: {
+      email: 'student2@lms.com',
+      name: 'Alex Thompson',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
 
-  // Create sample courses
+  // Student 3 - Needs attention
+  const student3 = await prisma.user.upsert({
+    where: { email: 'student3@lms.com' },
+    update: {},
+    create: {
+      email: 'student3@lms.com',
+      name: 'Michael Lee',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  // Student 4 - Just started
+  const student4 = await prisma.user.upsert({
+    where: { email: 'student4@lms.com' },
+    update: {},
+    create: {
+      email: 'student4@lms.com',
+      name: 'Sophia Patel',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  // Note: Parent role not currently in schema
+  console.log('✅ Users created (11 total)');
+
+  // Create Academic Profiles for students
+  await prisma.academicProfile.upsert({
+    where: { userId: student1.id },
+    update: {},
+    create: {
+      userId: student1.id,
+      chronologicalAge: 14.5,
+      readingAge: 16.2,
+      numeracyAge: 15.8,
+      comprehensionIndex: 88.5,
+      writingProficiency: 82.0,
+    },
+  });
+
+  await prisma.academicProfile.upsert({
+    where: { userId: student2.id },
+    update: {},
+    create: {
+      userId: student2.id,
+      chronologicalAge: 13.8,
+      readingAge: 13.5,
+      numeracyAge: 14.0,
+      comprehensionIndex: 75.0,
+      writingProficiency: 71.5,
+    },
+  });
+
+  await prisma.academicProfile.upsert({
+    where: { userId: student3.id },
+    update: {},
+    create: {
+      userId: student3.id,
+      chronologicalAge: 15.2,
+      readingAge: 13.8,
+      numeracyAge: 13.2,
+      comprehensionIndex: 62.0,
+      writingProficiency: 58.5,
+    },
+  });
+
+  await prisma.academicProfile.upsert({
+    where: { userId: student4.id },
+    update: {},
+    create: {
+      userId: student4.id,
+      chronologicalAge: 14.0,
+      readingAge: 14.5,
+      numeracyAge: 14.8,
+      comprehensionIndex: 80.0,
+      writingProficiency: 76.0,
+    },
+  });
+
+  console.log('✅ Academic profiles created');
+
+  // Create Gamification Profiles for students
+  const gamProfile1 = await prisma.gamificationProfile.upsert({
+    where: { userId: student1.id },
+    update: {},
+    create: {
+      userId: student1.id,
+      xp: 2450,
+      level: 8,
+      streak: 12,
+      lastActivityAt: new Date(),
+    },
+  });
+
+  const gamProfile2 = await prisma.gamificationProfile.upsert({
+    where: { userId: student2.id },
+    update: {},
+    create: {
+      userId: student2.id,
+      xp: 1200,
+      level: 5,
+      streak: 5,
+      lastActivityAt: new Date(),
+    },
+  });
+
+  const gamProfile3 = await prisma.gamificationProfile.upsert({
+    where: { userId: student3.id },
+    update: {},
+    create: {
+      userId: student3.id,
+      xp: 450,
+      level: 2,
+      streak: 1,
+      lastActivityAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000), // 2 days ago
+    },
+  });
+
+  const gamProfile4 = await prisma.gamificationProfile.upsert({
+    where: { userId: student4.id },
+    update: {},
+    create: {
+      userId: student4.id,
+      xp: 150,
+      level: 1,
+      streak: 3,
+      lastActivityAt: new Date(),
+    },
+  });
+
+  console.log('✅ Gamification profiles created');
+
+  // Create Badges
+  await prisma.badge.createMany({
+    data: [
+      {
+        name: 'First Lesson',
+        description: 'Completed your first lesson',
+        type: 'COMPLETION',
+        profileId: gamProfile1.id,
+      },
+      {
+        name: '7-Day Streak',
+        description: 'Maintained a 7-day learning streak',
+        type: 'STREAK',
+        profileId: gamProfile1.id,
+      },
+      {
+        name: 'Quick Learner',
+        description: 'Completed 5 lessons in one day',
+        type: 'MASTERY',
+        profileId: gamProfile1.id,
+      },
+      {
+        name: 'First Lesson',
+        description: 'Completed your first lesson',
+        type: 'COMPLETION',
+        profileId: gamProfile2.id,
+      },
+      {
+        name: 'First Lesson',
+        description: 'Completed your first lesson',
+        type: 'COMPLETION',
+        profileId: gamProfile4.id,
+      },
+    ],
+  });
+
+  // Create Achievements
+  await prisma.achievement.createMany({
+    data: [
+      {
+        title: 'Course Completion',
+        description: 'Completed Introduction to Programming',
+        category: 'completion',
+        value: 100,
+        profileId: gamProfile1.id,
+      },
+      {
+        title: 'Perfect Attendance',
+        description: 'Attended all sessions this month',
+        category: 'attendance',
+        value: 100,
+        profileId: gamProfile1.id,
+      },
+      {
+        title: 'Half Way There',
+        description: 'Completed 50% of Web Development Basics',
+        category: 'completion',
+        value: 50,
+        profileId: gamProfile2.id,
+      },
+    ],
+  });
+
+  console.log('✅ Badges and achievements created');
+
+  // Create courses
   const course1 = await prisma.course.upsert({
     where: {
       centerId_slug: {
@@ -107,7 +368,7 @@ async function main() {
       description: 'Learn the fundamentals of programming with hands-on examples',
       status: 'PUBLISHED',
       centerId: center1.id,
-      teacherId: teacher.id,
+      teacherId: teacher1.id,
     },
   });
 
@@ -125,14 +386,50 @@ async function main() {
       description: 'Master HTML, CSS, and JavaScript fundamentals',
       status: 'PUBLISHED',
       centerId: center1.id,
-      teacherId: teacher.id,
+      teacherId: teacher1.id,
+    },
+  });
+
+  const course3 = await prisma.course.upsert({
+    where: {
+      centerId_slug: {
+        centerId: center1.id,
+        slug: 'algebra-fundamentals',
+      },
+    },
+    update: {},
+    create: {
+      title: 'Algebra Fundamentals',
+      slug: 'algebra-fundamentals',
+      description: 'Master algebraic concepts and problem-solving',
+      status: 'PUBLISHED',
+      centerId: center1.id,
+      teacherId: teacher2.id,
+    },
+  });
+
+  const course4 = await prisma.course.upsert({
+    where: {
+      centerId_slug: {
+        centerId: center1.id,
+        slug: 'advanced-mathematics',
+      },
+    },
+    update: {},
+    create: {
+      title: 'Advanced Mathematics',
+      slug: 'advanced-mathematics',
+      description: 'Calculus and advanced mathematical concepts',
+      status: 'PUBLISHED',
+      centerId: center1.id,
+      teacherId: teacher2.id,
     },
   });
 
   console.log('✅ Courses created');
 
   // Create modules for course 1
-  const module1 = await prisma.module.create({
+  const module1_1 = await prisma.module.create({
     data: {
       title: 'Getting Started',
       description: 'Introduction to programming concepts',
@@ -141,7 +438,7 @@ async function main() {
     },
   });
 
-  const module2 = await prisma.module.create({
+  const module1_2 = await prisma.module.create({
     data: {
       title: 'Variables and Data Types',
       description: 'Understanding variables and basic data types',
@@ -150,68 +447,845 @@ async function main() {
     },
   });
 
+  const module1_3 = await prisma.module.create({
+    data: {
+      title: 'Control Flow',
+      description: 'Conditional statements and loops',
+      order: 3,
+      courseId: course1.id,
+    },
+  });
+
+  // Create modules for course 2
+  const module2_1 = await prisma.module.create({
+    data: {
+      title: 'HTML Basics',
+      description: 'Learn HTML structure and elements',
+      order: 1,
+      courseId: course2.id,
+    },
+  });
+
+  const module2_2 = await prisma.module.create({
+    data: {
+      title: 'CSS Styling',
+      description: 'Style your web pages with CSS',
+      order: 2,
+      courseId: course2.id,
+    },
+  });
+
+  const module2_3 = await prisma.module.create({
+    data: {
+      title: 'JavaScript Fundamentals',
+      description: 'Add interactivity with JavaScript',
+      order: 3,
+      courseId: course2.id,
+    },
+  });
+
+  // Create modules for course 3
+  const module3_1 = await prisma.module.create({
+    data: {
+      title: 'Introduction to Algebra',
+      description: 'Basic algebraic concepts and notation',
+      order: 1,
+      courseId: course3.id,
+    },
+  });
+
+  const module3_2 = await prisma.module.create({
+    data: {
+      title: 'Solving Equations',
+      description: 'Techniques for solving linear equations',
+      order: 2,
+      courseId: course3.id,
+    },
+  });
+
   console.log('✅ Modules created');
 
-  // Create lessons
-  const lesson1 = await prisma.lesson.create({
+  // Create lessons for module 1_1
+  const lesson1_1_1 = await prisma.lesson.create({
     data: {
       title: 'What is Programming?',
       description: 'Overview of programming and its applications',
       order: 1,
-      moduleId: module1.id,
+      moduleId: module1_1.id,
     },
   });
 
-  const lesson2 = await prisma.lesson.create({
+  const lesson1_1_2 = await prisma.lesson.create({
     data: {
       title: 'Setting Up Your Environment',
       description: 'Installing and configuring development tools',
       order: 2,
-      moduleId: module1.id,
+      moduleId: module1_1.id,
+    },
+  });
+
+  const lesson1_1_3 = await prisma.lesson.create({
+    data: {
+      title: 'Your First Program',
+      description: 'Write and run your first program',
+      order: 3,
+      moduleId: module1_1.id,
+    },
+  });
+
+  // Create lessons for module 1_2
+  const lesson1_2_1 = await prisma.lesson.create({
+    data: {
+      title: 'Understanding Variables',
+      description: 'What are variables and how to use them',
+      order: 1,
+      moduleId: module1_2.id,
+    },
+  });
+
+  const lesson1_2_2 = await prisma.lesson.create({
+    data: {
+      title: 'Data Types',
+      description: 'Exploring different data types',
+      order: 2,
+      moduleId: module1_2.id,
+    },
+  });
+
+  // Create lessons for module 2_1
+  const lesson2_1_1 = await prisma.lesson.create({
+    data: {
+      title: 'HTML Document Structure',
+      description: 'Understanding the basic structure of HTML',
+      order: 1,
+      moduleId: module2_1.id,
+    },
+  });
+
+  const lesson2_1_2 = await prisma.lesson.create({
+    data: {
+      title: 'Common HTML Elements',
+      description: 'Learn about headings, paragraphs, and lists',
+      order: 2,
+      moduleId: module2_1.id,
+    },
+  });
+
+  const lesson2_1_3 = await prisma.lesson.create({
+    data: {
+      title: 'HTML Forms',
+      description: 'Creating interactive forms',
+      order: 3,
+      moduleId: module2_1.id,
+    },
+  });
+
+  // Create lessons for module 3_1
+  const lesson3_1_1 = await prisma.lesson.create({
+    data: {
+      title: 'Algebraic Expressions',
+      description: 'Understanding algebraic notation',
+      order: 1,
+      moduleId: module3_1.id,
+    },
+  });
+
+  const lesson3_1_2 = await prisma.lesson.create({
+    data: {
+      title: 'Variables in Algebra',
+      description: 'Working with variables and constants',
+      order: 2,
+      moduleId: module3_1.id,
     },
   });
 
   console.log('✅ Lessons created');
 
-  // Create content
-  await prisma.content.create({
-    data: {
-      title: 'Introduction Video',
-      type: 'VIDEO',
-      url: 'https://example.com/videos/intro.mp4',
-      duration: 15,
-      lessonId: lesson1.id,
-    },
-  });
-
-  await prisma.content.create({
-    data: {
-      title: 'Course Materials PDF',
-      type: 'DOCUMENT',
-      url: 'https://example.com/docs/materials.pdf',
-      lessonId: lesson1.id,
-    },
+  // Create content for lessons
+  await prisma.content.createMany({
+    data: [
+      {
+        title: 'Introduction Video',
+        type: 'VIDEO',
+        url: 'https://example.com/videos/intro.mp4',
+        duration: 15,
+        lessonId: lesson1_1_1.id,
+      },
+      {
+        title: 'Course Materials PDF',
+        type: 'DOCUMENT',
+        url: 'https://example.com/docs/materials.pdf',
+        lessonId: lesson1_1_1.id,
+      },
+      {
+        title: 'Setup Guide',
+        type: 'DOCUMENT',
+        url: 'https://example.com/docs/setup.pdf',
+        lessonId: lesson1_1_2.id,
+      },
+      {
+        title: 'First Program Tutorial',
+        type: 'VIDEO',
+        url: 'https://example.com/videos/first-program.mp4',
+        duration: 20,
+        lessonId: lesson1_1_3.id,
+      },
+      {
+        title: 'Variables Explained',
+        type: 'VIDEO',
+        url: 'https://example.com/videos/variables.mp4',
+        duration: 18,
+        lessonId: lesson1_2_1.id,
+      },
+      {
+        title: 'HTML Structure Video',
+        type: 'VIDEO',
+        url: 'https://example.com/videos/html-structure.mp4',
+        duration: 25,
+        lessonId: lesson2_1_1.id,
+      },
+    ],
   });
 
   console.log('✅ Content created');
 
-  // Enroll student in course
-  await prisma.enrollment.create({
+  // Create enrollments with varying progress
+  // Student 1 - High performer (enrolled in 3 courses)
+  const enrollment1_1 = await prisma.enrollment.create({
     data: {
-      userId: student.id,
+      userId: student1.id,
       courseId: course1.id,
-      progress: 0,
+      tutorId: teacher1.id,
+      progress: 85,
+      enrolledAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000), // 60 days ago
     },
   });
 
-  console.log('✅ Enrollment created');
+  const enrollment1_2 = await prisma.enrollment.create({
+    data: {
+      userId: student1.id,
+      courseId: course2.id,
+      tutorId: teacher1.id,
+      progress: 45,
+      enrolledAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000), // 30 days ago
+    },
+  });
+
+  const enrollment1_3 = await prisma.enrollment.create({
+    data: {
+      userId: student1.id,
+      courseId: course3.id,
+      tutorId: teacher2.id,
+      progress: 30,
+      enrolledAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000), // 15 days ago
+    },
+  });
+
+  // Student 2 - Average performer (enrolled in 2 courses)
+  const enrollment2_1 = await prisma.enrollment.create({
+    data: {
+      userId: student2.id,
+      courseId: course1.id,
+      tutorId: teacher1.id,
+      progress: 55,
+      enrolledAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const enrollment2_2 = await prisma.enrollment.create({
+    data: {
+      userId: student2.id,
+      courseId: course2.id,
+      tutorId: teacher1.id,
+      progress: 38,
+      enrolledAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // Student 3 - Needs attention (enrolled in 2 courses, low progress)
+  const enrollment3_1 = await prisma.enrollment.create({
+    data: {
+      userId: student3.id,
+      courseId: course1.id,
+      tutorId: teacher1.id,
+      progress: 15,
+      enrolledAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  const enrollment3_2 = await prisma.enrollment.create({
+    data: {
+      userId: student3.id,
+      courseId: course3.id,
+      tutorId: teacher2.id,
+      progress: 8,
+      enrolledAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  // Student 4 - Just started (enrolled in 1 course)
+  const enrollment4_1 = await prisma.enrollment.create({
+    data: {
+      userId: student4.id,
+      courseId: course2.id,
+      tutorId: teacher1.id,
+      progress: 0,
+      enrolledAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('✅ Enrollments created');
+
+  // Create progress records for students
+  // Student 1 - completed many lessons
+  await prisma.progress.createMany({
+    data: [
+      {
+        userId: student1.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 55 * 24 * 60 * 60 * 1000),
+        timeSpent: 25,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson1_1_2.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 50 * 24 * 60 * 60 * 1000),
+        timeSpent: 30,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson1_1_3.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+        timeSpent: 35,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson1_2_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+        timeSpent: 28,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson1_2_2.id,
+        completed: false,
+        timeSpent: 15,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson2_1_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 25 * 24 * 60 * 60 * 1000),
+        timeSpent: 32,
+      },
+      {
+        userId: student1.id,
+        lessonId: lesson2_1_2.id,
+        completed: false,
+        timeSpent: 10,
+      },
+    ],
+  });
+
+  // Student 2 - moderate progress
+  await prisma.progress.createMany({
+    data: [
+      {
+        userId: student2.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+        timeSpent: 28,
+      },
+      {
+        userId: student2.id,
+        lessonId: lesson1_1_2.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
+        timeSpent: 32,
+      },
+      {
+        userId: student2.id,
+        lessonId: lesson1_1_3.id,
+        completed: false,
+        timeSpent: 12,
+      },
+      {
+        userId: student2.id,
+        lessonId: lesson2_1_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+        timeSpent: 30,
+      },
+    ],
+  });
+
+  // Student 3 - minimal progress
+  await prisma.progress.createMany({
+    data: [
+      {
+        userId: student3.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        completedAt: new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
+        timeSpent: 20,
+      },
+      {
+        userId: student3.id,
+        lessonId: lesson1_1_2.id,
+        completed: false,
+        timeSpent: 8,
+      },
+    ],
+  });
+
+  console.log('✅ Progress records created');
+
+  // Create Sessions
+  const today = new Date();
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(dayAfterTomorrow.getDate() + 2);
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const lastWeek = new Date(today);
+  lastWeek.setDate(lastWeek.getDate() - 7);
+
+  // Today's sessions
+  const todaySession1 = await prisma.session.create({
+    data: {
+      title: 'Introduction to Programming - Live Q&A',
+      description: 'Interactive Q&A session for programming concepts',
+      provider: 'TEAMS',
+      joinUrl: 'https://teams.microsoft.com/join/abc123',
+      startTime: new Date(today.setHours(10, 0, 0, 0)),
+      endTime: new Date(today.setHours(11, 0, 0, 0)),
+      status: 'SCHEDULED',
+      lessonId: lesson1_1_1.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  const todaySession2 = await prisma.session.create({
+    data: {
+      title: 'HTML Basics Workshop',
+      description: 'Hands-on HTML coding workshop',
+      provider: 'ZOOM',
+      joinUrl: 'https://zoom.us/j/123456789',
+      startTime: new Date(today.setHours(14, 0, 0, 0)),
+      endTime: new Date(today.setHours(15, 30, 0, 0)),
+      status: 'SCHEDULED',
+      lessonId: lesson2_1_1.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  const todaySession3 = await prisma.session.create({
+    data: {
+      title: 'Algebra Study Group',
+      description: 'Collaborative problem-solving session',
+      provider: 'TEAMS',
+      joinUrl: 'https://teams.microsoft.com/join/def456',
+      startTime: new Date(today.setHours(16, 0, 0, 0)),
+      endTime: new Date(today.setHours(17, 0, 0, 0)),
+      status: 'SCHEDULED',
+      lessonId: lesson3_1_1.id,
+      tutorId: teacher2.id,
+    },
+  });
+
+  // Tomorrow's sessions
+  const tomorrowSession1 = await prisma.session.create({
+    data: {
+      title: 'Variables Deep Dive',
+      description: 'Advanced discussion on variables and data types',
+      provider: 'TEAMS',
+      joinUrl: 'https://teams.microsoft.com/join/ghi789',
+      startTime: new Date(tomorrow.setHours(10, 0, 0, 0)),
+      endTime: new Date(tomorrow.setHours(11, 30, 0, 0)),
+      status: 'SCHEDULED',
+      lessonId: lesson1_2_1.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  const tomorrowSession2 = await prisma.session.create({
+    data: {
+      title: 'CSS Styling Techniques',
+      description: 'Learn modern CSS styling methods',
+      provider: 'ZOOM',
+      joinUrl: 'https://zoom.us/j/987654321',
+      startTime: new Date(tomorrow.setHours(15, 0, 0, 0)),
+      endTime: new Date(tomorrow.setHours(16, 30, 0, 0)),
+      status: 'SCHEDULED',
+      lessonId: lesson2_1_2.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  // Completed sessions (past week)
+  const completedSession1 = await prisma.session.create({
+    data: {
+      title: 'Getting Started with Programming',
+      description: 'Introductory session',
+      provider: 'TEAMS',
+      joinUrl: 'https://teams.microsoft.com/join/old123',
+      startTime: new Date(lastWeek.setHours(10, 0, 0, 0)),
+      endTime: new Date(lastWeek.setHours(11, 0, 0, 0)),
+      status: 'COMPLETED',
+      recordingUrl: 'https://example.com/recordings/session1.mp4',
+      lessonId: lesson1_1_1.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  const completedSession2 = await prisma.session.create({
+    data: {
+      title: 'HTML Fundamentals',
+      description: 'Basic HTML structure and elements',
+      provider: 'ZOOM',
+      joinUrl: 'https://zoom.us/j/111222333',
+      startTime: new Date(yesterday.setHours(14, 0, 0, 0)),
+      endTime: new Date(yesterday.setHours(15, 30, 0, 0)),
+      status: 'COMPLETED',
+      recordingUrl: 'https://example.com/recordings/session2.mp4',
+      lessonId: lesson2_1_1.id,
+      tutorId: teacher1.id,
+    },
+  });
+
+  const completedSession3 = await prisma.session.create({
+    data: {
+      title: 'Algebraic Expressions Workshop',
+      description: 'Practice with algebraic expressions',
+      provider: 'TEAMS',
+      joinUrl: 'https://teams.microsoft.com/join/old789',
+      startTime: new Date(lastWeek.setHours(16, 0, 0, 0)),
+      endTime: new Date(lastWeek.setHours(17, 0, 0, 0)),
+      status: 'COMPLETED',
+      recordingUrl: 'https://example.com/recordings/session3.mp4',
+      lessonId: lesson3_1_1.id,
+      tutorId: teacher2.id,
+    },
+  });
+
+  console.log('✅ Sessions created');
+
+  // Create Session Attendance
+  await prisma.sessionAttendance.createMany({
+    data: [
+      // Completed session 1 - high attendance
+      {
+        sessionId: completedSession1.id,
+        userId: student1.id,
+        attended: true,
+        joinedAt: new Date(completedSession1.startTime.getTime() + 2 * 60 * 1000),
+        leftAt: new Date(completedSession1.endTime!.getTime() - 5 * 60 * 1000),
+      },
+      {
+        sessionId: completedSession1.id,
+        userId: student2.id,
+        attended: true,
+        joinedAt: new Date(completedSession1.startTime.getTime() + 5 * 60 * 1000),
+        leftAt: completedSession1.endTime!,
+      },
+      {
+        sessionId: completedSession1.id,
+        userId: student3.id,
+        attended: false,
+      },
+      // Completed session 2 - medium attendance
+      {
+        sessionId: completedSession2.id,
+        userId: student1.id,
+        attended: true,
+        joinedAt: completedSession2.startTime,
+        leftAt: completedSession2.endTime!,
+      },
+      {
+        sessionId: completedSession2.id,
+        userId: student2.id,
+        attended: true,
+        joinedAt: new Date(completedSession2.startTime.getTime() + 10 * 60 * 1000),
+        leftAt: new Date(completedSession2.endTime!.getTime() - 15 * 60 * 1000),
+      },
+      {
+        sessionId: completedSession2.id,
+        userId: student4.id,
+        attended: false,
+      },
+      // Completed session 3 - low attendance
+      {
+        sessionId: completedSession3.id,
+        userId: student1.id,
+        attended: true,
+        joinedAt: completedSession3.startTime,
+        leftAt: completedSession3.endTime!,
+      },
+      {
+        sessionId: completedSession3.id,
+        userId: student3.id,
+        attended: false,
+      },
+      // Today's sessions - pre-registered
+      {
+        sessionId: todaySession1.id,
+        userId: student1.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession1.id,
+        userId: student2.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession1.id,
+        userId: student3.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession2.id,
+        userId: student1.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession2.id,
+        userId: student2.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession2.id,
+        userId: student4.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession3.id,
+        userId: student1.id,
+        attended: false,
+      },
+      {
+        sessionId: todaySession3.id,
+        userId: student3.id,
+        attended: false,
+      },
+      // Tomorrow's sessions - pre-registered
+      {
+        sessionId: tomorrowSession1.id,
+        userId: student1.id,
+        attended: false,
+      },
+      {
+        sessionId: tomorrowSession1.id,
+        userId: student2.id,
+        attended: false,
+      },
+      {
+        sessionId: tomorrowSession2.id,
+        userId: student1.id,
+        attended: false,
+      },
+      {
+        sessionId: tomorrowSession2.id,
+        userId: student4.id,
+        attended: false,
+      },
+    ],
+  });
+
+  console.log('✅ Session attendance created');
+
+  // Create Financial Transactions
+  await prisma.financialTransaction.createMany({
+    data: [
+      // Student fees
+      {
+        type: 'STUDENT_FEE',
+        amount: 500.00,
+        status: 'completed',
+        description: 'Course enrollment fee - Introduction to Programming',
+        userId: student1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 60 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_FEE',
+        amount: 450.00,
+        status: 'completed',
+        description: 'Course enrollment fee - Web Development Basics',
+        userId: student1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_FEE',
+        amount: 500.00,
+        status: 'completed',
+        description: 'Course enrollment fee - Introduction to Programming',
+        userId: student2.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 45 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_FEE',
+        amount: 450.00,
+        status: 'pending',
+        description: 'Course enrollment fee - Web Development Basics',
+        userId: student2.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 20 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_FEE',
+        amount: 500.00,
+        status: 'pending',
+        description: 'Course enrollment fee - Introduction to Programming',
+        userId: student3.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 40 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_FEE',
+        amount: 450.00,
+        status: 'completed',
+        description: 'Course enrollment fee - Web Development Basics',
+        userId: student4.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
+      },
+      // Student payments
+      {
+        type: 'STUDENT_PAYMENT',
+        amount: 500.00,
+        status: 'completed',
+        description: 'Payment received for Introduction to Programming',
+        userId: student1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 58 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_PAYMENT',
+        amount: 450.00,
+        status: 'completed',
+        description: 'Payment received for Web Development Basics',
+        userId: student1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 28 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_PAYMENT',
+        amount: 500.00,
+        status: 'completed',
+        description: 'Payment received for Introduction to Programming',
+        userId: student2.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 43 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'STUDENT_PAYMENT',
+        amount: 450.00,
+        status: 'completed',
+        description: 'Payment received for Web Development Basics',
+        userId: student4.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      // Tutor payments
+      {
+        type: 'TUTOR_PAYMENT',
+        amount: 1200.00,
+        status: 'completed',
+        description: 'Monthly payment - January',
+        userId: teacher1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'TUTOR_PAYMENT',
+        amount: 1200.00,
+        status: 'completed',
+        description: 'Monthly payment - February',
+        userId: teacher1.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'TUTOR_PAYMENT',
+        amount: 1100.00,
+        status: 'completed',
+        description: 'Monthly payment - January',
+        userId: teacher2.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 30 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'TUTOR_PAYMENT',
+        amount: 1100.00,
+        status: 'completed',
+        description: 'Monthly payment - February',
+        userId: teacher2.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
+      },
+      // Operational costs
+      {
+        type: 'OPERATIONAL_COST',
+        amount: 250.00,
+        status: 'completed',
+        description: 'Office supplies and materials',
+        userId: centerAdmin.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 15 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'OPERATIONAL_COST',
+        amount: 150.00,
+        status: 'completed',
+        description: 'Software licenses',
+        userId: centerAdmin.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 10 * 24 * 60 * 60 * 1000),
+      },
+      {
+        type: 'OPERATIONAL_COST',
+        amount: 300.00,
+        status: 'completed',
+        description: 'Facility maintenance',
+        userId: centerAdmin.id,
+        centerId: center1.id,
+        createdAt: new Date(Date.now() - 5 * 24 * 60 * 60 * 1000),
+      },
+    ],
+  });
+
+  console.log('✅ Financial transactions created');
 
   console.log('🎉 Database seeded successfully!');
   console.log('\n📝 Login credentials:');
   console.log('Super Admin: admin@lms.com / admin123');
-  console.log('Center Admin: centeradmin@lms.com / admin123');
-  console.log('Teacher: teacher@lms.com / teacher123');
-  console.log('Student: student@lms.com / student123');
+  console.log('Centre Head: centeradmin@lms.com / admin123');
+  console.log('Supervisor: supervisor@lms.com / admin123');
+  console.log('Finance: finance@lms.com / admin123');
+  console.log('Teacher 1: teacher@lms.com / teacher123');
+  console.log('Teacher 2: teacher2@lms.com / teacher123');
+  console.log('Student 1 (High): student@lms.com / student123');
+  console.log('Student 2 (Avg): student2@lms.com / student123');
+  console.log('Student 3 (Low): student3@lms.com / student123');
+  console.log('Student 4 (New): student4@lms.com / student123');
+  console.log('\n📊 Database includes:');
+  console.log('- 2 centres');
+  console.log('- 11 users (1 super admin, 1 centre head, 1 supervisor, 1 finance, 2 teachers, 4 students)');
+  console.log('- 4 courses with modules and lessons');
+  console.log('- 9 enrollments with varying progress');
+  console.log('- Progress records for realistic tracking');
+  console.log('- 8 sessions (3 today, 2 tomorrow, 3 completed)');
+  console.log('- Session attendance records for analytics');
+  console.log('- 17 financial transactions');
+  console.log('- Gamification profiles, badges, and achievements');
+  console.log('- Academic profiles for all students');
 }
 
 main()
