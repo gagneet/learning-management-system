@@ -45,6 +45,16 @@ pm2 logs lms-nextjs                              # View logs
 pm2 monit                                        # Monitor resources
 ```
 
+**Important:** After running `npm run build`, always restart PM2 to load the new build:
+```bash
+npm run build && pm2 restart lms-nextjs
+```
+
+Or use the automated deployment script which handles this:
+```bash
+./scripts/build-and-deploy.sh
+```
+
 ## Architecture
 
 ### Multi-Tenancy Model
@@ -372,6 +382,7 @@ All documentation is organized under the `docs/` directory:
 - **Deployment Notes**: See `docs/deployment-notes.md` for Tailwind/CSS notes
 - **CloudFlare Setup**: See `docs/cloudflare-tunnel-setup.md`
 - **CloudFlare Dashboard**: See `docs/cloudflare-dashboard-setup.md`
+- **Nginx Configuration**: Rate limits at `/config/nginx/lms` (login: 20/min, API: 100/min)
 - **Troubleshooting**: See `docs/troubleshooting.md` for common issues
 - **Implementation Summary**: See `docs/implementation-summary.md`
 - **Business Analysis**: See `docs/business-technical-analysis.md`
