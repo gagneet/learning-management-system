@@ -39,9 +39,9 @@ export default async function TutorSessionsPage() {
             lesson: { select: { title: true } },
           },
         },
-        attendance: {
+        attendanceRecords: {
           include: {
-            user: {
+            student: {
               select: {
                 name: true,
               },
@@ -63,7 +63,7 @@ export default async function TutorSessionsPage() {
             lesson: { select: { title: true } },
           },
         },
-        attendance: true,
+        attendanceRecords: true,
       },
       orderBy: { startTime: "desc" },
       take: 20,
@@ -154,8 +154,8 @@ export default async function TutorSessionsPage() {
                         <span>
                           🕐 {new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        <span>⏱️ {s.duration} minutes</span>
-                        <span>👥 {s.attendance.length} attendees</span>
+                        <span>⏱️ {s.duration || (s.endTime ? Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / (1000 * 60)) : 60)} minutes</span>
+                        <span>👥 {s.attendanceRecords.length} attendees</span>
                         {s.sessionMode === "PHYSICAL" && s.physicalLocation && (
                           <span>📍 {s.physicalLocation}</span>
                         )}
@@ -207,8 +207,8 @@ export default async function TutorSessionsPage() {
           ) : (
             <div className="space-y-4">
               {pastSessions.map((s) => {
-                const attendanceRate = s.attendance.length > 0
-                  ? (s.attendance.filter(a => a.status === "PRESENT").length / s.attendance.length) * 100
+                const attendanceRate = s.attendanceRecords.length > 0
+                  ? (s.attendanceRecords.filter(a => a.status === "PRESENT").length / s.attendanceRecords.length) * 100
                   : 0;
 
                 return (
@@ -230,7 +230,7 @@ export default async function TutorSessionsPage() {
                             🕐 {new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                           <span>
-                            👥 {s.attendance.filter(a => a.status === "PRESENT").length}/{s.attendance.length} present
+                            👥 {s.attendanceRecords.filter(a => a.status === "PRESENT").length}/{s.attendanceRecords.length} present
                           </span>
                           <span>📊 {Math.round(attendanceRate)}% attendance</span>
                         </div>

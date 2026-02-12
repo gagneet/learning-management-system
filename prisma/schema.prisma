@@ -363,6 +363,7 @@ model Session {
   joinUrl         String?        // Join URL for the session
   startTime       DateTime
   endTime         DateTime?
+  duration        Int?           // Duration in minutes (calculated from endTime-startTime or set manually)
   status          SessionStatus  @default(SCHEDULED)
   recordingUrl    String?        // Recording URL after session
   transcriptUrl   String?        // Transcript URL
