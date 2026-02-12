@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { lexend, inter, atkinson } from "./fonts";
+import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
   title: "Learning Management System",
@@ -18,7 +19,9 @@ export default function RootLayout({
       className={`${lexend.variable} ${inter.variable} ${atkinson.variable}`}
     >
       <body>
-        {children}
+        <Providers>
+          {children}
+        </Providers>
       </body>
     </html>
   );

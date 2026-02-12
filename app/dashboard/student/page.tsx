@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default async function StudentDashboardPage() {
   const session = await auth();
@@ -173,6 +174,7 @@ export default async function StudentDashboardPage() {
               My Learning Dashboard
             </h1>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user.name}
               </span>
@@ -202,26 +204,30 @@ export default async function StudentDashboardPage() {
 
         {/* Top Stats Row: Today's Lessons | XP | Reading Age | Level */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-xl shadow-lg text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Today&apos;s Lessons</h3>
-                <p className="text-4xl font-bold">{todaySessions.length}</p>
-                <p className="text-sm opacity-90">scheduled today</p>
+          <Link href="/dashboard/student/sessions" className="block">
+            <div className="bg-gradient-to-br from-indigo-400 to-indigo-600 p-6 rounded-xl shadow-lg text-white hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Today&apos;s Lessons</h3>
+                  <p className="text-4xl font-bold">{todaySessions.length}</p>
+                  <p className="text-sm opacity-90">scheduled today</p>
+                </div>
+                <div className="text-5xl opacity-80" aria-hidden="true">📅</div>
               </div>
-              <div className="text-5xl opacity-80" aria-hidden="true">📅</div>
             </div>
-          </div>
+          </Link>
 
-          <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-xl shadow-lg text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Total XP</h3>
-                <p className="text-4xl font-bold">{gamificationProfile?.xp || 0}</p>
+          <Link href="/dashboard/student/gamification" className="block">
+            <div className="bg-gradient-to-br from-blue-400 to-blue-600 p-6 rounded-xl shadow-lg text-white hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Total XP</h3>
+                  <p className="text-4xl font-bold">{gamificationProfile?.xp || 0}</p>
+                </div>
+                <div className="text-5xl opacity-80" aria-hidden="true">⭐</div>
               </div>
-              <div className="text-5xl opacity-80" aria-hidden="true">⭐</div>
             </div>
-          </div>
+          </Link>
 
           <div className="bg-gradient-to-br from-green-400 to-green-600 p-6 rounded-xl shadow-lg text-white">
             <div className="flex items-center justify-between">
@@ -236,41 +242,47 @@ export default async function StudentDashboardPage() {
             </div>
           </div>
 
-          <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-xl shadow-lg text-white">
-            <div className="flex items-center justify-between">
-              <div>
-                <h3 className="text-lg font-semibold mb-1">Level</h3>
-                <p className="text-4xl font-bold">{gamificationProfile?.level || 1}</p>
+          <Link href="/dashboard/student/gamification" className="block">
+            <div className="bg-gradient-to-br from-yellow-400 to-orange-500 p-6 rounded-xl shadow-lg text-white hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer">
+              <div className="flex items-center justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold mb-1">Level</h3>
+                  <p className="text-4xl font-bold">{gamificationProfile?.level || 1}</p>
+                </div>
+                <div className="text-5xl opacity-80" aria-hidden="true">🏆</div>
               </div>
-              <div className="text-5xl opacity-80" aria-hidden="true">🏆</div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Streak & Badges Row */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="text-4xl" aria-hidden="true">🔥</div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Streak</h3>
-                <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
-                  {gamificationProfile?.streak || 0} days
-                </p>
+          <Link href="/dashboard/student/gamification" className="block">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl" aria-hidden="true">🔥</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Activity Streak</h3>
+                  <p className="text-3xl font-bold text-orange-600 dark:text-orange-400">
+                    {gamificationProfile?.streak || 0} days
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg">
-            <div className="flex items-center gap-4">
-              <div className="text-4xl" aria-hidden="true">🎖️</div>
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Badges Earned</h3>
-                <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
-                  {gamificationProfile?.badges.length || 0}
-                </p>
+          </Link>
+          <Link href="/dashboard/student/gamification" className="block">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-xl shadow-lg hover:shadow-2xl hover:-translate-y-1 transition-all cursor-pointer">
+              <div className="flex items-center gap-4">
+                <div className="text-4xl" aria-hidden="true">🎖️</div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Badges Earned</h3>
+                  <p className="text-3xl font-bold text-purple-600 dark:text-purple-400">
+                    {gamificationProfile?.badges.length || 0}
+                  </p>
+                </div>
               </div>
             </div>
-          </div>
+          </Link>
         </div>
 
         {/* Academic Profile - Progress Charts */}
@@ -358,11 +370,9 @@ export default async function StudentDashboardPage() {
           {upcomingSessions.length > 0 ? (
             <div className="space-y-4">
               {upcomingSessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-start">
+                <Link key={s.id} href="/dashboard/student/sessions" className="block">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
+                    <div className="flex justify-between items-start">
                     <div>
                       <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
                         {s.title}
@@ -395,6 +405,7 @@ export default async function StudentDashboardPage() {
                     )}
                   </div>
                 </div>
+                </Link>
               ))}
             </div>
           ) : (
@@ -453,11 +464,13 @@ export default async function StudentDashboardPage() {
           {enrollments.length > 0 ? (
             <div className="space-y-4">
               {enrollments.map((enrollment) => (
-                <div
+                <Link
                   key={enrollment.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition"
+                  href={`/courses/${enrollment.course.slug}`}
+                  className="block"
                 >
-                  <div className="flex justify-between items-start">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
+                    <div className="flex justify-between items-start">
                     <div className="flex-1">
                       <h4 className="font-semibold text-lg text-gray-900 dark:text-white mb-1">
                         {enrollment.course.title}
@@ -485,6 +498,7 @@ export default async function StudentDashboardPage() {
                     </Link>
                   </div>
                 </div>
+                </Link>
               ))}
             </div>
           ) : (
