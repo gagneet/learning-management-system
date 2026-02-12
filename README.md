@@ -8,34 +8,73 @@ A comprehensive web-based platform for managing courses, users, and learning con
 - Support for multiple centers or "tenants" under one instance
 - Isolated data and management per center
 - Cross-center administration for super admins
+- Centre-scoped data isolation with security helpers
 
 ### Role-Based Access Control (RBAC)
+- **7-tier role hierarchy** with granular permissions
 - **Super Admin**: Full system access across all centers
-- **Center Admin/Supervisor**: Administrative control within a specific center
+- **Center Admin**: Administrative control within their center
+- **Center Supervisor**: Supervisory access and oversight
+- **Finance Admin**: Financial management and billing
 - **Teacher/Tutor**: Course creation and student management
+- **Parent**: View children's progress and information
 - **Student**: Course enrollment and learning activities
+- Permission-based authorization (72+ permissions across domains)
 
-### Course Management
-- Hierarchical course structure (Course → Module → Lesson → Content)
-- Support for multiple content types:
-  - Documents (PDF, Word, etc.)
-  - Videos (MP4, WebM, etc.)
-  - SCORM packages
-  - xAPI/TinCan content
-  - Embedded content (YouTube, etc.)
-  - Quizzes and assessments
+### 📚 Academic Domain
+- **Course Management**: Hierarchical structure (Course → Module → Lesson → Content)
+- **Class Cohorts**: Group-based learning with capacity management
+- **Live Sessions**: Teams/Zoom integration with attendance tracking
+- **Attendance Management**: Real-time tracking (PRESENT, LATE, ABSENT, EXCUSED)
+- **Catch-Up Packages**: Automated generation for missed sessions
+- **Academic Profiles**: Reading age, numeracy age, comprehension tracking
+- **Progress Tracking**: Detailed student progress and completion metrics
+- **Content Types**: Documents, Videos, SCORM, xAPI, Embedded content, Quizzes
+
+### 🎫 Operations Domain
+- **Ticketing System**: IT, Inventory, Complaints, Maintenance, General
+- **SLA Management**: Configurable response and resolution times
+- **Priority Levels**: LOW, MEDIUM, HIGH, URGENT
+- **Ticket Workflow**: OPEN → IN_PROGRESS → RESOLVED → CLOSED
+- **Escalation**: Automatic escalation on SLA breach
+- **Comments & Attachments**: Internal notes and public updates
+
+### 💰 Finance Domain
+- **Fee Plans**: WEEKLY, MONTHLY, TERM, ANNUAL billing
+- **Student Accounts**: Balance tracking and account management
+- **Invoicing**: Multi-line invoices with automatic calculations
+- **Payment Processing**: CASH, CHECK, CARD, BANK_TRANSFER
+- **Refund Management**: Request and approval workflow
+- **Financial Reports**: Revenue, expenses, profit tracking
+- **Payment Status**: PAID, PARTIAL, OVERDUE, CANCELLED
+
+### 🔒 Governance Domain
+- **Audit Logging**: Immutable audit trail for all privileged actions
+- **Approval Workflows**: REFUND, FEE_WAIVER, TUTOR_OVERRIDE, PAYROLL_EXCEPTION
+- **Security Helpers**: Audit, RBAC, Multi-tenancy enforcement
+- **Compliance**: Complete action history for regulatory requirements
+- **Access Control**: Fine-grained permission system
+
+### 🎮 Gamification
+- **XP & Levels**: Point-based progression system
+- **Badges**: COMPLETION, STREAK, MASTERY, PARTICIPATION, SPECIAL
+- **Achievements**: Category-based milestones
+- **Activity Streaks**: Consecutive day tracking
 
 ### User Management
 - Streamlined user onboarding
 - Role assignment and permissions
-- User profiles and avatars
-- Progress tracking
+- User profiles with academic metrics
+- Parent-student relationship management
+- Progress tracking across all activities
 
 ### Analytics & Reporting
 - Course completion tracking
 - Student progress monitoring
 - Engagement analytics
+- Financial reporting
 - Center-wide reporting
+- Audit trail analytics
 
 ## 🚀 Getting Started
 
@@ -90,7 +129,15 @@ npm run dev
 
 ### Demo Credentials
 
-After seeding the database (with 3 months of historical data), you can log in with these credentials:
+After seeding the database, you'll have **comprehensive Phase 1 test data** including:
+- 3 months of historical data across all domains
+- 3 active class cohorts with 8 student memberships
+- 8 tickets across all types and statuses
+- 8 invoices with various payment statuses
+- 2 pending approval requests
+- 12 audit events for compliance testing
+
+You can log in with these credentials:
 
 **Administrators:**
 - **Super Admin**: admin@lms.com / admin123
@@ -144,7 +191,7 @@ learning-management-system/
 ### Core Models
 
 - **Center**: Multi-tenant organization units
-- **User**: System users with role-based permissions
+- **User**: System users with 7-tier role-based permissions
 - **Course**: Learning courses with hierarchical structure
 - **Module**: Course modules (sections)
 - **Lesson**: Individual lessons within modules
@@ -152,12 +199,50 @@ learning-management-system/
 - **Enrollment**: Student course enrollments
 - **Progress**: Lesson completion tracking
 
+### Phase 1 Models
+
+**Academic Domain (8 models)**
+- **ClassCohort**: Group-based classes with capacity management
+- **ClassMembership**: Student enrollment in classes
+- **Session**: Live sessions (Teams/Zoom) with recordings
+- **SessionAttendance**: Legacy attendance tracking
+- **AttendanceRecord**: Enhanced attendance with status
+- **CatchUpPackage**: Automated catch-up for missed sessions
+- **AcademicProfile**: Student academic metrics
+- **GamificationProfile**: XP, levels, badges, achievements
+
+**Operations Domain (4 models)**
+- **Ticket**: Support tickets with SLA tracking
+- **TicketComment**: Ticket discussions (internal/public)
+- **TicketAttachment**: File attachments
+- **SLAConfig**: Service level agreements by type/priority
+
+**Finance Domain (7 models)**
+- **FeePlan**: Billing plans (WEEKLY, MONTHLY, TERM, ANNUAL)
+- **StudentAccount**: Student financial accounts
+- **Invoice**: Multi-line invoices with calculations
+- **InvoiceLine**: Invoice line items
+- **Payment**: Payment records (CASH, CHECK, CARD, etc.)
+- **Refund**: Refund requests and approvals
+
+**Governance Domain (2 models)**
+- **AuditEvent**: Immutable audit logs for compliance
+- **ApprovalRequest**: Approval workflows (REFUND, FEE_WAIVER, etc.)
+
+**Total: 30+ models with 25+ indexes for optimal performance**
+
 ## 🔒 Security
 
-- Passwords hashed with bcrypt
-- Authentication via NextAuth.js
-- Role-based authorization on all API endpoints
-- Data isolation per center for multi-tenancy
+- **Password Security**: Hashed with bcrypt (10 salt rounds)
+- **Authentication**: NextAuth.js v5 with credentials provider
+- **Authorization**: 72+ granular permissions across 7 roles
+- **Multi-Tenancy**: Enforced data isolation per center
+- **Audit Logging**: Immutable audit trail for all privileged operations
+- **Security Helpers**: Three critical modules enforce governance
+  - `lib/audit.ts` - Audit logging for compliance
+  - `lib/rbac.ts` - Permission-based authorization
+  - `lib/tenancy.ts` - Multi-tenancy enforcement
+- **CRITICAL**: centreId comes from session only, never from request body
 
 ## 🛠️ Technology Stack
 
