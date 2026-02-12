@@ -320,13 +320,13 @@ print_step "Step 8/9: Restarting PM2 application"
 # Check if app is running
 if pm2 describe "$APP_NAME" &> /dev/null; then
     print_step "Restarting existing PM2 process"
-    pm2 restart ecosystem.config.js --env production || {
+    pm2 restart ecosystem.config.cjs --env production || {
         print_error "Failed to restart PM2"
         exit 1
     }
 else
     print_step "Starting new PM2 process"
-    pm2 start ecosystem.config.js --env production || {
+    pm2 start ecosystem.config.cjs --env production || {
         print_error "Failed to start PM2"
         exit 1
     }
