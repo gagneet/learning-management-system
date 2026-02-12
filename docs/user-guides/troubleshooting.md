@@ -1,14 +1,56 @@
 # LMS Troubleshooting Guide
 
-## CSS Not Applied / Unstyled Content
+## Quick Links
+- **[Missing CSS/Assets (404 Errors)](../troubleshooting/missing-css-assets.md)** - Comprehensive guide for when CSS/JS files return 404
+
+## Missing CSS and Static Assets (404 Errors) ⚠️ COMMON ISSUE
+
+### Symptoms
+- Page loads but appears completely unstyled (no CSS)
+- Browser console shows **404 errors** for CSS, JS, and font files
+- Errors like: `/_next/static/chunks/*.css` not found
+- Login may not work due to missing JavaScript
+
+### Cause
+**PM2 was not restarted after running `npm run build`**. PM2 is serving an old build while the HTML references new file hashes.
+
+### Quick Fix
+```bash
+# FASTEST: Just restart PM2
+pm2 restart lms-nextjs
+
+# Or use the automated fix script
+./scripts/fix-missing-assets.sh
+
+# Or use the full deployment script
+./scripts/build-and-deploy.sh
+```
+
+### Verification
+1. Clear browser cache or use incognito mode
+2. Check browser console - should see **NO 404 errors**
+3. Page should load with full styling
+
+### Prevention
+**NEVER run `npm run build` alone in production!** Always use:
+```bash
+./scripts/build-and-deploy.sh
+```
+
+📖 **Detailed Guide**: See [docs/troubleshooting/missing-css-assets.md](../troubleshooting/missing-css-assets.md) for complete troubleshooting steps.
+
+---
+
+## CSS Not Applied / Unstyled Content (Tailwind v4 Issue)
 
 ### Symptoms
 - Page loads but appears unstyled
 - No background colors, spacing, or formatting
 - Plain HTML text only
+- **No 404 errors in console** (different from above issue)
 
 ### Cause
-Tailwind CSS v4 compatibility issue with Next.js 16 causing incomplete CSS generation.
+Tailwind CSS v4 compatibility issue with Next.js 16 causing incomplete CSS generation (CSS file too small).
 
 ### Solution
 1. Verify Tailwind version:
