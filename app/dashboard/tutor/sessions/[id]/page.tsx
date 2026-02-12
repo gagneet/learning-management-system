@@ -46,9 +46,9 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
           email: true,
         },
       },
-      attendance: {
+      attendanceRecords: {
         include: {
-          user: {
+          student: {
             select: {
               id: true,
               name: true,
@@ -57,9 +57,7 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
           },
         },
         orderBy: {
-          user: {
-            name: "asc",
-          },
+          createdAt: "asc",
         },
       },
     },
@@ -74,11 +72,18 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
     redirect("/dashboard");
   }
 
-  const presentCount = sessionData.attendance.filter((a) => a.attended).length;
-  const absentCount = sessionData.attendance.filter((a) => !a.attended).length;
+  // Calculate duration if not set
+  const sessionDuration = sessionData.duration ||
+    (sessionData.endTime
+      ? Math.round((new Date(sessionData.endTime).getTime() - new Date(sessionData.startTime).getTime()) / (1000 * 60))
+      : 60); // Default 60 minutes if no endTime
+
+  const presentCount = sessionData.attendanceRecords.filter((a) => a.status === "PRESENT").length;
+  const absentCount = sessionData.attendanceRecords.filter((a) => a.status === "ABSENT").length;
+  const lateCount = sessionData.attendanceRecords.filter((a) => a.status === "LATE").length;
   const attendanceRate =
-    sessionData.attendance.length > 0
-      ? (presentCount / sessionData.attendance.length) * 100
+    sessionData.attendanceRecords.length > 0
+      ? (presentCount / sessionData.attendanceRecords.length) * 100
       : 0;
 
   // Calculate duration from startTime and endTime
@@ -174,6 +179,7 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Duration</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
+                <!-- {sessionDuration} minutes -->
                 {durationMinutes ? `${durationMinutes} minutes` : 'Not set'}
               </div>
             </div>
@@ -230,7 +236,7 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="text-3xl mb-2">👥</div>
             <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {sessionData.attendance.length}
+              {sessionData.attendanceRecords.length}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Registered</div>
           </div>
@@ -259,17 +265,17 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
         {/* Attendance List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Attendance ({sessionData.attendance.length})
+            Attendance ({sessionData.attendanceRecords.length})
           </h2>
 
-          {sessionData.attendance.length === 0 ? (
+          {sessionData.attendanceRecords.length === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">👥</div>
               <p className="text-gray-500 dark:text-gray-400 text-lg">No attendance records yet</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {sessionData.attendance.map((record) => (
+              {sessionData.attendanceRecords.map((record) => (
                 <div
                   key={record.id}
                   className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow"
@@ -286,16 +292,16 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                     </span>
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white">
-                        {record.user.name}
+                        {record.student.name}
                       </div>
                       <div className="text-sm text-gray-600 dark:text-gray-400">
-                        {record.user.email}
+                        {record.student.email}
                       </div>
                     </div>
                   </div>
-                  {record.joinedAt && (
+                  {record.markedAt && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Joined: {new Date(record.joinedAt).toLocaleTimeString()}
+                      Marked: {new Date(record.markedAt).toLocaleTimeString()}
                     </div>
                   )}
                 </div>
