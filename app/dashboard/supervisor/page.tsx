@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 import { APP_CONFIG } from "@/lib/config/constants";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default async function SupervisorDashboardPage() {
   const session = await auth();
@@ -209,6 +210,7 @@ export default async function SupervisorDashboardPage() {
               Supervisor Dashboard
             </h1>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user.name}
               </span>
@@ -270,34 +272,40 @@ export default async function SupervisorDashboardPage() {
 
         {/* Center Performance Metrics */}
         <div className="grid md:grid-cols-4 gap-6 mb-8">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Total Students
-            </h3>
-            <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-              {students.length}
-            </p>
-          </div>
+          <Link href="/admin/users" className="block">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Total Students
+              </h3>
+              <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
+                {students.length}
+              </p>
+            </div>
+          </Link>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Total Tutors
-            </h3>
-            <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-              {tutors.length}
-            </p>
-          </div>
+          <Link href="/admin/users" className="block">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Total Tutors
+              </h3>
+              <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                {tutors.length}
+              </p>
+            </div>
+          </Link>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-            <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-              Active Courses
-            </h3>
-            <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">
-              {courses.filter(c => c.status === "PUBLISHED").length}
-            </p>
-          </div>
+          <Link href="/admin/courses" className="block">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                Active Courses
+              </h3>
+              <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">
+                {courses.filter(c => c.status === "PUBLISHED").length}
+              </p>
+            </div>
+          </Link>
 
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-transparent">
             <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
               Pending Payments
             </h3>

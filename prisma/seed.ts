@@ -1625,6 +1625,66 @@ async function main() {
 
   console.log('✅ Sessions linked to classes');
 
+  // Update sessions with sessionMode and location details
+  await prisma.session.update({
+    where: { id: todaySession1.id },
+    data: {
+      sessionMode: 'ONLINE',
+      meetingLink: 'https://teams.microsoft.com/join/abc123',
+    },
+  });
+  await prisma.session.update({
+    where: { id: todaySession2.id },
+    data: {
+      sessionMode: 'PHYSICAL',
+      physicalLocation: 'Room 101, Main Campus Building',
+    },
+  });
+  await prisma.session.update({
+    where: { id: todaySession3.id },
+    data: {
+      sessionMode: 'ONLINE',
+      meetingLink: 'https://teams.microsoft.com/join/def456',
+    },
+  });
+  await prisma.session.update({
+    where: { id: tomorrowSession1.id },
+    data: {
+      sessionMode: 'ONLINE',
+      meetingLink: 'https://teams.microsoft.com/join/tomorrow1',
+    },
+  });
+  await prisma.session.update({
+    where: { id: tomorrowSession2.id },
+    data: {
+      sessionMode: 'PHYSICAL',
+      physicalLocation: 'Room 205, Science Building',
+    },
+  });
+  await prisma.session.update({
+    where: { id: completedSession1.id },
+    data: {
+      sessionMode: 'ONLINE',
+      meetingLink: 'https://zoom.us/j/completed1',
+    },
+  });
+  await prisma.session.update({
+    where: { id: completedSession2.id },
+    data: {
+      sessionMode: 'PHYSICAL',
+      physicalLocation: 'Room 303, Arts Building',
+    },
+  });
+  await prisma.session.update({
+    where: { id: completedSession3.id },
+    data: {
+      sessionMode: 'ONLINE',
+      meetingLink: 'https://teams.microsoft.com/join/completed3',
+    },
+  });
+
+  console.log('✅ Sessions updated with mode and location details');
+
   // Create Attendance Records for completed sessions
   const attendance1 = await prisma.attendanceRecord.create({
     data: {

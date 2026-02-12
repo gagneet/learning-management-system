@@ -2,6 +2,8 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
+import { ClickableCard } from "@/components/ClickableCard";
+import ThemeToggle from "@/components/ThemeToggle";
 
 export default async function TutorDashboardPage() {
   const session = await auth();
@@ -143,6 +145,7 @@ export default async function TutorDashboardPage() {
               Tutor Dashboard
             </h1>
             <div className="flex items-center gap-4">
+              <ThemeToggle />
               <span className="text-sm text-gray-600 dark:text-gray-400">
                 {user.name}
               </span>
@@ -167,25 +170,29 @@ export default async function TutorDashboardPage() {
           </h2>
 
           <div className="grid md:grid-cols-4 gap-6">
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                My Courses
-              </h3>
-              <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
-                {courses.length}
-              </p>
-            </div>
+            <Link href="/dashboard/tutor/courses" className="block">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  My Courses
+                </h3>
+                <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">
+                  {courses.length}
+                </p>
+              </div>
+            </Link>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Total Students
-              </h3>
-              <p className="text-4xl font-bold text-green-600 dark:text-green-400">
-                {totalStudents}
-              </p>
-            </div>
+            <Link href="/dashboard/tutor/students" className="block">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Total Students
+                </h3>
+                <p className="text-4xl font-bold text-green-600 dark:text-green-400">
+                  {totalStudents}
+                </p>
+              </div>
+            </Link>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
+            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow border border-transparent">
               <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                 Avg Progress
               </h3>
@@ -194,14 +201,16 @@ export default async function TutorDashboardPage() {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
-                Upcoming Sessions
-              </h3>
-              <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
-                {upcomingSessions.length}
-              </p>
-            </div>
+            <Link href="/dashboard/tutor/sessions" className="block">
+              <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow hover:shadow-lg hover:border-blue-500 hover:-translate-y-1 transition-all cursor-pointer border border-transparent">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
+                  Upcoming Sessions
+                </h3>
+                <p className="text-4xl font-bold text-orange-600 dark:text-orange-400">
+                  {upcomingSessions.length}
+                </p>
+              </div>
+            </Link>
           </div>
         </div>
 
@@ -213,11 +222,9 @@ export default async function TutorDashboardPage() {
           {todaySessions.length > 0 ? (
             <div className="space-y-4">
               {todaySessions.map((s) => (
-                <div
-                  key={s.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition"
-                >
-                  <div className="flex justify-between items-start">
+                <Link key={s.id} href={`/dashboard/tutor/sessions/${s.id}`} className="block">
+                  <div className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition cursor-pointer">
+                    <div className="flex justify-between items-start">
                     <div>
                       <div className="flex items-center gap-2 mb-1">
                         <h4 className="font-semibold text-lg text-gray-900 dark:text-white">
@@ -259,6 +266,7 @@ export default async function TutorDashboardPage() {
                     )}
                   </div>
                 </div>
+                </Link>
               ))}
             </div>
           ) : (
