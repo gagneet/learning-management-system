@@ -108,12 +108,11 @@ export async function POST(
         create: {
           sessionId: sessionId,
           studentId: record.studentId,
-          classId: liveSession.classId,
           status: record.status,
           notes: record.notes,
-          date: liveSession.startTime,
           markedAt: new Date(),
           markedById: session.user.id,
+          centreId: session.user.centerId || '',
         },
         include: {
           student: {
@@ -145,12 +144,14 @@ export async function POST(
 
           const catchUp = await prisma.catchUpPackage.create({
             data: {
-              title: `Catch-up: ${liveSession.title}`,
-              description: `Missed session on ${liveSession.startTime.toLocaleDateString()}. Please review the materials and complete the catch-up activities.`,
+              attendanceId: attendanceRecord.id,
               sessionId: sessionId,
               studentId: record.studentId,
               status: "PENDING",
               dueDate: dueDate,
+              resources: [],
+              notes: `Missed session on ${liveSession.startTime.toLocaleDateString()}. Please review the materials and complete the catch-up activities.`,
+              centreId: session.user.centerId || '',
             },
             include: {
               student: {
@@ -180,14 +181,13 @@ export async function POST(
             "CatchUpPackage",
             catchUp.id,
             {
-              title: catchUp.title,
               studentId: catchUp.studentId,
               sessionId: catchUp.sessionId,
               status: catchUp.status,
               dueDate: catchUp.dueDate,
             },
-            session.user.centerId,
-            request.headers.get("x-forwarded-for") || undefined
+            session.user.centerId || '',
+            request.headers.get("x-forwarded-for") || ''
           );
         }
       }

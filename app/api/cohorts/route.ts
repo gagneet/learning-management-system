@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!hasPermission(session, Permissions.CLASS_VIEW)) {
+    if (!hasPermission(session, Permissions.CLASS_VIEW_ALL)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
     const cohorts = await prisma.classCohort.findMany({
       where: { centreId },
       include: {
-        tutor: {
+        teacher: {
           select: {
             id: true,
             name: true,
@@ -73,9 +73,9 @@ export async function GET(request: NextRequest) {
  * Body:
  * - name: string (required)
  * - description: string (optional)
- * - ageTier: AgeTier (required)
- * - tutorId: string (required)
- * - capacity: number (optional)
+ * - subject: AgeTier (required)
+ * - teacherId: string (required)
+ * - maxCapacity: number (optional)
  */
 export async function POST(request: NextRequest) {
   try {
@@ -92,16 +92,16 @@ export async function POST(request: NextRequest) {
     preventCentreIdInjection(body);
 
     // Validate required fields
-    if (!body.name || !body.ageTier || !body.tutorId) {
+    if (!body.name || !body.subject || !body.teacherId) {
       return NextResponse.json(
-        { error: "Missing required fields: name, ageTier, tutorId" },
+        { error: "Missing required fields: name, subject, teacherId" },
         { status: 400 }
       );
     }
 
     // Verify tutor exists and belongs to the same centre
     const tutor = await prisma.user.findUnique({
-      where: { id: body.tutorId },
+      where: { id: body.teacherId },
       select: { id: true, centerId: true, role: true },
     });
 
@@ -122,13 +122,15 @@ export async function POST(request: NextRequest) {
       data: {
         name: body.name,
         description: body.description,
-        ageTier: body.ageTier,
-        tutorId: body.tutorId,
-        capacity: body.capacity || 30,
+        subject: body.subject,
+        teacherId: body.teacherId,
+        maxCapacity: body.maxCapacity || 30,
+        startDate: body.startDate ? new Date(body.startDate) : new Date(),
+        endDate: body.endDate ? new Date(body.endDate) : null,
         centreId: session.user.centerId,
       },
       include: {
-        tutor: {
+        teacher: {
           select: {
             id: true,
             name: true,
@@ -147,9 +149,9 @@ export async function POST(request: NextRequest) {
       cohort.id,
       {
         name: cohort.name,
-        ageTier: cohort.ageTier,
-        tutorId: cohort.tutorId,
-        capacity: cohort.capacity,
+        subject: cohort.subject,
+        teacherId: cohort.teacherId,
+        maxCapacity: cohort.maxCapacity,
       },
       session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined

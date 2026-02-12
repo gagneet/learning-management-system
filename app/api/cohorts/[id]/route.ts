@@ -28,7 +28,7 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    if (!hasPermission(session, Permissions.CLASS_VIEW)) {
+    if (!hasPermission(session, Permissions.CLASS_VIEW_ALL)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -37,7 +37,7 @@ export async function GET(
     const cohort = await prisma.classCohort.findUnique({
       where: { id },
       include: {
-        tutor: {
+        teacher: {
           select: {
             id: true,
             name: true,
@@ -53,7 +53,6 @@ export async function GET(
                 name: true,
                 email: true,
                 avatar: true,
-                ageTier: true,
               },
             },
           },
@@ -110,9 +109,9 @@ export async function GET(
  * Body:
  * - name: string (optional)
  * - description: string (optional)
- * - ageTier: AgeTier (optional)
- * - tutorId: string (optional)
- * - capacity: number (optional)
+ * - subject: AgeTier (optional)
+ * - teacherId: string (optional)
+ * - maxCapacity: number (optional)
  */
 export async function PUT(
   request: NextRequest,
@@ -145,9 +144,9 @@ export async function PUT(
     validateCentreAccess(session, existingCohort.centreId);
 
     // If changing tutor, verify new tutor
-    if (body.tutorId && body.tutorId !== existingCohort.tutorId) {
+    if (body.teacherId && body.teacherId !== existingCohort.teacherId) {
       const tutor = await prisma.user.findUnique({
-        where: { id: body.tutorId },
+        where: { id: body.teacherId },
         select: { id: true, centerId: true, role: true },
       });
 
@@ -167,10 +166,11 @@ export async function PUT(
     // Capture before state
     const beforeState = {
       name: existingCohort.name,
+      subject: existingCohort.subject,
       description: existingCohort.description,
-      ageTier: existingCohort.ageTier,
-      tutorId: existingCohort.tutorId,
-      capacity: existingCohort.capacity,
+      teacherId: existingCohort.teacherId,
+      maxCapacity: existingCohort.maxCapacity,
+      status: existingCohort.status,
     };
 
     // Update cohort
@@ -178,13 +178,16 @@ export async function PUT(
       where: { id },
       data: {
         name: body.name,
+        subject: body.subject,
         description: body.description,
-        ageTier: body.ageTier,
-        tutorId: body.tutorId,
-        capacity: body.capacity,
+        teacherId: body.teacherId,
+        maxCapacity: body.maxCapacity,
+        status: body.status,
+        startDate: body.startDate ? new Date(body.startDate) : undefined,
+        endDate: body.endDate ? new Date(body.endDate) : undefined,
       },
       include: {
-        tutor: {
+        teacher: {
           select: {
             id: true,
             name: true,
@@ -211,9 +214,9 @@ export async function PUT(
       {
         name: cohort.name,
         description: cohort.description,
-        ageTier: cohort.ageTier,
-        tutorId: cohort.tutorId,
-        capacity: cohort.capacity,
+        subject: cohort.subject,
+        teacherId: cohort.teacherId,
+        maxCapacity: cohort.maxCapacity,
       },
       session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined
@@ -294,8 +297,8 @@ export async function DELETE(
       id,
       {
         name: existingCohort.name,
-        ageTier: existingCohort.ageTier,
-        tutorId: existingCohort.tutorId,
+        subject: existingCohort.subject,
+        teacherId: existingCohort.teacherId,
       },
       session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined

@@ -7,6 +7,7 @@ declare module "next-auth" {
       role: string;
       centerId: string;  // Match User model spelling
       centerName: string;
+      themePreference?: string;
     } & DefaultSession["user"];
   }
 
@@ -14,6 +15,7 @@ declare module "next-auth" {
     role: string;
     centerId: string;  // Match User model spelling
     centerName: string;
+    themePreference?: string;
   }
 }
 
@@ -22,5 +24,6 @@ declare module "next-auth/jwt" {
     role: string;
     centerId: string;  // Match User model spelling
     centerName: string;
+    themePreference?: string;
   }
 }

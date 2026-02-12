@@ -1,6 +1,5 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
-import { seedBadges } from './seeds/badges';
 
 const prisma = new PrismaClient();
 
@@ -28,6 +27,27 @@ const NINETY_DAYS_MS = 90 * ONE_DAY_MS;
 
 async function main() {
   console.log('🌱 Starting database seed...');
+
+  // Clean up existing data in correct order (respecting foreign keys)
+  console.log('🧹 Cleaning up existing data...');
+
+  await prisma.ticketComment.deleteMany({});
+  await prisma.ticket.deleteMany({});
+  await prisma.catchUpPackage.deleteMany({});
+  await prisma.sessionAttendance.deleteMany({});
+  await prisma.refund.deleteMany({});
+  await prisma.payment.deleteMany({});
+  await prisma.invoiceLine.deleteMany({});
+  await prisma.invoice.deleteMany({});
+  await prisma.studentAccount.deleteMany({});
+  await prisma.feePlan.deleteMany({});
+  await prisma.sLAConfig.deleteMany({});
+  await prisma.classMembership.deleteMany({});
+  await prisma.classCohort.deleteMany({});
+  await prisma.approvalRequest.deleteMany({});
+  await prisma.auditEvent.deleteMany({});
+
+  console.log('✅ Cleanup complete');
 
   // Create centers
   const center1 = await prisma.center.upsert({
@@ -1461,8 +1481,19 @@ async function main() {
   ];
 
   for (const config of slaConfigs) {
-    await prisma.sLAConfig.create({
-      data: {
+    await prisma.sLAConfig.upsert({
+      where: {
+        centreId_ticketType_priority: {
+          centreId: center1.id,
+          ticketType: config.type,
+          priority: config.priority,
+        },
+      },
+      update: {
+        responseTimeHours: config.responseHours,
+        resolutionTimeHours: config.resolutionHours,
+      },
+      create: {
         ticketType: config.type,
         priority: config.priority,
         responseTimeHours: config.responseHours,
@@ -2822,7 +2853,36 @@ async function main() {
   console.log('  ✓ Complete audit trail for compliance');
 
   // Seed badge definitions (Phase 1 - Enhanced Gamification)
-  await seedBadges();
+  console.log('🎖️  Seeding badge definitions...');
+
+  const BADGE_DEFINITIONS = [
+    // Completion badges
+    { name: 'First Steps', description: 'Complete your first lesson', category: 'COMPLETION', tier: 'BRONZE', xpValue: 10, criteria: { type: 'lesson_count', count: 1 } },
+    { name: 'Course Conqueror', description: 'Complete your first course', category: 'COMPLETION', tier: 'SILVER', xpValue: 100, criteria: { type: 'course_completion', count: 1 } },
+    { name: 'Learning Legend', description: 'Complete 5 courses', category: 'COMPLETION', tier: 'GOLD', xpValue: 500, criteria: { type: 'course_completion', count: 5 } },
+    // Streak badges
+    { name: 'Week Warrior', description: '7-day attendance streak', category: 'STREAK', tier: 'BRONZE', xpValue: 50, criteria: { type: 'attendance_streak', days: 7 } },
+    { name: 'Month Master', description: '30-day attendance streak', category: 'STREAK', tier: 'SILVER', xpValue: 200, criteria: { type: 'attendance_streak', days: 30 } },
+    { name: 'Dedication Champion', description: '100-day attendance streak', category: 'STREAK', tier: 'PLATINUM', xpValue: 1000, criteria: { type: 'attendance_streak', days: 100 } },
+    // Mastery badges
+    { name: 'Perfect Score', description: 'Get 100% on a quiz', category: 'MASTERY', tier: 'GOLD', xpValue: 50, criteria: { type: 'quiz_perfect', count: 1 } },
+    { name: 'Quiz Master', description: 'Get 100% on 10 quizzes', category: 'MASTERY', tier: 'PLATINUM', xpValue: 500, criteria: { type: 'quiz_perfect', count: 10 } },
+    // Social badges
+    { name: 'Helpful Friend', description: 'Help 5 classmates', category: 'SOCIAL', tier: 'SILVER', xpValue: 25, criteria: { type: 'peer_help', count: 5 } },
+    { name: 'Team Player', description: 'Participate in 10 group activities', category: 'SOCIAL', tier: 'GOLD', xpValue: 100, criteria: { type: 'group_activity', count: 10 } },
+    // Special badges
+    { name: 'Early Adopter', description: 'One of the first 100 users', category: 'SPECIAL', tier: 'PLATINUM', xpValue: 100, criteria: { type: 'user_id_range', max: 100 } },
+  ];
+
+  for (const badge of BADGE_DEFINITIONS) {
+    await prisma.badgeDefinition.upsert({
+      where: { name: badge.name },
+      update: badge,
+      create: badge,
+    });
+  }
+
+  console.log(`✅ Seeded ${BADGE_DEFINITIONS.length} badge definitions`);
 }
 
 main()

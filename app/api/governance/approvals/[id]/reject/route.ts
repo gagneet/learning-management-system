@@ -80,7 +80,7 @@ export async function POST(
         status: "REJECTED",
         approvedById: session.user.id,
         approvedAt: new Date(),
-        approverComments: body.comments,
+        comment: body.comments,
       },
       include: {
         requestedBy: {
@@ -101,16 +101,22 @@ export async function POST(
     });
 
     // Handle specific approval types
-    if (approval.type === "REFUND" && approval.relatedId) {
-      // Update refund status
-      await prisma.refund.update({
-        where: { id: approval.relatedId },
-        data: {
-          status: "REJECTED",
-          approvedById: session.user.id,
-          approvedAt: new Date(),
-        },
+    if (approval.type === "REFUND") {
+      // Find and update related refund
+      const refund = await prisma.refund.findFirst({
+        where: { approvalRequestId: approval.id },
       });
+
+      if (refund) {
+        await prisma.refund.update({
+          where: { id: refund.id },
+          data: {
+            status: "REJECTED",
+            approvedById: session.user.id,
+            approvedAt: new Date(),
+          },
+        });
+      }
     }
 
     // Audit log
@@ -122,12 +128,11 @@ export async function POST(
       updatedApproval.id,
       {
         type: updatedApproval.type,
-        relatedId: updatedApproval.relatedId,
         status: updatedApproval.status,
         reason: body.comments,
       },
-      session.user.centerId,
-      request.headers.get("x-forwarded-for") || undefined
+      session.user.centerId || '',
+      request.headers.get("x-forwarded-for") || ''
     );
 
     return NextResponse.json({ approval: updatedApproval });

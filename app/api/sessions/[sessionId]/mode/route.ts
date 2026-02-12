@@ -35,7 +35,7 @@ export async function PATCH(
     }
 
     // Check permissions - Only Teacher, Supervisor, and Admins can update session mode
-    if (!hasPermission(session, Permissions.SESSION_UPDATE)) {
+    if (!hasPermission(session, Permissions.SESSION_CREATE)) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
