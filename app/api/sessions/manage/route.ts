@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { hasPermission, Permissions } from "@/lib/rbac";
 import { preventCentreIdInjection } from "@/lib/tenancy";
-import { createAuditLog } from "@/lib/audit";
+import { auditCreate } from "@/lib/audit";
 import { Role } from "@prisma/client";
 
 // POST /api/sessions/manage - Create a new session with multiple student enrollments
@@ -236,15 +236,20 @@ export async function POST(request: NextRequest) {
       });
     });
 
+    if (!newSession) {
+      return NextResponse.json(
+        { error: "Failed to create session" },
+        { status: 500 }
+      );
+    }
+
     // Create audit log
-    await createAuditLog(
+    await auditCreate(
       user.id,
       user.name || "Unknown",
       user.role as Role,
       "Session",
       newSession.id,
-      "CREATE",
-      null,
       {
         title: newSession.title,
         tutorId: newSession.tutorId,

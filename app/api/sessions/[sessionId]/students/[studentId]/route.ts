@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { hasPermission, Permissions } from "@/lib/rbac";
 import { preventCentreIdInjection } from "@/lib/tenancy";
-import { createAuditLog } from "@/lib/audit";
+import { auditUpdate, auditDelete } from "@/lib/audit";
 import { Role } from "@prisma/client";
 
 // PATCH /api/sessions/[sessionId]/students/[studentId] - Update student enrollment
@@ -148,13 +148,12 @@ export async function PATCH(
     });
 
     // Create audit log
-    await createAuditLog(
+    await auditUpdate(
       user.id,
       user.name || "Unknown",
       user.role as Role,
       "StudentSessionEnrollment",
       updatedEnrollment.id,
-      "UPDATE",
       {
         courseId: existingEnrollment.courseId,
         lessonId: existingEnrollment.lessonId,
@@ -259,13 +258,12 @@ export async function DELETE(
     });
 
     // Create audit log
-    await createAuditLog(
+    await auditDelete(
       user.id,
       user.name || "Unknown",
       user.role as Role,
       "StudentSessionEnrollment",
       existingEnrollment.id,
-      "DELETE",
       {
         sessionId,
         studentId,
@@ -273,7 +271,6 @@ export async function DELETE(
         courseId: existingEnrollment.courseId,
         lessonId: existingEnrollment.lessonId,
       },
-      null,
       user.centerId,
       request.headers.get("x-forwarded-for") || undefined
     );

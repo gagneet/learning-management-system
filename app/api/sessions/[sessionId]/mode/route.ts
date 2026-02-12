@@ -54,15 +54,16 @@ export async function PATCH(
     const existingSession = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
-        lesson: {
+        class: {
+          select: {
+            centreId: true,
+          },
+        },
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: {
-                  select: {
-                    centerId: true,
-                  },
-                },
+            course: {
+              select: {
+                centerId: true,
               },
             },
           },
@@ -74,8 +75,13 @@ export async function PATCH(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Validate centre access
-    validateCentreAccess(session, existingSession.lesson.module.course.centerId);
+    // Validate centre access using class centreId or first enrollment's course centreId
+    const sessionCentreId = existingSession.class?.centreId ||
+                            existingSession.studentEnrollments?.[0]?.course?.centerId;
+
+    if (sessionCentreId) {
+      validateCentreAccess(session, sessionCentreId);
+    }
 
     // Prepare update data based on mode
     const updateData: any = {
@@ -116,13 +122,18 @@ export async function PATCH(
       where: { id: sessionId },
       data: updateData,
       include: {
-        lesson: {
+        class: true,
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: true,
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
               },
             },
+            course: true,
+            lesson: true,
           },
         },
         attendance: {

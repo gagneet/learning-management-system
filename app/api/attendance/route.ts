@@ -49,9 +49,11 @@ export async function POST(request: NextRequest) {
       where: { id: body.sessionId },
       include: {
         class: true,  // Correct relation name is 'class', not 'classCohort'
-        lesson: {
+        studentEnrollments: {
           include: {
-            contents: true,
+            student: true,
+            course: true,
+            lesson: true,
           },
         },
       },
@@ -128,6 +130,18 @@ export async function POST(request: NextRequest) {
       });
 
       if (!existing) {
+        // Get the student's enrollment to find their lesson content
+        const studentEnrollment = sessionRecord.studentEnrollments?.find(
+          (e) => e.studentId === absent.studentId
+        );
+
+        // Fetch lesson contents if available
+        const lessonContents = studentEnrollment?.lessonId
+          ? await prisma.content.findMany({
+              where: { lessonId: studentEnrollment.lessonId },
+            })
+          : [];
+
         // Create catch-up package
         const catchUp = await prisma.catchUpPackage.create({
           data: {
@@ -137,7 +151,7 @@ export async function POST(request: NextRequest) {
             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
             status: "PENDING",
             centreId: sessionRecord.class?.centreId || session.user.centerId,  // Required field
-            resources: sessionRecord.lesson?.contents?.map((c) => ({
+            resources: lessonContents.map((c) => ({
               id: c.id,
               title: c.title,
               type: c.type,

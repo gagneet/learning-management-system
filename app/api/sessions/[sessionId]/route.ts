@@ -20,17 +20,33 @@ export async function GET(
     const liveSession = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
-        lesson: {
+        class: {
+          select: {
+            id: true,
+            name: true,
+            centreId: true,
+          },
+        },
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: {
-                  select: {
-                    id: true,
-                    title: true,
-                    centerId: true,
-                  },
-                },
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+              },
+            },
+            course: {
+              select: {
+                id: true,
+                title: true,
+                centerId: true,
+              },
+            },
+            lesson: {
+              select: {
+                id: true,
+                title: true,
               },
             },
           },
@@ -53,11 +69,11 @@ export async function GET(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Check permissions
-    if (
-      user.role !== "SUPER_ADMIN" &&
-      liveSession.lesson.module.course.centerId !== user.centerId
-    ) {
+    // Check permissions using class centreId or first enrollment's course centreId
+    const sessionCentreId = liveSession.class?.centreId ||
+                            liveSession.studentEnrollments?.[0]?.course?.centerId;
+
+    if (user.role !== "SUPER_ADMIN" && sessionCentreId && sessionCentreId !== user.centerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -106,15 +122,16 @@ export async function PUT(
     const existingSession = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
-        lesson: {
+        class: {
+          select: {
+            centreId: true,
+          },
+        },
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: {
-                  select: {
-                    centerId: true,
-                  },
-                },
+            course: {
+              select: {
+                centerId: true,
               },
             },
           },
@@ -126,11 +143,11 @@ export async function PUT(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Check permissions
-    if (
-      user.role !== "SUPER_ADMIN" &&
-      existingSession.lesson.module.course.centerId !== user.centerId
-    ) {
+    // Check permissions using class centreId or first enrollment's course centreId
+    const sessionCentreId = existingSession.class?.centreId ||
+                            existingSession.studentEnrollments?.[0]?.course?.centerId;
+
+    if (user.role !== "SUPER_ADMIN" && sessionCentreId && sessionCentreId !== user.centerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -147,13 +164,18 @@ export async function PUT(
         transcriptUrl,
       },
       include: {
-        lesson: {
+        class: true,
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: true,
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
               },
             },
+            course: true,
+            lesson: true,
           },
         },
         attendance: {

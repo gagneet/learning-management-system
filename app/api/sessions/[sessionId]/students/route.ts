@@ -3,7 +3,7 @@ import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { hasPermission, Permissions } from "@/lib/rbac";
 import { preventCentreIdInjection } from "@/lib/tenancy";
-import { createAuditLog } from "@/lib/audit";
+import { auditCreate } from "@/lib/audit";
 import { Role } from "@prisma/client";
 
 // GET /api/sessions/[sessionId]/students - Get all students enrolled in a session
@@ -240,14 +240,12 @@ export async function POST(
     });
 
     // Create audit log
-    await createAuditLog(
+    await auditCreate(
       user.id,
       user.name || "Unknown",
       user.role as Role,
       "StudentSessionEnrollment",
       enrollment.id,
-      "CREATE",
-      null,
       {
         sessionId,
         studentId,

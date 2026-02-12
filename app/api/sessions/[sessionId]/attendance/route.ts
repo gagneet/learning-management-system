@@ -52,16 +52,12 @@ export async function POST(
     const liveSession = await prisma.session.findUnique({
       where: { id: sessionId },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: {
-                  select: {
-                    id: true,
-                    centerId: true,
-                  },
-                },
+            course: {
+              select: {
+                id: true,
+                centerId: true,
               },
             },
           },
@@ -70,6 +66,7 @@ export async function POST(
           select: {
             id: true,
             name: true,
+            centreId: true,
           },
         },
       },
@@ -79,8 +76,13 @@ export async function POST(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Validate centre access
-    validateCentreAccess(session, liveSession.lesson.module.course.centerId);
+    // Validate centre access using class centreId or first enrollment's course centreId
+    const sessionCentreId = liveSession.class?.centreId ||
+                            liveSession.studentEnrollments?.[0]?.course?.centerId;
+
+    if (sessionCentreId) {
+      validateCentreAccess(session, sessionCentreId);
+    }
 
     // Process each attendance record
     const results = [];

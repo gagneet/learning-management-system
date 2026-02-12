@@ -59,16 +59,18 @@ export async function GET(
         },
         sessions: {
           include: {
-            lesson: {
+            studentEnrollments: {
               include: {
-                module: {
-                  include: {
-                    course: {
-                      select: {
-                        id: true,
-                        title: true,
-                      },
-                    },
+                course: {
+                  select: {
+                    id: true,
+                    title: true,
+                  },
+                },
+                lesson: {
+                  select: {
+                    id: true,
+                    title: true,
                   },
                 },
               },

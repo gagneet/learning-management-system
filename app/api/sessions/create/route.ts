@@ -29,9 +29,9 @@ export async function POST(request: NextRequest) {
       tutorId,
     } = body;
 
-    if (!lessonId || !title || !provider || !startTime) {
+    if (!title || !provider || !startTime) {
       return NextResponse.json(
-        { error: "Missing required fields" },
+        { error: "Missing required fields: title, provider, startTime" },
         { status: 400 }
       );
     }
@@ -45,40 +45,41 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Check if lesson exists
-    const lesson = await prisma.lesson.findUnique({
-      where: { id: lessonId },
-      include: {
-        module: {
-          include: {
-            course: {
-              select: {
-                centerId: true,
+    // Optional: Check if lesson exists (for backwards compatibility)
+    if (lessonId) {
+      const lesson = await prisma.lesson.findUnique({
+        where: { id: lessonId },
+        include: {
+          module: {
+            include: {
+              course: {
+                select: {
+                  centerId: true,
+                },
               },
             },
           },
         },
-      },
-    });
+      });
 
-    if (!lesson) {
-      return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+      if (!lesson) {
+        return NextResponse.json({ error: "Lesson not found" }, { status: 404 });
+      }
+
+      // Check permissions
+      if (
+        user.role !== "SUPER_ADMIN" &&
+        lesson.module.course.centerId !== user.centerId
+      ) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
-    // Check permissions
-    if (
-      user.role !== "SUPER_ADMIN" &&
-      lesson.module.course.centerId !== user.centerId
-    ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
-
-    // Create session
+    // Create session (without lessonId - use new multi-student model)
     // Note: Integration with actual Teams/Zoom APIs would happen here
     // For now, we're just creating the database record
     const newSession = await prisma.session.create({
       data: {
-        lessonId,
         title,
         description,
         provider,
@@ -91,13 +92,11 @@ export async function POST(request: NextRequest) {
         joinUrl: null,
       },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: true,
-              },
-            },
+            student: true,
+            course: true,
+            lesson: true,
           },
         },
       },
