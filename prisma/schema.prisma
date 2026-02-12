@@ -54,6 +54,17 @@ enum AgeTier {
   TIER3  // Ages 14+/Adult (professional, standard)
 }
 
+enum ThemePreference {
+  LIGHT  // Light mode (white surfaces)
+  GRAY   // Gray mode (soft gray surfaces)
+  DARK   // Dark mode (dark surfaces)
+}
+
+enum SessionMode {
+  ONLINE    // Online/virtual session
+  PHYSICAL  // Physical/in-person session
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -71,6 +82,9 @@ model User {
   // NEW: Age-tier system (nullable with defaults)
   dateOfBirth       DateTime?
   ageTier           AgeTier   @default(TIER3)
+  
+  // NEW: Theme preference (nullable with default)
+  themePreference   ThemePreference @default(LIGHT)
 
   // Multi-tenant relationship
   centerId      String
@@ -342,6 +356,11 @@ model Session {
   metadata        Json?          // Provider-specific metadata
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
+  
+  // NEW: Session mode and location (nullable with defaults)
+  sessionMode     SessionMode    @default(ONLINE)
+  meetingLink     String?        // Manual meeting link for ONLINE mode
+  physicalLocation String?       // Location description for PHYSICAL mode
   
   lessonId        String
   lesson          Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
