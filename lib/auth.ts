@@ -40,6 +40,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           role: user.role,
           centerId: user.centerId,
           centerName: user.center.name,
+          themePreference: user.themePreference,
         };
       },
     }),
@@ -50,6 +51,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         token.role = user.role;
         token.centerId = user.centerId;
         token.centerName = user.centerName;
+        token.themePreference = user.themePreference;
       }
       return token;
     },
@@ -59,6 +61,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         session.user.role = token.role as string;
         session.user.centerId = token.centerId as string;
         session.user.centerName = token.centerName as string;
+        session.user.themePreference = token.themePreference as string;
       }
       return session;
     },

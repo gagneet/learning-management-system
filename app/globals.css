@@ -2,13 +2,53 @@
 @tailwind components;
 @tailwind utilities;
 
-:root {
+/* ============================================================================ */
+/* Theme System - LIGHT, GRAY, DARK */
+/* ============================================================================ */
+
+:root,
+.theme-light {
   --background: #ffffff;
   --foreground: #171717;
+  --surface: #ffffff;
+  --surface-secondary: #f9fafb;
+  --surface-tertiary: #f3f4f6;
+  --border: #e5e7eb;
+  --border-hover: #d1d5db;
+  --text-primary: #111827;
+  --text-secondary: #6b7280;
+  --text-tertiary: #9ca3af;
 }
 
+.theme-gray {
+  --background: #f3f4f6;
+  --foreground: #111827;
+  --surface: #ffffff;
+  --surface-secondary: #f9fafb;
+  --surface-tertiary: #e5e7eb;
+  --border: #d1d5db;
+  --border-hover: #9ca3af;
+  --text-primary: #111827;
+  --text-secondary: #4b5563;
+  --text-tertiary: #6b7280;
+}
+
+.theme-dark {
+  --background: #0f172a;
+  --foreground: #f8fafc;
+  --surface: #1e293b;
+  --surface-secondary: #334155;
+  --surface-tertiary: #475569;
+  --border: #475569;
+  --border-hover: #64748b;
+  --text-primary: #f8fafc;
+  --text-secondary: #cbd5e1;
+  --text-tertiary: #94a3b8;
+}
+
+/* Legacy dark mode support (for backwards compatibility) */
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not(.theme-light):not(.theme-gray):not(.theme-dark) {
     --background: #0a0a0a;
     --foreground: #ededed;
   }
@@ -18,6 +58,7 @@ body {
   color: var(--foreground);
   background: var(--background);
   font-family: Arial, Helvetica, sans-serif;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 @layer utilities {
