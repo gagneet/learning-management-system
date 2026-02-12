@@ -15,9 +15,9 @@ import { auditUpdate, auditDelete } from "@/lib/audit";
 import { Role } from "@prisma/client";
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 /**
@@ -31,7 +31,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const classId = params.id;
+    const { id: classId } = await params;
 
     // Fetch the class
     const classCohort = await prisma.classCohort.findUnique({
@@ -62,7 +62,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
         },
         sessions: {
           orderBy: {
-            startDate: 'desc',
+            startTime: 'desc',  // Correct field name
           },
           take: 10, // Latest 10 sessions
         },
@@ -80,7 +80,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Validate centre access
-    validateCentreAccess(session, classCohort.centreId);
+    validateCentreAccess(session, classCohort.centreId);  // Database field uses British spelling
 
     // Check if user can view this class
     const canViewAll = hasPermission(session, Permissions.CLASS_VIEW_ALL);
@@ -121,7 +121,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const classId = params.id;
+    const { id: classId } = await params;
     const body = await request.json();
 
     // Security: Prevent centreId injection
@@ -172,13 +172,13 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     // Audit log
     await auditUpdate(
       session.user.id,
-      session.user.name || session.user.email,
+      session.user.name || session.user.email || 'Unknown',
       session.user.role as Role,
       "ClassCohort",
       updatedClass.id,
       existingClass,
       updatedClass,
-      session.user.centreId,
+      session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined
     );
 
@@ -208,7 +208,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
-    const classId = params.id;
+    const { id: classId } = await params;
 
     // Fetch the existing class
     const existingClass = await prisma.classCohort.findUnique({
@@ -233,12 +233,12 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     // Audit log
     await auditDelete(
       session.user.id,
-      session.user.name || session.user.email,
+      session.user.name || session.user.email || 'Unknown',
       session.user.role as Role,
       "ClassCohort",
       deletedClass.id,
       existingClass,
-      session.user.centreId,
+      session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined
     );
 

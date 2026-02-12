@@ -48,7 +48,7 @@ export async function POST(request: NextRequest) {
     const sessionRecord = await prisma.session.findUnique({
       where: { id: body.sessionId },
       include: {
-        classCohort: true,
+        class: true,  // Correct relation name is 'class', not 'classCohort'
         lesson: {
           include: {
             contents: true,
@@ -61,13 +61,13 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Validate centre access
-    if (session.user.role !== "SUPER_ADMIN" && sessionRecord.centreId !== session.user.centreId) {
+    // Validate centre access (session belongs to a class, which has a centreId)
+    if (session.user.role !== "SUPER_ADMIN" && sessionRecord.class && sessionRecord.class.centreId !== session.user.centerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     // Teachers can only mark attendance for their own sessions
-    if (session.user.role === "TEACHER" && sessionRecord.classCohort?.teacherId !== session.user.id) {
+    if (session.user.role === "TEACHER" && sessionRecord.class?.teacherId !== session.user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
@@ -95,6 +95,7 @@ export async function POST(request: NextRequest) {
           markedById: session.user.id,
           markedAt: new Date(),
           notes: record.notes || null,
+          centreId: sessionRecord.class?.centreId || session.user.centerId, // From class or user's center
         },
         update: {
           status: record.status,
@@ -122,7 +123,7 @@ export async function POST(request: NextRequest) {
       const existing = await prisma.catchUpPackage.findFirst({
         where: {
           studentId: absent.studentId,
-          attendanceRecordId: absent.attendanceRecordId,
+          attendanceId: absent.attendanceRecordId,  // Field name is 'attendanceId'
         },
       });
 
@@ -131,11 +132,11 @@ export async function POST(request: NextRequest) {
         const catchUp = await prisma.catchUpPackage.create({
           data: {
             studentId: absent.studentId,
-            attendanceRecordId: absent.attendanceRecordId,
-            title: `Catch-up for ${sessionRecord.title || "Session"}`,
-            description: sessionRecord.description || undefined,
+            sessionId: body.sessionId,
+            attendanceId: absent.attendanceRecordId,  // Correct field name
             dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
             status: "PENDING",
+            centreId: sessionRecord.class?.centreId || session.user.centerId,  // Required field
             resources: sessionRecord.lesson?.contents?.map((c) => ({
               id: c.id,
               title: c.title,
@@ -150,7 +151,7 @@ export async function POST(request: NextRequest) {
         // Audit log for catch-up creation
         await auditCreate(
           session.user.id,
-          session.user.name || session.user.email,
+          session.user.name || session.user.email || "Unknown",
           session.user.role as Role,
           "CatchUpPackage",
           catchUp.id,
@@ -159,7 +160,7 @@ export async function POST(request: NextRequest) {
             sessionId: body.sessionId,
             status: "PENDING",
           },
-          session.user.centreId,
+          session.user.centerId,
           request.headers.get("x-forwarded-for") || undefined
         );
       }
@@ -168,7 +169,7 @@ export async function POST(request: NextRequest) {
     // Audit log for attendance marking
     await auditCreate(
       session.user.id,
-      session.user.name || session.user.email,
+      session.user.name || session.user.email || "Unknown",
       session.user.role as Role,
       "AttendanceRecord",
       body.sessionId,
@@ -177,7 +178,7 @@ export async function POST(request: NextRequest) {
         recordCount: results.length,
         absentCount: absentStudents.length,
       },
-      session.user.centreId,
+      session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined
     );
 
@@ -296,9 +297,9 @@ export async function GET(request: NextRequest) {
           select: {
             id: true,
             title: true,
-            startDate: true,
-            endDate: true,
-            classCohort: {
+            startTime: true,  // Correct field name
+            endTime: true,    // Correct field name
+            class: {         // Correct relation name
               select: {
                 id: true,
                 name: true,

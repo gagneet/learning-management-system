@@ -9,7 +9,7 @@ interface Session {
   user: {
     id: string;
     role: string;
-    centreId: string;
+    centerId: string;  // Match NextAuth session spelling
     [key: string]: any;
   };
 }
@@ -45,7 +45,7 @@ export function getCentreIdForQuery(
   }
 
   // Everyone else locked to their centre
-  return session.user.centreId;
+  return session.user.centerId;
 }
 
 /**
@@ -73,7 +73,7 @@ export function validateCentreAccess(
   }
 
   // Everyone else must match centres
-  if (session.user.centreId !== resourceCentreId) {
+  if (session.user.centerId !== resourceCentreId) {
     throw new Error("FORBIDDEN");
   }
 }
@@ -99,7 +99,7 @@ export function canAccessCentre(
   }
 
   // Everyone else must match centres
-  return session.user.centreId === resourceCentreId;
+  return session.user.centerId === resourceCentreId;
 }
 
 /**
@@ -139,7 +139,7 @@ export function getCentreIdFromSession(session: Session | null): string {
   if (!session?.user?.centreId) {
     throw new Error("UNAUTHORIZED");
   }
-  return session.user.centreId;
+  return session.user.centerId;
 }
 
 /**

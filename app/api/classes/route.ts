@@ -132,7 +132,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Get centreId from session
-    const centreId = session.user.centreId;
+    const centreId = session.user.centerId;
 
     // Determine teacher
     let teacherId = body.teacherId;
@@ -156,7 +156,7 @@ export async function POST(request: NextRequest) {
         description: body.description,
         startDate: new Date(body.startDate),
         endDate: body.endDate ? new Date(body.endDate) : null,
-        capacity: body.capacity || null,
+        maxCapacity: body.capacity || 20,  // Correct field name with default
         status: "ACTIVE",
         centreId,
         teacherId,
@@ -175,7 +175,7 @@ export async function POST(request: NextRequest) {
     // Audit log
     await auditCreate(
       session.user.id,
-      session.user.name || session.user.email,
+      session.user.name || session.user.email || 'Unknown',
       session.user.role as Role,
       "ClassCohort",
       classCohort.id,

@@ -103,14 +103,14 @@ export async function GET(request: NextRequest) {
             avatar: true,
           },
         },
-        attendanceRecord: {
+        attendance: {  // Correct relation name
           include: {
             session: {
               select: {
                 id: true,
                 title: true,
-                startDate: true,
-                classCohort: {
+                startTime: true,  // Correct field name
+                class: {          // Correct relation name
                   select: {
                     id: true,
                     name: true,

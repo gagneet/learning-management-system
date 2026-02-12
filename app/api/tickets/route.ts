@@ -145,7 +145,7 @@ export async function POST(request: NextRequest) {
     // Get SLA config for this ticket type and priority
     const slaConfig = await prisma.sLAConfig.findFirst({
       where: {
-        centreId: session.user.centreId,
+        centreId: session.user.centerId,
         ticketType: body.type,
         priority: body.priority,
       },
@@ -153,19 +153,27 @@ export async function POST(request: NextRequest) {
 
     // Calculate SLA due date
     const slaDueAt = slaConfig
-      ? new Date(Date.now() + slaConfig.resolutionTimeMinutes * 60 * 1000)
+      ? new Date(Date.now() + slaConfig.resolutionTimeHours * 60 * 60 * 1000)  // Convert hours to ms
       : new Date(Date.now() + 24 * 60 * 60 * 1000); // Default 24 hours
+
+    // Generate ticket number (TICK-YYYY-NNNN)
+    const year = new Date().getFullYear();
+    const count = await prisma.ticket.count({
+      where: { centreId: session.user.centerId }
+    });
+    const ticketNumber = `TICK-${year}-${String(count + 1).padStart(4, '0')}`;
 
     // Create the ticket
     const ticket = await prisma.ticket.create({
       data: {
-        title: body.title,
+        ticketNumber,
+        subject: body.subject,  // Correct field name
         description: body.description,
         type: body.type,
         priority: body.priority,
         status: "OPEN",
         slaDueAt,
-        centreId: session.user.centreId,
+        centreId: session.user.centerId,
         createdById: session.user.id,
       },
       include: {
@@ -182,17 +190,17 @@ export async function POST(request: NextRequest) {
     // Audit log
     await auditCreate(
       session.user.id,
-      session.user.name || session.user.email,
+      session.user.name || session.user.email || 'Unknown',
       session.user.role as Role,
       "Ticket",
       ticket.id,
       {
-        title: ticket.title,
+        subject: ticket.subject,  // Correct field name
         type: ticket.type,
         priority: ticket.priority,
         status: ticket.status,
       },
-      session.user.centreId,
+      session.user.centerId,
       request.headers.get("x-forwarded-for") || undefined
     );
 

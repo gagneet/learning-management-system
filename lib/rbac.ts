@@ -11,7 +11,7 @@ interface Session {
   user: {
     id: string;
     role: string;
-    centreId: string;
+    centerId: string;  // Match NextAuth session spelling
     [key: string]: any;
   };
 }
