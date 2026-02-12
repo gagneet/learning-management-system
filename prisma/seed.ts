@@ -1,5 +1,6 @@
 import { PrismaClient } from '@prisma/client';
 import bcrypt from 'bcryptjs';
+import { seedBadges } from './seeds/badges';
 
 const prisma = new PrismaClient();
 
@@ -2759,6 +2760,9 @@ async function main() {
   console.log('  ✓ Catch-up packages for absent students');
   console.log('  ✓ Pending approval workflows');
   console.log('  ✓ Complete audit trail for compliance');
+
+  // Seed badge definitions (Phase 1 - Enhanced Gamification)
+  await seedBadges();
 }
 
 main()

@@ -48,6 +48,12 @@ enum Role {
   STUDENT          // Student role
 }
 
+enum AgeTier {
+  TIER1  // Ages 5-8 (playful, large touch targets)
+  TIER2  // Ages 9-13 (structured, medium density)
+  TIER3  // Ages 14+/Adult (professional, standard)
+}
+
 model User {
   id            String    @id @default(cuid())
   email         String    @unique
@@ -61,7 +67,11 @@ model User {
   specialNeeds  Json?     // Special needs indicators (Autism, ADHD, etc.)
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
+
+  // NEW: Age-tier system (nullable with defaults)
+  dateOfBirth       DateTime?
+  ageTier           AgeTier   @default(TIER3)
+
   // Multi-tenant relationship
   centerId      String
   center        Center    @relation(fields: [centerId], references: [id], onDelete: Cascade)
@@ -78,7 +88,11 @@ model User {
   
   // Gamification
   gamificationProfile GamificationProfile?
-  
+  xpTransactions    XPTransaction[]
+  badgeAwards       BadgeAward[]
+  streaks           Streak[]
+  leaderboardOptIn  LeaderboardOptIn?
+
   // Financial transactions
   financialTransactions FinancialTransaction[]
   
@@ -375,13 +389,17 @@ model GamificationProfile {
   lastActivityAt  DateTime?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
+  // NEW: Additional tracking (nullable - won't break existing)
+  totalXP         Int?     @default(0)  // Lifetime XP
+  nextLevelXP     Int?     @default(100)
+
   userId          String   @unique
   user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+
   badges          Badge[]
   achievements    Achievement[]
-  
+
   @@index([userId])
   @@index([level])
   @@index([xp])
@@ -419,12 +437,131 @@ model Achievement {
   category    String   // e.g., "reading", "math", "attendance"
   value       Float?   // Achievement value (e.g., 100% completion)
   earnedAt    DateTime @default(now())
-  
+
   profileId   String
   profile     GamificationProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
-  
+
   @@index([profileId])
   @@index([category])
+}
+
+// ============================================================================
+// ENHANCED GAMIFICATION MODELS - XP Transactions, Badges, Streaks
+// ============================================================================
+
+// XP Transaction Log
+model XPTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  amount      Int      // XP earned
+  source      XPSource
+  sourceId    String?  // ID of the activity
+  description String?
+  createdAt   DateTime @default(now())
+
+  @@index([userId])
+  @@index([createdAt])
+  @@index([source])
+}
+
+enum XPSource {
+  LESSON_COMPLETION
+  HOMEWORK_SUBMISSION
+  HOMEWORK_ONTIME
+  SESSION_ATTENDANCE
+  QUIZ_COMPLETION
+  QUIZ_PERFECT
+  READING_ACTIVITY
+  HELPING_PEER
+  STREAK_MILESTONE
+}
+
+// Badge Definitions (reusable templates)
+model BadgeDefinition {
+  id          String     @id @default(cuid())
+  name        String     @unique
+  description String
+  category    BadgeCategory
+  tier        BadgeTier
+  iconUrl     String?
+  xpValue     Int        @default(0)
+  criteria    Json       // Unlock conditions
+  isActive    Boolean    @default(true)
+
+  awards      BadgeAward[]
+
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@index([category])
+  @@index([tier])
+}
+
+enum BadgeCategory {
+  COMPLETION
+  STREAK
+  MASTERY
+  SOCIAL
+  SPECIAL
+}
+
+enum BadgeTier {
+  BRONZE
+  SILVER
+  GOLD
+  PLATINUM
+}
+
+// Badge Awards (to users)
+model BadgeAward {
+  id              String           @id @default(cuid())
+  userId          String
+  user            User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  badgeId         String
+  badge           BadgeDefinition  @relation(fields: [badgeId], references: [id])
+  awardedAt       DateTime         @default(now())
+
+  @@unique([userId, badgeId])
+  @@index([userId])
+  @@index([awardedAt])
+}
+
+// Streak Tracking
+model Streak {
+  id              String     @id @default(cuid())
+  userId          String     @unique
+  user            User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  type            StreakType
+  currentStreak   Int        @default(0)
+  longestStreak   Int        @default(0)
+  lastActivityAt  DateTime   @default(now())
+  freezesAvailable Int       @default(1)
+
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  @@index([userId])
+  @@index([type])
+}
+
+enum StreakType {
+  ATTENDANCE
+  HOMEWORK
+  READING
+  LOGIN
+}
+
+// Leaderboard Opt-In
+model LeaderboardOptIn {
+  id        String   @id @default(cuid())
+  userId    String   @unique
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  enabled   Boolean  @default(false)
+  scope     String   @default("class") // "class", "centre", "global"
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }
 
 // ============================================================================
@@ -533,10 +670,10 @@ model ClassCohort {
   name              String            // "Math Grade 5 - Spring 2026"
   subject           String            // "Mathematics"
   description       String?
-  
+
   startDate         DateTime
-  endDate           DateTime
-  
+  endDate           DateTime?  // Optional - class might be ongoing
+
   maxCapacity       Int               @default(20)
   currentEnrollment Int               @default(0)
   
