@@ -17,38 +17,43 @@ export default async function StudentGamificationPage() {
     redirect("/dashboard");
   }
 
-  // Fetch gamification data
-  const [gamificationProfile, recentXPTransactions, allBadges, allAchievements, currentStreak] =
-    await Promise.all([
-      prisma.gamificationProfile.findUnique({
-        where: { userId: user.id },
-      }),
-      prisma.xPTransaction.findMany({
-        where: { userId: user.id },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
-      prisma.badgeAward.findMany({
-        where: { userId: user.id },
-        include: {
-          badge: true,
-        },
+  // Fetch gamification profile first to get ID for achievements
+  const gamificationProfile = await prisma.gamificationProfile.findUnique({
+    where: { userId: user.id },
+    include: {
+      achievements: {
         orderBy: { earnedAt: "desc" },
-      }),
-      prisma.achievement.findMany({
-        where: { userId: user.id },
-        orderBy: { earnedAt: "desc" },
-      }),
-      prisma.streak.findFirst({
-        where: {
-          userId: user.id,
-          isActive: true,
-        },
-      }),
-    ]);
+        take: 10,
+      },
+    },
+  });
+
+  // Fetch remaining data
+  const [recentXPTransactions, allBadges, currentStreak] = await Promise.all([
+    prisma.xPTransaction.findMany({
+      where: { userId: user.id },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    }),
+    prisma.badgeAward.findMany({
+      where: { userId: user.id },
+      include: {
+        badge: true,
+      },
+      orderBy: { awardedAt: "desc" },
+    }),
+    prisma.streak.findFirst({
+      where: {
+        userId: user.id,
+        currentStreak: { gt: 0 },
+      },
+    }),
+  ]);
+
+  const allAchievements = gamificationProfile?.achievements || [];
 
   const xpToNextLevel = gamificationProfile
-    ? (gamificationProfile.level + 1) * 100 - gamificationProfile.totalXP
+    ? (gamificationProfile.level + 1) * 100 - (gamificationProfile.totalXP || 0)
     : 100;
 
   return (
@@ -133,7 +138,7 @@ export default async function StudentGamificationPage() {
               </div>
               <div className="flex-1">
                 <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
-                  <span>{gamificationProfile.totalXP} XP</span>
+                  <span>{gamificationProfile.totalXP || 0} XP</span>
                   <span>{(gamificationProfile.level + 1) * 100} XP</span>
                 </div>
                 <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-4">
@@ -141,7 +146,7 @@ export default async function StudentGamificationPage() {
                     className="bg-gradient-to-r from-blue-500 to-purple-600 h-4 rounded-full transition-all"
                     style={{
                       width: `${
-                        ((gamificationProfile.totalXP % 100) / 100) * 100
+                        (((gamificationProfile.totalXP || 0) % 100) / 100) * 100
                       }%`,
                     }}
                   />
@@ -194,7 +199,7 @@ export default async function StudentGamificationPage() {
                       {award.badge.description}
                     </p>
                     <p className="text-xs text-gray-500 dark:text-gray-500">
-                      {new Date(award.earnedAt).toLocaleDateString()}
+                      {new Date(award.awardedAt).toLocaleDateString()}
                     </p>
                   </div>
                 ))}
@@ -227,7 +232,7 @@ export default async function StudentGamificationPage() {
                       <div className="text-3xl">🏅</div>
                       <div className="flex-1">
                         <h3 className="font-semibold text-gray-900 dark:text-white">
-                          {achievement.name}
+                          {achievement.title}
                         </h3>
                         <p className="text-sm text-gray-600 dark:text-gray-400">
                           {achievement.description}
@@ -237,7 +242,7 @@ export default async function StudentGamificationPage() {
                         </p>
                       </div>
                       <div className="text-xl font-bold text-blue-600">
-                        +{achievement.xpReward} XP
+                        Category: {achievement.category}
                       </div>
                     </div>
                   </div>
@@ -267,7 +272,7 @@ export default async function StudentGamificationPage() {
                 >
                   <div className="flex-1">
                     <p className="font-medium text-gray-900 dark:text-white">
-                      {transaction.reason}
+                      {transaction.description || 'XP earned'}
                     </p>
                     <p className="text-sm text-gray-600 dark:text-gray-400">
                       {new Date(transaction.createdAt).toLocaleString()}
