@@ -25,3 +25,83 @@ body {
     text-wrap: balance;
   }
 }
+
+/* ============================================================================ */
+/* AetherLearn Design Tokens */
+/* ============================================================================ */
+
+:root {
+  /* Font families (CSS variables for next/font) */
+  --font-lexend: 'Lexend', sans-serif;
+  --font-inter: 'Inter', sans-serif;
+  --font-atkinson: 'Atkinson Hyperlegible', sans-serif;
+}
+
+/* Age Tier Adaptations (opt-in via data attribute) */
+[data-tier="tier1"] {
+  font-size: 20px;
+  line-height: 1.75;
+}
+
+[data-tier="tier1"] h1,
+[data-tier="tier1"] h2 {
+  font-size: 32px;
+}
+
+[data-tier="tier2"] {
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+[data-tier="tier2"] h1,
+[data-tier="tier2"] h2 {
+  font-size: 28px;
+}
+
+/* Accessibility Modes (opt-in) */
+[data-mode="dyslexia"] {
+  font-family: var(--font-atkinson, var(--font-lexend));
+  letter-spacing: 0.12em;
+  line-height: 1.75;
+  background-color: #FDF6E3 !important; /* Cream background */
+}
+
+[data-mode="dyslexia"] * {
+  text-align: left !important;
+  hyphens: none;
+}
+
+[data-mode="focus"] .sidebar,
+[data-mode="focus"] .secondary-nav {
+  display: none;
+}
+
+[data-mode="focus"] .content {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 3rem;
+}
+
+[data-mode="calm"] {
+  filter: saturate(0.5);
+}
+
+[data-mode="calm"] * {
+  animation: none !important;
+  transition: none !important;
+}
+
+[data-mode="high-contrast"] {
+  background: #000 !important;
+  color: #FFF !important;
+  filter: contrast(1.5);
+}
+
+[data-mode="high-contrast"] a {
+  color: #0FF;
+  font-weight: bold;
+}
+
+[data-mode="high-contrast"] button {
+  border: 3px solid #FFF;
+}

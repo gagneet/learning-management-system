@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
+import { lexend, inter, atkinson } from "./fonts";
 
 export const metadata: Metadata = {
   title: "Learning Management System",
@@ -12,7 +13,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    <html
+      lang="en"
+      className={`${lexend.variable} ${inter.variable} ${atkinson.variable}`}
+    >
       <body>
         {children}
       </body>
