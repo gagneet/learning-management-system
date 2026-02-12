@@ -112,6 +112,9 @@ model User {
   
   // Session attendance
   sessionAttendance SessionAttendance[]
+  
+  // NEW: Student session enrollments (for personalized session content)
+  studentSessionEnrollments StudentSessionEnrollment[] @relation("StudentEnrollments")
 
   // Parent-Student relationships
   parentId      String?
@@ -163,6 +166,9 @@ model Course {
   modules     Module[]
   enrollments Enrollment[]
   
+  // NEW: Session enrollments (students working on this course in sessions)
+  sessionEnrollments StudentSessionEnrollment[] @relation("SessionEnrollments")
+  
   @@unique([centerId, slug])
   @@index([centerId])
   @@index([teacherId])
@@ -205,7 +211,9 @@ model Lesson {
   
   contents    Content[]
   progress    Progress[]
-  sessions    Session[]
+  
+  // NEW: Session enrollments (students working on this lesson in sessions)
+  sessionEnrollments StudentSessionEnrollment[] @relation("SessionEnrollments")
   
   @@index([moduleId])
 }
@@ -327,6 +335,8 @@ model FinancialTransaction {
 }
 
 // Session - Live classroom sessions (Teams/Zoom integration)
+// MAJOR PIVOT: Sessions now support multiple students working on different courses/levels
+// at the same time with the same tutor
 enum SessionProvider {
   TEAMS
   ZOOM
@@ -357,28 +367,67 @@ model Session {
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
   
-  // NEW: Session mode and location (nullable with defaults)
+  // Session mode and location
   sessionMode     SessionMode    @default(ONLINE)
   meetingLink     String?        // Manual meeting link for ONLINE mode
   physicalLocation String?       // Location description for PHYSICAL mode
   
-  lessonId        String
-  lesson          Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+  // REMOVED: lessonId - no longer tied to a single lesson
+  // Sessions now support multiple students on different content
   
-  tutorId         String?
+  tutorId         String         // Required - every session has a tutor
   
-  // Phase 1: Link to ClassCohort
+  // Phase 1: Link to ClassCohort (optional, for group management)
   classId         String?
   class           ClassCohort?   @relation("ClassSessions", fields: [classId], references: [id])
+  
+  // NEW: Student enrollments with individual course/lesson assignments
+  studentEnrollments StudentSessionEnrollment[]
   
   attendance      SessionAttendance[]
   attendanceRecords AttendanceRecord[] @relation("AttendanceRecords")
   catchUpPackages CatchUpPackage[]   @relation("CatchUpPackages")
   
-  @@index([lessonId])
+  @@index([tutorId])
   @@index([startTime])
   @@index([status])
   @@index([classId])
+}
+
+// NEW: Student Session Enrollment
+// Tracks individual student participation in a session with their specific course/lesson
+model StudentSessionEnrollment {
+  id              String   @id @default(cuid())
+  
+  sessionId       String
+  session         Session  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  
+  studentId       String
+  student         User     @relation("StudentEnrollments", fields: [studentId], references: [id], onDelete: Cascade)
+  
+  // Each student can work on different content
+  courseId        String?  // Optional: track which course
+  course          Course?  @relation("SessionEnrollments", fields: [courseId], references: [id], onDelete: SetNull)
+  
+  lessonId        String?  // Optional: track which lesson
+  lesson          Lesson?  @relation("SessionEnrollments", fields: [lessonId], references: [id], onDelete: SetNull)
+  
+  // Custom content for this student in this session
+  exerciseContent Json?    // Exercises/activities assigned to this student
+  assessmentData  Json?    // Assessment results/answers for this student
+  
+  // Student's progress in this session
+  completed       Boolean  @default(false)
+  notes           String?  // Tutor notes specific to this student's session
+  
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  
+  @@unique([sessionId, studentId])
+  @@index([sessionId])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([lessonId])
 }
 
 // Session Attendance - track student attendance in live sessions
