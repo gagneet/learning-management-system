@@ -178,7 +178,7 @@ export default async function TutorStudentsPage() {
                       Enrolled Courses ({student.courses.length}):
                     </h4>
                     <div className="space-y-2">
-                      {student.courses.map((course, idx) => (
+                      {student.courses.map((course: { title: string; slug: string; progress: number; enrolledAt: Date }, idx: number) => (
                         <div
                           key={idx}
                           className="flex items-center justify-between text-sm bg-gray-50 dark:bg-gray-700 p-2 rounded"

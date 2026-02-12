@@ -154,7 +154,9 @@ export default async function TutorSessionsPage() {
                         <span>
                           🕐 {new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        <span>⏱️ {s.duration} minutes</span>
+                        {s.endTime && (
+                          <span>⏱️ {Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / (1000 * 60))} minutes</span>
+                        )}
                         <span>👥 {s.attendance.length} attendees</span>
                         {s.sessionMode === "PHYSICAL" && s.physicalLocation && (
                           <span>📍 {s.physicalLocation}</span>
@@ -208,7 +210,7 @@ export default async function TutorSessionsPage() {
             <div className="space-y-4">
               {pastSessions.map((s) => {
                 const attendanceRate = s.attendance.length > 0
-                  ? (s.attendance.filter(a => a.status === "PRESENT").length / s.attendance.length) * 100
+                  ? (s.attendance.filter(a => a.attended).length / s.attendance.length) * 100
                   : 0;
 
                 return (
@@ -230,7 +232,7 @@ export default async function TutorSessionsPage() {
                             🕐 {new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                           </span>
                           <span>
-                            👥 {s.attendance.filter(a => a.status === "PRESENT").length}/{s.attendance.length} present
+                            👥 {s.attendance.filter(a => a.attended).length}/{s.attendance.length} present
                           </span>
                           <span>📊 {Math.round(attendanceRate)}% attendance</span>
                         </div>
