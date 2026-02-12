@@ -19,12 +19,10 @@ export default async function CoursePage({ params }: CoursePageProps) {
   const { user } = session;
 
   // Fetch course with all details
-  const course = await prisma.course.findUnique({
+  const course = await prisma.course.findFirst({
     where: {
-      centerId_slug: {
-        centerId: user.centerId,
-        slug: params.slug,
-      },
+      centerId: user.centerId,
+      slug: params.slug,
     },
     include: {
       teacher: {
