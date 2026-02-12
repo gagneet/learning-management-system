@@ -182,13 +182,13 @@ export default async function StudentGamificationPage() {
                     className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 text-center hover:shadow-md transition-shadow"
                   >
                     <div className="text-4xl mb-2">
-                      {award.badge.type === "COMPLETION"
+                      {award.badge.category === "COMPLETION"
                         ? "🎓"
-                        : award.badge.type === "STREAK"
+                        : award.badge.category === "STREAK"
                         ? "🔥"
-                        : award.badge.type === "MASTERY"
+                        : award.badge.category === "MASTERY"
                         ? "🏆"
-                        : award.badge.type === "PARTICIPATION"
+                        : award.badge.category === "SOCIAL"
                         ? "🌟"
                         : "⭐"}
                     </div>

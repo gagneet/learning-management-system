@@ -109,8 +109,8 @@ export default async function SupervisorDashboardPage() {
     // Recent sessions for attendance trends
     prisma.session.findMany({
       where: {
-        lesson: {
-          module: {
+        studentEnrollments: {
+          some: {
             course: centerFilter,
           },
         },
@@ -118,14 +118,13 @@ export default async function SupervisorDashboardPage() {
       },
       include: {
         attendance: true,
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: {
-                  select: { title: true, enrollments: { select: { id: true } } },
-                },
-              },
+            course: {
+              select: { title: true },
+            },
+            lesson: {
+              select: { title: true },
             },
           },
         },
@@ -182,13 +181,13 @@ export default async function SupervisorDashboardPage() {
 
   // Attendance trends
   const attendanceTrends = recentSessions.map((s) => {
-    const totalExpected = s.lesson.module.course.enrollments.length;
+    const totalExpected = s.studentEnrollments.length;
     const attended = s.attendance.filter(a => a.attended).length;
     const rate = totalExpected > 0 ? (attended / totalExpected) * 100 : 0;
     return {
       id: s.id,
       title: s.title,
-      courseName: s.lesson.module.course.title,
+      courseName: s.studentEnrollments[0]?.course?.title || 'Various Courses',
       date: s.startTime,
       attended,
       totalExpected,

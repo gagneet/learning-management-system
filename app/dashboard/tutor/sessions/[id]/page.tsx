@@ -27,13 +27,17 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
   const sessionData = await prisma.session.findUnique({
     where: { id: params.id },
     include: {
-      lesson: {
+      studentEnrollments: {
         include: {
-          module: {
-            include: {
-              course: { select: { title: true } },
+          student: {
+            select: {
+              id: true,
+              name: true,
+              email: true,
             },
           },
+          course: { select: { id: true, title: true } },
+          lesson: { select: { id: true, title: true } },
         },
       },
       tutor: {
@@ -139,7 +143,7 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                 {sessionData.title}
               </h1>
               <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">
-                {sessionData.lesson.module.course.title} - {sessionData.lesson.title}
+                Multi-student session with {sessionData.studentEnrollments.length} enrolled student(s)
               </p>
               {sessionData.description && (
                 <p className="text-gray-600 dark:text-gray-400">{sessionData.description}</p>

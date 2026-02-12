@@ -27,13 +27,16 @@ export default async function TutorSessionsPage() {
         startTime: { gte: now },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
+            student: {
+              select: {
+                id: true,
+                name: true,
               },
             },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
         attendance: {
@@ -54,13 +57,10 @@ export default async function TutorSessionsPage() {
         startTime: { lt: now },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
         attendance: true,
@@ -147,7 +147,7 @@ export default async function TutorSessionsPage() {
                         {s.title}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                        {s.lesson.module.course.title} - {s.lesson.title}
+                        {s.studentEnrollments.length > 0 ? `${s.studentEnrollments.length} student(s) enrolled` : 'No enrollments yet'}
                       </p>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span>📅 {new Date(s.startTime).toLocaleDateString()}</span>
@@ -222,7 +222,7 @@ export default async function TutorSessionsPage() {
                           {s.title}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                          {s.lesson.module.course.title} - {s.lesson.title}
+                          {s.studentEnrollments.length > 0 ? `${s.studentEnrollments.length} student(s) enrolled` : 'No enrollments'}
                         </p>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                           <span>📅 {new Date(s.startTime).toLocaleDateString()}</span>

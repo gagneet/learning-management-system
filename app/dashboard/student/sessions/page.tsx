@@ -19,29 +19,21 @@ export default async function StudentSessionsPage() {
 
   const now = new Date();
 
-  // Fetch all sessions for courses the student is enrolled in
+  // Fetch all sessions where the student is enrolled
   const [upcomingSessions, pastSessions] = await Promise.all([
     prisma.session.findMany({
       where: {
         startTime: { gte: now },
-        lesson: {
-          module: {
-            course: {
-              enrollments: {
-                some: { userId: user.id },
-              },
-            },
-          },
+        studentEnrollments: {
+          some: { studentId: user.id },
         },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
+          where: { studentId: user.id },
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
         tutor: {
@@ -59,24 +51,16 @@ export default async function StudentSessionsPage() {
     prisma.session.findMany({
       where: {
         startTime: { lt: now },
-        lesson: {
-          module: {
-            course: {
-              enrollments: {
-                some: { userId: user.id },
-              },
-            },
-          },
+        studentEnrollments: {
+          some: { studentId: user.id },
         },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
+          where: { studentId: user.id },
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
         tutor: {
@@ -171,7 +155,7 @@ export default async function StudentSessionsPage() {
                         {s.title}
                       </h3>
                       <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                        {s.lesson.module.course.title} - {s.lesson.title}
+                        {s.studentEnrollments[0]?.course?.title || 'Course'} - {s.studentEnrollments[0]?.lesson?.title || 'Lesson'}
                       </p>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                         <span>👨‍🏫 {s.tutor.name}</span>
@@ -179,7 +163,9 @@ export default async function StudentSessionsPage() {
                         <span>
                           🕐 {new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
                         </span>
-                        <span>⏱️ {s.duration} minutes</span>
+                        {s.endTime && (
+                          <span>⏱️ {Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / (1000 * 60))} minutes</span>
+                        )}
                         {s.sessionMode === "PHYSICAL" && s.physicalLocation && (
                           <span>📍 {s.physicalLocation}</span>
                         )}
@@ -236,21 +222,21 @@ export default async function StudentSessionsPage() {
                         <div className="flex items-center gap-3 mb-2">
                           <span
                             className={`px-3 py-1 text-xs rounded-full ${
-                              attendance?.status === "PRESENT"
+                              attendance?.attended === true
                                 ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                : attendance?.status === "ABSENT"
+                                : attendance?.attended === false
                                 ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                                 : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                             }`}
                           >
-                            {attendance?.status || "Not Marked"}
+                            {attendance ? (attendance.attended ? "Present" : "Absent") : "Not Marked"}
                           </span>
                         </div>
                         <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-1">
                           {s.title}
                         </h3>
                         <p className="text-gray-600 dark:text-gray-400 text-sm mb-2">
-                          {s.lesson.module.course.title} - {s.lesson.title}
+                          {s.studentEnrollments[0]?.course?.title || 'Course'} - {s.studentEnrollments[0]?.lesson?.title || 'Lesson'}
                         </p>
                         <div className="flex flex-wrap gap-4 text-sm text-gray-500 dark:text-gray-400">
                           <span>👨‍🏫 {s.tutor.name}</span>

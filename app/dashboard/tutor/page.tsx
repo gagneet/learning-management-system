@@ -102,11 +102,9 @@ export default async function TutorDashboardPage() {
         status: { in: ["SCHEDULED", "LIVE", "COMPLETED"] },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
+            course: { select: { title: true } },
               },
             },
           },

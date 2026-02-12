@@ -68,29 +68,21 @@ export default async function StudentDashboardPage() {
       },
       orderBy: { enrolledAt: "desc" },
     }),
-    // Upcoming sessions (next 7 days) for courses the student is enrolled in
+    // Upcoming sessions (next 7 days) where the student is enrolled
     prisma.session.findMany({
       where: {
         startTime: { gte: now },
         status: { in: ["SCHEDULED", "LIVE"] },
-        lesson: {
-          module: {
-            course: {
-              enrollments: {
-                some: { userId: user.id },
-              },
-            },
-          },
+        studentEnrollments: {
+          some: { studentId: user.id },
         },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
+          where: { studentId: user.id },
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
       },
@@ -102,24 +94,16 @@ export default async function StudentDashboardPage() {
       where: {
         startTime: { gte: todayStart, lt: todayEnd },
         status: { in: ["SCHEDULED", "LIVE"] },
-        lesson: {
-          module: {
-            course: {
-              enrollments: {
-                some: { userId: user.id },
-              },
-            },
-          },
+        studentEnrollments: {
+          some: { studentId: user.id },
         },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
+          where: { studentId: user.id },
           include: {
-            module: {
-              include: {
-                course: { select: { title: true } },
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
       },
@@ -378,7 +362,7 @@ export default async function StudentDashboardPage() {
                         {s.title}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {s.lesson.module.course.title} - {s.lesson.title}
+                        {s.studentEnrollments[0]?.course?.title || 'Course'} - {s.studentEnrollments[0]?.lesson?.title || 'Lesson'}
                       </p>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <span>{new Date(s.startTime).toLocaleDateString()}</span>
