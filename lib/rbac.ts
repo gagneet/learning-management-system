@@ -39,11 +39,17 @@ export const Permissions = {
   SESSION_CREATE: "academic:session:create",
   SESSION_CANCEL: "academic:session:cancel",
   SESSION_VIEW: "academic:session:view",
+  SESSION_MANAGE_STUDENTS: "academic:session:manage_students", // NEW: Manage student enrollments
 
   // Academic - Attendance
   ATTENDANCE_MARK: "academic:attendance:mark",
   ATTENDANCE_VIEW_ALL: "academic:attendance:view_all",
   ATTENDANCE_VIEW_OWN: "academic:attendance:view_own",
+  
+  // Academic - Assessment (NEW)
+  ASSESSMENT_VIEW: "academic:assessment:view", // View student assessments
+  ASSESSMENT_SUBMIT: "academic:assessment:submit", // Submit assessments for students
+  ASSESSMENT_GRADE: "academic:assessment:grade", // Grade assessments
 
   // Academic - Catch-Ups
   CATCHUP_VIEW_ALL: "academic:catchup:view_all",
@@ -118,11 +124,22 @@ const RolePermissions: Record<Role, string[]> = {
     Permissions.AUDIT_VIEW,
     Permissions.APPROVAL_VIEW,
     Permissions.APPROVAL_APPROVE,
-    // Academic
+    // Academic - Enhanced with tutor and assessor capabilities
+    Permissions.CLASS_CREATE, // NEW: Can create classes as tutor
     Permissions.CLASS_VIEW_ALL,
+    Permissions.CLASS_UPDATE, // NEW: Can update classes
+    Permissions.CLASS_MANAGE_MEMBERS, // NEW: Can manage class members
+    Permissions.SESSION_CREATE, // NEW: Can create sessions as tutor
+    Permissions.SESSION_CANCEL, // NEW: Can cancel sessions
     Permissions.SESSION_VIEW,
+    Permissions.SESSION_MANAGE_STUDENTS, // NEW: Can manage student session enrollments
+    Permissions.ATTENDANCE_MARK, // NEW: Can mark attendance as tutor
     Permissions.ATTENDANCE_VIEW_ALL,
+    Permissions.ASSESSMENT_VIEW, // NEW: Can view all assessments
+    Permissions.ASSESSMENT_SUBMIT, // NEW: Can submit assessments for students
+    Permissions.ASSESSMENT_GRADE, // NEW: Can grade assessments
     Permissions.CATCHUP_VIEW_ALL,
+    Permissions.CATCHUP_UPDATE, // NEW: Can update catch-up packages
     // Operations
     Permissions.TICKET_CREATE,
     Permissions.TICKET_VIEW_ALL,
@@ -159,8 +176,12 @@ const RolePermissions: Record<Role, string[]> = {
     Permissions.SESSION_CREATE, // Own classes only
     Permissions.SESSION_CANCEL, // Own sessions only
     Permissions.SESSION_VIEW,
+    Permissions.SESSION_MANAGE_STUDENTS, // NEW: Manage student enrollments in own sessions
     Permissions.ATTENDANCE_MARK, // Own sessions only
     Permissions.ATTENDANCE_VIEW_OWN,
+    Permissions.ASSESSMENT_VIEW, // NEW: View assessments for own students
+    Permissions.ASSESSMENT_SUBMIT, // NEW: Submit assessments for own students
+    Permissions.ASSESSMENT_GRADE, // NEW: Grade own students' assessments
     Permissions.CATCHUP_VIEW_OWN, // Own students only
     // Operations
     Permissions.TICKET_CREATE,

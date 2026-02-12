@@ -2,6 +2,27 @@
 
 A comprehensive web-based platform for managing courses, users, and learning content. Built with Next.js 16, React 19, TypeScript, Prisma, and PostgreSQL.
 
+## 🆕 Major Update: Multi-Student Session Model (Feb 2026)
+
+**MAJOR PIVOT in Session Architecture:**
+
+The system has been fundamentally redesigned to support **adaptive, multi-level tutoring** where:
+
+- **One tutor can teach multiple students on different courses/levels simultaneously**
+  - Example: Class 3 student doing English at Class 1 level, Class 7 doing Math at Class 4 level, Class 9 doing Science at Class 7 level - all in the same session with the same tutor
+- **Individual content delivery**: Each student receives personalized exercises and assessments based on their assessed level
+- **Flexible session modes**: Tutors choose between video (Teams/Zoom) or physical classroom sessions
+- **Enhanced supervisor role**: Supervisors can now act as tutors AND assessors
+- **Assessment tracking**: Digital lesson completion with answers, or physical paper uploads by student ID
+
+This reflects the real-world tutoring model where students are grouped by time slot, not by course or level.
+
+**Key Technical Changes:**
+- New `StudentSessionEnrollment` model tracks each student's specific content in a session
+- Sessions no longer tied to a single lesson/course
+- Enhanced RBAC permissions for assessment and session management
+- Comprehensive session management APIs (see `docs/api-reference/session-management-api.md`)
+
 ## 🌟 Key Features
 
 ### Multi-Tenancy Support
@@ -14,18 +35,21 @@ A comprehensive web-based platform for managing courses, users, and learning con
 - **7-tier role hierarchy** with granular permissions
 - **Super Admin**: Full system access across all centers
 - **Center Admin**: Administrative control within their center
-- **Center Supervisor**: Supervisory access and oversight
+- **Center Supervisor**: Supervisory access + **NOW** full tutor & assessor capabilities ⭐NEW
 - **Finance Admin**: Financial management and billing
-- **Teacher/Tutor**: Course creation and student management
+- **Teacher/Tutor**: Course creation, multi-student session management, and assessment
 - **Parent**: View children's progress and information
 - **Student**: Course enrollment and learning activities
-- Permission-based authorization (72+ permissions across domains)
+- Permission-based authorization (75+ permissions across domains) ⭐UPDATED
 
 ### 📚 Academic Domain
+- **Multi-Level Adaptive Sessions** ⭐NEW: One tutor, multiple students, different courses/levels simultaneously
 - **Course Management**: Hierarchical structure (Course → Module → Lesson → Content)
 - **Class Cohorts**: Group-based learning with capacity management
-- **Live Sessions**: Teams/Zoom integration with attendance tracking
+- **Live Sessions**: Flexible video (Teams/Zoom) or physical classroom options
+- **Student Session Enrollments**: Personalized content per student within shared sessions
 - **Attendance Management**: Real-time tracking (PRESENT, LATE, ABSENT, EXCUSED)
+- **Assessment System** ⭐NEW: Digital assessments and physical paper uploads
 - **Catch-Up Packages**: Automated generation for missed sessions
 - **Academic Profiles**: Reading age, numeracy age, comprehension tracking
 - **Progress Tracking**: Detailed student progress and completion metrics
