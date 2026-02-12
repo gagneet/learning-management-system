@@ -1426,7 +1426,1282 @@ async function main() {
 
   console.log('✅ Financial transactions created');
 
-  console.log('🎉 Database seeded successfully!');
+  // ============================================================================
+  // PHASE 1 MODELS - Governance, Academic, Operations, Finance
+  // ============================================================================
+
+  // Create SLA Configs for all ticket type/priority combinations
+  const slaConfigs = [
+    // IT tickets
+    { type: 'IT', priority: 'URGENT', responseHours: 1, resolutionHours: 4 },
+    { type: 'IT', priority: 'HIGH', responseHours: 2, resolutionHours: 8 },
+    { type: 'IT', priority: 'MEDIUM', responseHours: 4, resolutionHours: 24 },
+    { type: 'IT', priority: 'LOW', responseHours: 8, resolutionHours: 48 },
+    // INVENTORY tickets
+    { type: 'INVENTORY', priority: 'URGENT', responseHours: 2, resolutionHours: 8 },
+    { type: 'INVENTORY', priority: 'HIGH', responseHours: 4, resolutionHours: 16 },
+    { type: 'INVENTORY', priority: 'MEDIUM', responseHours: 8, resolutionHours: 48 },
+    { type: 'INVENTORY', priority: 'LOW', responseHours: 24, resolutionHours: 72 },
+    // COMPLAINT tickets
+    { type: 'COMPLAINT', priority: 'URGENT', responseHours: 1, resolutionHours: 24 },
+    { type: 'COMPLAINT', priority: 'HIGH', responseHours: 2, resolutionHours: 48 },
+    { type: 'COMPLAINT', priority: 'MEDIUM', responseHours: 4, resolutionHours: 72 },
+    { type: 'COMPLAINT', priority: 'LOW', responseHours: 8, resolutionHours: 120 },
+    // MAINTENANCE tickets
+    { type: 'MAINTENANCE', priority: 'URGENT', responseHours: 1, resolutionHours: 8 },
+    { type: 'MAINTENANCE', priority: 'HIGH', responseHours: 2, resolutionHours: 24 },
+    { type: 'MAINTENANCE', priority: 'MEDIUM', responseHours: 4, resolutionHours: 48 },
+    { type: 'MAINTENANCE', priority: 'LOW', responseHours: 8, resolutionHours: 96 },
+    // GENERAL tickets
+    { type: 'GENERAL', priority: 'URGENT', responseHours: 2, resolutionHours: 8 },
+    { type: 'GENERAL', priority: 'HIGH', responseHours: 4, resolutionHours: 24 },
+    { type: 'GENERAL', priority: 'MEDIUM', responseHours: 8, resolutionHours: 48 },
+    { type: 'GENERAL', priority: 'LOW', responseHours: 24, resolutionHours: 96 },
+  ];
+
+  for (const config of slaConfigs) {
+    await prisma.sLAConfig.create({
+      data: {
+        ticketType: config.type,
+        priority: config.priority,
+        responseTimeHours: config.responseHours,
+        resolutionTimeHours: config.resolutionHours,
+        centreId: center1.id,
+      },
+    });
+  }
+
+  console.log('✅ SLA configs created (20 configurations)');
+
+  // Create Class Cohorts
+  const class1 = await prisma.classCohort.create({
+    data: {
+      name: 'Introduction to Programming - Spring 2026',
+      subject: 'Computer Science',
+      description: 'Beginner-friendly programming course for ages 12-15',
+      startDate: new Date(Date.now() - SIXTY_DAYS_MS),
+      endDate: new Date(Date.now() + THIRTY_DAYS_MS),
+      maxCapacity: 20,
+      currentEnrollment: 3,
+      status: 'ACTIVE',
+      teacherId: teacher1.id,
+      centreId: center1.id,
+    },
+  });
+
+  const class2 = await prisma.classCohort.create({
+    data: {
+      name: 'Web Development Basics - Spring 2026',
+      subject: 'Web Development',
+      description: 'HTML, CSS, and JavaScript fundamentals',
+      startDate: new Date(Date.now() - FORTY_DAYS_MS),
+      endDate: new Date(Date.now() + FIFTY_DAYS_MS),
+      maxCapacity: 15,
+      currentEnrollment: 3,
+      status: 'ACTIVE',
+      teacherId: teacher1.id,
+      centreId: center1.id,
+    },
+  });
+
+  const class3 = await prisma.classCohort.create({
+    data: {
+      name: 'Algebra Fundamentals - Spring 2026',
+      subject: 'Mathematics',
+      description: 'Core algebraic concepts and problem-solving',
+      startDate: new Date(Date.now() - THIRTY_DAYS_MS),
+      endDate: new Date(Date.now() + SIXTY_DAYS_MS),
+      maxCapacity: 18,
+      currentEnrollment: 2,
+      status: 'ACTIVE',
+      teacherId: teacher2.id,
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Class cohorts created (3 classes)');
+
+  // Create Class Memberships
+  await prisma.classMembership.createMany({
+    data: [
+      // Class 1 - Programming
+      {
+        classId: class1.id,
+        studentId: student1.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - FIFTYEIGHT_DAYS_MS),
+        centreId: center1.id,
+      },
+      {
+        classId: class1.id,
+        studentId: student2.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - FIFTYEIGHT_DAYS_MS),
+        centreId: center1.id,
+      },
+      {
+        classId: class1.id,
+        studentId: student3.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - FIFTY_DAYS_MS),
+        centreId: center1.id,
+      },
+      // Class 2 - Web Dev
+      {
+        classId: class2.id,
+        studentId: student1.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
+        centreId: center1.id,
+      },
+      {
+        classId: class2.id,
+        studentId: student2.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
+        centreId: center1.id,
+      },
+      {
+        classId: class2.id,
+        studentId: student4.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - FIVE_DAYS_MS),
+        centreId: center1.id,
+      },
+      // Class 3 - Algebra
+      {
+        classId: class3.id,
+        studentId: student1.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - TWENTYEIGHT_DAYS_MS),
+        centreId: center1.id,
+      },
+      {
+        classId: class3.id,
+        studentId: student3.id,
+        status: 'ACTIVE',
+        joinedAt: new Date(Date.now() - TWENTYEIGHT_DAYS_MS),
+        centreId: center1.id,
+      },
+    ],
+  });
+
+  console.log('✅ Class memberships created (8 memberships)');
+
+  // Link sessions to classes (update existing sessions)
+  await prisma.session.update({
+    where: { id: completedSession1.id },
+    data: { classId: class1.id },
+  });
+  await prisma.session.update({
+    where: { id: completedSession2.id },
+    data: { classId: class2.id },
+  });
+  await prisma.session.update({
+    where: { id: completedSession3.id },
+    data: { classId: class3.id },
+  });
+  await prisma.session.update({
+    where: { id: todaySession1.id },
+    data: { classId: class1.id },
+  });
+  await prisma.session.update({
+    where: { id: todaySession2.id },
+    data: { classId: class2.id },
+  });
+  await prisma.session.update({
+    where: { id: todaySession3.id },
+    data: { classId: class3.id },
+  });
+  await prisma.session.update({
+    where: { id: tomorrowSession1.id },
+    data: { classId: class1.id },
+  });
+  await prisma.session.update({
+    where: { id: tomorrowSession2.id },
+    data: { classId: class2.id },
+  });
+
+  console.log('✅ Sessions linked to classes');
+
+  // Create Attendance Records for completed sessions
+  const attendance1 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession1.id,
+      studentId: student1.id,
+      status: 'PRESENT',
+      markedAt: new Date(completedSession1.startTime.getTime() + 5 * 60 * 1000),
+      markedById: teacher1.id,
+      centreId: center1.id,
+    },
+  });
+
+  const attendance2 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession1.id,
+      studentId: student2.id,
+      status: 'LATE',
+      markedAt: new Date(completedSession1.startTime.getTime() + 15 * 60 * 1000),
+      markedById: teacher1.id,
+      notes: 'Arrived 15 minutes late',
+      centreId: center1.id,
+    },
+  });
+
+  const attendance3 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession1.id,
+      studentId: student3.id,
+      status: 'ABSENT',
+      markedAt: new Date(completedSession1.startTime.getTime() + 30 * 60 * 1000),
+      markedById: teacher1.id,
+      notes: 'No notification received',
+      centreId: center1.id,
+    },
+  });
+
+  const attendance4 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession2.id,
+      studentId: student1.id,
+      status: 'PRESENT',
+      markedAt: new Date(completedSession2.startTime.getTime() + 2 * 60 * 1000),
+      markedById: teacher1.id,
+      centreId: center1.id,
+    },
+  });
+
+  const attendance5 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession2.id,
+      studentId: student2.id,
+      status: 'PRESENT',
+      markedAt: new Date(completedSession2.startTime.getTime() + 2 * 60 * 1000),
+      markedById: teacher1.id,
+      centreId: center1.id,
+    },
+  });
+
+  const attendance6 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession2.id,
+      studentId: student4.id,
+      status: 'ABSENT',
+      markedAt: new Date(completedSession2.startTime.getTime() + 30 * 60 * 1000),
+      markedById: teacher1.id,
+      notes: 'Sick - parent notified',
+      centreId: center1.id,
+    },
+  });
+
+  const attendance7 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession3.id,
+      studentId: student1.id,
+      status: 'PRESENT',
+      markedAt: new Date(completedSession3.startTime.getTime() + 2 * 60 * 1000),
+      markedById: teacher2.id,
+      centreId: center1.id,
+    },
+  });
+
+  const attendance8 = await prisma.attendanceRecord.create({
+    data: {
+      sessionId: completedSession3.id,
+      studentId: student3.id,
+      status: 'EXCUSED',
+      markedAt: new Date(completedSession3.startTime.getTime() + 2 * 60 * 1000),
+      markedById: teacher2.id,
+      notes: 'Medical appointment - advance notice provided',
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Attendance records created (8 records)');
+
+  // Create Catch-up Packages for absent students
+  await prisma.catchUpPackage.create({
+    data: {
+      studentId: student3.id,
+      sessionId: completedSession1.id,
+      attendanceId: attendance3.id,
+      status: 'PENDING',
+      dueDate: new Date(completedSession1.startTime.getTime() + 7 * ONE_DAY_MS),
+      resources: {
+        materials: [
+          { type: 'VIDEO', url: 'https://example.com/recordings/session1.mp4', title: 'Session Recording', duration: 60 },
+          { type: 'PDF', url: 'https://example.com/materials/lesson-notes.pdf', title: 'Lesson Notes' },
+          { type: 'QUIZ', url: 'https://example.com/quiz/checkpoint-1', title: 'Checkpoint Quiz' },
+        ],
+      },
+      notes: 'Complete recording review and checkpoint quiz by due date',
+      centreId: center1.id,
+    },
+  });
+
+  await prisma.catchUpPackage.create({
+    data: {
+      studentId: student4.id,
+      sessionId: completedSession2.id,
+      attendanceId: attendance6.id,
+      status: 'COMPLETED',
+      dueDate: new Date(completedSession2.startTime.getTime() + 7 * ONE_DAY_MS),
+      completedAt: new Date(completedSession2.startTime.getTime() + 5 * ONE_DAY_MS),
+      resources: {
+        materials: [
+          { type: 'VIDEO', url: 'https://example.com/recordings/session2.mp4', title: 'HTML Basics Recording', duration: 90 },
+          { type: 'PDF', url: 'https://example.com/materials/html-guide.pdf', title: 'HTML Quick Guide' },
+        ],
+      },
+      notes: 'Completed ahead of schedule - excellent work!',
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Catch-up packages created (2 packages)');
+
+  // Create Tickets with various types and statuses
+  const ticketNumber = (n: number) => `TICK-2026-${String(n).padStart(4, '0')}`;
+
+  const ticket1 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(1),
+      type: 'IT',
+      priority: 'URGENT',
+      status: 'RESOLVED',
+      subject: 'Projector not working in Room 301',
+      description: 'The projector in Room 301 is not turning on. Need immediate fix as class starts in 1 hour.',
+      createdById: teacher1.id,
+      assignedToId: centerAdmin.id,
+      resolution: 'Replaced HDMI cable. Tested and working.',
+      slaDueAt: new Date(Date.now() - FIVE_DAYS_MS + 4 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+      updatedAt: new Date(Date.now() - FIVE_DAYS_MS + 2 * 60 * 60 * 1000),
+    },
+  });
+
+  const ticket2 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(2),
+      type: 'INVENTORY',
+      priority: 'MEDIUM',
+      status: 'OPEN',
+      subject: 'Low stock on whiteboard markers',
+      description: 'We are running low on whiteboard markers. Need to order 50 more (assorted colors).',
+      createdById: teacher2.id,
+      assignedToId: centerAdmin.id,
+      slaDueAt: new Date(Date.now() + 40 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWO_DAYS_MS),
+    },
+  });
+
+  const ticket3 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(3),
+      type: 'COMPLAINT',
+      priority: 'HIGH',
+      status: 'IN_PROGRESS',
+      subject: 'Noise disruption from adjacent room',
+      description: 'There has been consistent noise disruption from the room next door during lesson time. This is affecting student concentration.',
+      createdById: teacher1.id,
+      assignedToId: supervisor.id,
+      slaDueAt: new Date(Date.now() + 46 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWO_DAYS_MS),
+    },
+  });
+
+  const ticket4 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(4),
+      type: 'MAINTENANCE',
+      priority: 'LOW',
+      status: 'OPEN',
+      subject: 'Air conditioning filter replacement',
+      description: 'Scheduled maintenance: Replace air conditioning filters in all classrooms.',
+      createdById: centerAdmin.id,
+      slaDueAt: new Date(Date.now() + 88 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - ONE_DAY_MS),
+    },
+  });
+
+  const ticket5 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(5),
+      type: 'IT',
+      priority: 'HIGH',
+      status: 'ESCALATED',
+      subject: 'Internet connectivity issues',
+      description: 'Intermittent internet connection in Building B. Multiple teachers reported slow speeds and dropouts.',
+      createdById: teacher2.id,
+      assignedToId: centerAdmin.id,
+      slaDueAt: new Date(Date.now() - 2 * 60 * 60 * 1000),
+      isOverdue: true,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TEN_DAYS_MS),
+    },
+  });
+
+  const ticket6 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(6),
+      type: 'GENERAL',
+      priority: 'MEDIUM',
+      status: 'CLOSED',
+      subject: 'Request for additional storage cabinet',
+      description: 'Need additional storage cabinet in staff room for teaching materials.',
+      createdById: teacher1.id,
+      assignedToId: centerAdmin.id,
+      resolution: 'New storage cabinet ordered and installed in staff room.',
+      slaDueAt: new Date(Date.now() - FORTY_DAYS_MS + 48 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FORTY_DAYS_MS),
+      updatedAt: new Date(Date.now() - THIRTYFIVE_DAYS_MS),
+    },
+  });
+
+  const ticket7 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(7),
+      type: 'COMPLAINT',
+      priority: 'URGENT',
+      status: 'RESOLVED',
+      subject: 'Parent complaint about lesson pace',
+      description: 'Parent (Robert Johnson) expressed concern that lessons are moving too quickly for their child (Jane).',
+      createdById: supervisor.id,
+      assignedToId: teacher1.id,
+      resolution: 'Met with parent and student. Adjusted lesson pace and added supplementary materials. Parent satisfied with resolution.',
+      slaDueAt: new Date(Date.now() - FIFTEEN_DAYS_MS + 24 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIFTEEN_DAYS_MS),
+      updatedAt: new Date(Date.now() - FIFTEEN_DAYS_MS + 20 * 60 * 60 * 1000),
+    },
+  });
+
+  const ticket8 = await prisma.ticket.create({
+    data: {
+      ticketNumber: ticketNumber(8),
+      type: 'IT',
+      priority: 'MEDIUM',
+      status: 'IN_PROGRESS',
+      subject: 'Software update required for student tablets',
+      description: 'Student tablets need software update to latest version for new curriculum compatibility.',
+      createdById: centerAdmin.id,
+      assignedToId: centerAdmin.id,
+      slaDueAt: new Date(Date.now() + 16 * 60 * 60 * 1000),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWO_DAYS_MS),
+    },
+  });
+
+  console.log('✅ Tickets created (8 tickets across various types and statuses)');
+
+  // Create Ticket Comments
+  await prisma.ticketComment.createMany({
+    data: [
+      {
+        ticketId: ticket3.id,
+        userId: supervisor.id,
+        userName: supervisor.name,
+        text: 'Investigating the source of noise. Will speak with the teacher in the adjacent room.',
+        isInternal: true,
+        createdAt: new Date(Date.now() - ONE_DAY_MS),
+      },
+      {
+        ticketId: ticket3.id,
+        userId: supervisor.id,
+        userName: supervisor.name,
+        text: 'Spoke with adjacent teacher. They will keep noise levels down during lesson hours.',
+        isInternal: false,
+        createdAt: new Date(Date.now() - 12 * 60 * 60 * 1000),
+      },
+      {
+        ticketId: ticket5.id,
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        text: 'Contacted IT vendor. They will send technician tomorrow morning.',
+        isInternal: true,
+        createdAt: new Date(Date.now() - 8 * ONE_DAY_MS),
+      },
+      {
+        ticketId: ticket5.id,
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        text: 'ESCALATED: Issue persists after vendor visit. Need senior technician.',
+        isInternal: true,
+        isSystem: true,
+        createdAt: new Date(Date.now() - 3 * ONE_DAY_MS),
+      },
+    ],
+  });
+
+  console.log('✅ Ticket comments created');
+
+  // Create Fee Plans
+  const feePlan1 = await prisma.feePlan.create({
+    data: {
+      name: 'Standard Weekly Tuition',
+      description: 'Weekly tuition fee for regular courses',
+      amount: 75.00,
+      currency: 'USD',
+      frequency: 'WEEKLY',
+      status: 'ACTIVE',
+      centreId: center1.id,
+    },
+  });
+
+  const feePlan2 = await prisma.feePlan.create({
+    data: {
+      name: 'Monthly Subscription',
+      description: 'Monthly unlimited access to all courses',
+      amount: 250.00,
+      currency: 'USD',
+      frequency: 'MONTHLY',
+      status: 'ACTIVE',
+      centreId: center1.id,
+    },
+  });
+
+  const feePlan3 = await prisma.feePlan.create({
+    data: {
+      name: 'Term Fee',
+      description: 'One-time term fee (12 weeks)',
+      amount: 850.00,
+      currency: 'USD',
+      frequency: 'TERM',
+      status: 'ACTIVE',
+      centreId: center1.id,
+    },
+  });
+
+  const feePlan4 = await prisma.feePlan.create({
+    data: {
+      name: 'Annual Membership',
+      description: 'Annual unlimited access with 15% discount',
+      amount: 2550.00,
+      currency: 'USD',
+      frequency: 'ANNUAL',
+      status: 'ACTIVE',
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Fee plans created (4 plans)');
+
+  // Create Student Accounts
+  const studentAccount1 = await prisma.studentAccount.create({
+    data: {
+      studentId: student1.id,
+      totalBilled: 1200.00,
+      totalPaid: 1200.00,
+      totalRefunded: 0.00,
+      balance: 0.00,
+      centreId: center1.id,
+    },
+  });
+
+  const studentAccount2 = await prisma.studentAccount.create({
+    data: {
+      studentId: student2.id,
+      totalBilled: 950.00,
+      totalPaid: 700.00,
+      totalRefunded: 0.00,
+      balance: 250.00,
+      centreId: center1.id,
+    },
+  });
+
+  const studentAccount3 = await prisma.studentAccount.create({
+    data: {
+      studentId: student3.id,
+      totalBilled: 850.00,
+      totalPaid: 350.00,
+      totalRefunded: 0.00,
+      balance: 500.00,
+      centreId: center1.id,
+    },
+  });
+
+  const studentAccount4 = await prisma.studentAccount.create({
+    data: {
+      studentId: student4.id,
+      totalBilled: 250.00,
+      totalPaid: 250.00,
+      totalRefunded: 0.00,
+      balance: 0.00,
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Student accounts created (4 accounts)');
+
+  // Create Invoices
+  const invoiceNumber = (n: number) => `INV-2026-${String(n).padStart(4, '0')}`;
+
+  // Student 1 - All paid (high performer)
+  const invoice1 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(1),
+      studentAccountId: studentAccount1.id,
+      studentId: student1.id,
+      feePlanId: feePlan3.id,
+      issueDate: new Date(Date.now() - NINETY_DAYS_MS),
+      dueDate: new Date(Date.now() - EIGHTY_DAYS_MS),
+      sentAt: new Date(Date.now() - NINETY_DAYS_MS),
+      status: 'PAID',
+      subtotal: 850.00,
+      tax: 0.00,
+      total: 850.00,
+      paidAmount: 850.00,
+      balance: 0.00,
+      notes: 'Term fee for Spring 2026 - Programming course',
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - NINETY_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice1.id,
+      description: 'Introduction to Programming - Spring Term 2026',
+      quantity: 1,
+      unitPrice: 850.00,
+      amount: 850.00,
+      order: 1,
+    },
+  });
+
+  const invoice2 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(2),
+      studentAccountId: studentAccount1.id,
+      studentId: student1.id,
+      feePlanId: feePlan2.id,
+      issueDate: new Date(Date.now() - THIRTY_DAYS_MS),
+      dueDate: new Date(Date.now() - TWENTY_DAYS_MS),
+      sentAt: new Date(Date.now() - THIRTY_DAYS_MS),
+      status: 'PAID',
+      subtotal: 250.00,
+      tax: 0.00,
+      total: 250.00,
+      paidAmount: 250.00,
+      balance: 0.00,
+      notes: 'Monthly subscription - February 2026',
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice2.id,
+      description: 'Monthly Unlimited Access - February 2026',
+      quantity: 1,
+      unitPrice: 250.00,
+      amount: 250.00,
+      order: 1,
+    },
+  });
+
+  const invoice3 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(3),
+      studentAccountId: studentAccount1.id,
+      studentId: student1.id,
+      issueDate: new Date(Date.now() - FIVE_DAYS_MS),
+      dueDate: new Date(Date.now() + TWENTYFIVE_DAYS_MS),
+      sentAt: new Date(Date.now() - FIVE_DAYS_MS),
+      status: 'SENT',
+      subtotal: 100.00,
+      tax: 0.00,
+      total: 100.00,
+      paidAmount: 0.00,
+      balance: 100.00,
+      notes: 'Additional materials fee',
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice3.id,
+      description: 'Course materials and textbooks',
+      quantity: 1,
+      unitPrice: 100.00,
+      amount: 100.00,
+      order: 1,
+    },
+  });
+
+  // Student 2 - Partial payment
+  const invoice4 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(4),
+      studentAccountId: studentAccount2.id,
+      studentId: student2.id,
+      feePlanId: feePlan2.id,
+      issueDate: new Date(Date.now() - SEVENTY_DAYS_MS),
+      dueDate: new Date(Date.now() - SIXTY_DAYS_MS),
+      sentAt: new Date(Date.now() - SEVENTY_DAYS_MS),
+      status: 'PAID',
+      subtotal: 250.00,
+      tax: 0.00,
+      total: 250.00,
+      paidAmount: 250.00,
+      balance: 0.00,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - SEVENTY_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice4.id,
+      description: 'Monthly Unlimited Access - December 2025',
+      quantity: 1,
+      unitPrice: 250.00,
+      amount: 250.00,
+      order: 1,
+    },
+  });
+
+  const invoice5 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(5),
+      studentAccountId: studentAccount2.id,
+      studentId: student2.id,
+      feePlanId: feePlan2.id,
+      issueDate: new Date(Date.now() - FORTY_DAYS_MS),
+      dueDate: new Date(Date.now() - THIRTY_DAYS_MS),
+      sentAt: new Date(Date.now() - FORTY_DAYS_MS),
+      status: 'PARTIAL',
+      subtotal: 250.00,
+      tax: 0.00,
+      total: 250.00,
+      paidAmount: 150.00,
+      balance: 100.00,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FORTY_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice5.id,
+      description: 'Monthly Unlimited Access - January 2026',
+      quantity: 1,
+      unitPrice: 250.00,
+      amount: 250.00,
+      order: 1,
+    },
+  });
+
+  const invoice6 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(6),
+      studentAccountId: studentAccount2.id,
+      studentId: student2.id,
+      feePlanId: feePlan1.id,
+      issueDate: new Date(Date.now() - TEN_DAYS_MS),
+      dueDate: new Date(Date.now()),
+      sentAt: new Date(Date.now() - TEN_DAYS_MS),
+      status: 'OVERDUE',
+      subtotal: 450.00,
+      tax: 0.00,
+      total: 450.00,
+      paidAmount: 300.00,
+      balance: 150.00,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TEN_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.createMany({
+    data: [
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 1',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 1,
+      },
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 2',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 2,
+      },
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 3',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 3,
+      },
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 4',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 4,
+      },
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 5',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 5,
+      },
+      {
+        invoiceId: invoice6.id,
+        description: 'Weekly Tuition - Week 6',
+        quantity: 1,
+        unitPrice: 75.00,
+        amount: 75.00,
+        order: 6,
+      },
+    ],
+  });
+
+  // Student 3 - Significant overdue
+  const invoice7 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(7),
+      studentAccountId: studentAccount3.id,
+      studentId: student3.id,
+      feePlanId: feePlan3.id,
+      issueDate: new Date(Date.now() - EIGHTY_DAYS_MS),
+      dueDate: new Date(Date.now() - SEVENTY_DAYS_MS),
+      sentAt: new Date(Date.now() - EIGHTY_DAYS_MS),
+      status: 'OVERDUE',
+      subtotal: 850.00,
+      tax: 0.00,
+      total: 850.00,
+      paidAmount: 350.00,
+      balance: 500.00,
+      notes: 'Multiple payment reminders sent',
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - EIGHTY_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice7.id,
+      description: 'Introduction to Programming - Spring Term 2026',
+      quantity: 1,
+      unitPrice: 850.00,
+      amount: 850.00,
+      order: 1,
+    },
+  });
+
+  // Student 4 - New student, paid
+  const invoice8 = await prisma.invoice.create({
+    data: {
+      invoiceNumber: invoiceNumber(8),
+      studentAccountId: studentAccount4.id,
+      studentId: student4.id,
+      feePlanId: feePlan2.id,
+      issueDate: new Date(Date.now() - FIVE_DAYS_MS),
+      dueDate: new Date(Date.now() + TWENTYFIVE_DAYS_MS),
+      sentAt: new Date(Date.now() - FIVE_DAYS_MS),
+      status: 'PAID',
+      subtotal: 250.00,
+      tax: 0.00,
+      total: 250.00,
+      paidAmount: 250.00,
+      balance: 0.00,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+    },
+  });
+
+  await prisma.invoiceLine.create({
+    data: {
+      invoiceId: invoice8.id,
+      description: 'Monthly Unlimited Access - February 2026',
+      quantity: 1,
+      unitPrice: 250.00,
+      amount: 250.00,
+      order: 1,
+    },
+  });
+
+  console.log('✅ Invoices created (8 invoices with line items)');
+
+  // Create Payments
+  const payment1 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice1.id,
+      amount: 850.00,
+      method: 'BANK_TRANSFER',
+      paymentDate: new Date(Date.now() - EIGHTY_DAYS_MS + ONE_DAY_MS),
+      reference: 'TXN-20260101-001',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - EIGHTY_DAYS_MS + ONE_DAY_MS),
+    },
+  });
+
+  const payment2 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice2.id,
+      amount: 250.00,
+      method: 'CARD',
+      paymentDate: new Date(Date.now() - TWENTY_DAYS_MS),
+      reference: 'CARD-202601-456',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWENTY_DAYS_MS),
+    },
+  });
+
+  const payment3 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice4.id,
+      amount: 250.00,
+      method: 'CARD',
+      paymentDate: new Date(Date.now() - SIXTY_DAYS_MS + TWO_DAYS_MS),
+      reference: 'CARD-202512-789',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - SIXTY_DAYS_MS + TWO_DAYS_MS),
+    },
+  });
+
+  const payment4 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice5.id,
+      amount: 150.00,
+      method: 'CASH',
+      paymentDate: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
+      notes: 'Partial payment - parent requested payment plan',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
+    },
+  });
+
+  const payment5 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice6.id,
+      amount: 300.00,
+      method: 'CHECK',
+      paymentDate: new Date(Date.now() - FIVE_DAYS_MS),
+      reference: 'CHK-4567',
+      notes: 'Partial payment - balance overdue',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+    },
+  });
+
+  const payment6 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice7.id,
+      amount: 350.00,
+      method: 'CASH',
+      paymentDate: new Date(Date.now() - SIXTY_DAYS_MS),
+      notes: 'Initial payment - balance overdue',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
+    },
+  });
+
+  const payment7 = await prisma.payment.create({
+    data: {
+      invoiceId: invoice8.id,
+      amount: 250.00,
+      method: 'BANK_TRANSFER',
+      paymentDate: new Date(Date.now() - FIVE_DAYS_MS + 6 * 60 * 60 * 1000),
+      reference: 'TXN-20260206-123',
+      recordedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS + 6 * 60 * 60 * 1000),
+    },
+  });
+
+  console.log('✅ Payments created (7 payment records)');
+
+  // Create Refunds
+  const refundNumber = (n: number) => `REF-2026-${String(n).padStart(4, '0')}`;
+
+  const refund1 = await prisma.refund.create({
+    data: {
+      refundNumber: refundNumber(1),
+      paymentId: payment2.id,
+      amount: 100.00,
+      reason: 'Student cancelled one course mid-month. Prorated refund for unused portion.',
+      status: 'APPROVED',
+      refundMethod: 'ORIGINAL_METHOD',
+      processedDate: new Date(Date.now() - TEN_DAYS_MS),
+      processedReference: 'REF-CARD-456',
+      requestedById: financeAdmin.id,
+      approvedById: centerAdmin.id,
+      approvedAt: new Date(Date.now() - TEN_DAYS_MS),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIFTEEN_DAYS_MS),
+    },
+  });
+
+  const refund2 = await prisma.refund.create({
+    data: {
+      refundNumber: refundNumber(2),
+      paymentId: payment6.id,
+      amount: 75.00,
+      reason: 'Duplicate charge - student was charged twice for the same week',
+      status: 'PENDING',
+      requestedById: financeAdmin.id,
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWO_DAYS_MS),
+    },
+  });
+
+  console.log('✅ Refunds created (2 refund requests)');
+
+  // Create Approval Requests
+  const approval1 = await prisma.approvalRequest.create({
+    data: {
+      type: 'REFUND',
+      requestedById: financeAdmin.id,
+      requestedByName: financeAdmin.name,
+      status: 'PENDING',
+      resourceType: 'Refund',
+      resourceId: refund2.id,
+      metadata: {
+        amount: 75.00,
+        reason: 'Duplicate charge - student was charged twice for the same week',
+        studentName: student3.name,
+        invoiceNumber: invoice7.invoiceNumber,
+      },
+      expiresAt: new Date(Date.now() + 7 * ONE_DAY_MS),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWO_DAYS_MS),
+    },
+  });
+
+  // Link refund to approval
+  await prisma.refund.update({
+    where: { id: refund2.id },
+    data: { approvalRequestId: approval1.id },
+  });
+
+  const approval2 = await prisma.approvalRequest.create({
+    data: {
+      type: 'FEE_WAIVER',
+      requestedById: teacher1.id,
+      requestedByName: teacher1.name,
+      status: 'PENDING',
+      resourceType: 'Invoice',
+      resourceId: invoice7.id,
+      metadata: {
+        amount: 250.00,
+        reason: 'Family experiencing financial hardship. Request partial waiver.',
+        studentName: student3.name,
+        invoiceNumber: invoice7.invoiceNumber,
+      },
+      expiresAt: new Date(Date.now() + 14 * ONE_DAY_MS),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+    },
+  });
+
+  const approval3 = await prisma.approvalRequest.create({
+    data: {
+      type: 'TUTOR_OVERRIDE',
+      requestedById: supervisor.id,
+      requestedByName: supervisor.name,
+      status: 'APPROVED',
+      approvedById: centerAdmin.id,
+      approvedByName: centerAdmin.name,
+      approvedAt: new Date(Date.now() - TWENTY_DAYS_MS),
+      resourceType: 'ClassCohort',
+      resourceId: class1.id,
+      metadata: {
+        originalTeacher: teacher2.name,
+        newTeacher: teacher1.name,
+        reason: 'Teacher 2 on medical leave. Reassigning class to Teacher 1.',
+        classname: class1.name,
+      },
+      comment: 'Approved due to medical leave. Temporary reassignment.',
+      expiresAt: new Date(Date.now() + 30 * ONE_DAY_MS),
+      centreId: center1.id,
+      createdAt: new Date(Date.now() - TWENTYFIVE_DAYS_MS),
+    },
+  });
+
+  console.log('✅ Approval requests created (3 requests: 2 pending, 1 approved)');
+
+  // Create Audit Events (historical logs for past 3 months)
+  await prisma.auditEvent.createMany({
+    data: [
+      // Refund approval
+      {
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        userRole: 'CENTER_ADMIN',
+        action: 'APPROVE',
+        resourceType: 'Refund',
+        resourceId: refund1.id,
+        beforeState: { status: 'PENDING' },
+        afterState: { status: 'APPROVED', approvedBy: centerAdmin.id },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - TEN_DAYS_MS),
+      },
+      // Invoice creation
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'CREATE',
+        resourceType: 'Invoice',
+        resourceId: invoice8.id,
+        afterState: { invoiceNumber: invoice8.invoiceNumber, total: 250.00, status: 'SENT' },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - FIVE_DAYS_MS),
+      },
+      // Payment recorded
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'CREATE',
+        resourceType: 'Payment',
+        resourceId: payment7.id,
+        afterState: { amount: 250.00, method: 'BANK_TRANSFER', invoiceId: invoice8.id },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - FIVE_DAYS_MS + 6 * 60 * 60 * 1000),
+      },
+      // Invoice status update
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'UPDATE',
+        resourceType: 'Invoice',
+        resourceId: invoice8.id,
+        beforeState: { status: 'SENT', paidAmount: 0 },
+        afterState: { status: 'PAID', paidAmount: 250.00 },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - FIVE_DAYS_MS + 7 * 60 * 60 * 1000),
+      },
+      // Ticket escalation
+      {
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        userRole: 'CENTER_ADMIN',
+        action: 'ESCALATE',
+        resourceType: 'Ticket',
+        resourceId: ticket5.id,
+        beforeState: { status: 'IN_PROGRESS', isOverdue: false },
+        afterState: { status: 'ESCALATED', isOverdue: true },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - 3 * ONE_DAY_MS),
+      },
+      // Class cohort creation
+      {
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        userRole: 'CENTER_ADMIN',
+        action: 'CREATE',
+        resourceType: 'ClassCohort',
+        resourceId: class1.id,
+        afterState: { name: class1.name, teacherId: teacher1.id, maxCapacity: 20 },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
+      },
+      // Approval request - Tutor override
+      {
+        userId: centerAdmin.id,
+        userName: centerAdmin.name,
+        userRole: 'CENTER_ADMIN',
+        action: 'APPROVE',
+        resourceType: 'ApprovalRequest',
+        resourceId: approval3.id,
+        beforeState: { status: 'PENDING' },
+        afterState: { status: 'APPROVED', approvedBy: centerAdmin.id },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - TWENTY_DAYS_MS),
+      },
+      // Fee plan created
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'CREATE',
+        resourceType: 'FeePlan',
+        resourceId: feePlan1.id,
+        afterState: { name: feePlan1.name, amount: 75.00, frequency: 'WEEKLY' },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - NINETY_DAYS_MS),
+      },
+      // Student account created
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'CREATE',
+        resourceType: 'StudentAccount',
+        resourceId: studentAccount1.id,
+        afterState: { studentId: student1.id, balance: 0.00 },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - NINETY_DAYS_MS + ONE_DAY_MS),
+      },
+      // Attendance marked
+      {
+        userId: teacher1.id,
+        userName: teacher1.name,
+        userRole: 'TEACHER',
+        action: 'CREATE',
+        resourceType: 'AttendanceRecord',
+        resourceId: attendance1.id,
+        afterState: { sessionId: completedSession1.id, studentId: student1.id, status: 'PRESENT' },
+        centreId: center1.id,
+        createdAt: new Date(completedSession1.startTime.getTime() + 5 * 60 * 1000),
+      },
+      // Catch-up package generated
+      {
+        userId: teacher1.id,
+        userName: teacher1.name,
+        userRole: 'TEACHER',
+        action: 'CREATE',
+        resourceType: 'CatchUpPackage',
+        resourceId: attendance3.id,
+        afterState: { studentId: student3.id, sessionId: completedSession1.id, status: 'PENDING' },
+        centreId: center1.id,
+        metadata: { reason: 'Student absent - auto-generated catch-up package' },
+        createdAt: new Date(completedSession1.endTime!.getTime() + 30 * 60 * 1000),
+      },
+      // Refund requested
+      {
+        userId: financeAdmin.id,
+        userName: financeAdmin.name,
+        userRole: 'FINANCE_ADMIN',
+        action: 'CREATE',
+        resourceType: 'Refund',
+        resourceId: refund2.id,
+        afterState: { refundNumber: refund2.refundNumber, amount: 75.00, status: 'PENDING' },
+        centreId: center1.id,
+        createdAt: new Date(Date.now() - TWO_DAYS_MS),
+      },
+    ],
+  });
+
+  console.log('✅ Audit events created (12 historical audit logs)');
+
+  console.log('\n🎉 Database seeded successfully!');
   console.log('\n📝 Login credentials:');
   console.log('\n🔧 Administrators:');
   console.log('  Super Admin: admin@lms.com / admin123');
@@ -1445,28 +2720,45 @@ async function main() {
   console.log('  Student 2 - Alex (Average, Parent 2): student2@lms.com / student123');
   console.log('  Student 3 - Michael (Needs attention, Parent 3): student3@lms.com / student123');
   console.log('  Student 4 - Sophia (New student, Parent 1): student4@lms.com / student123');
-  console.log('\n📊 Database includes (3-month history):');
-  console.log('- 2 centres (Main Campus, Online Campus)');
-  console.log('- 14 users total:');
-  console.log('  • 1 super admin');
-  console.log('  • 1 centre admin (head)');
-  console.log('  • 1 supervisor');
-  console.log('  • 1 finance admin');
-  console.log('  • 2 teachers');
-  console.log('  • 3 parents');
-  console.log('  • 4 students');
-  console.log('- 4 courses with modules and lessons');
-  console.log('- 9 enrollments with varying progress (spanning 90 days)');
-  console.log('- Progress records for realistic tracking');
-  console.log('- 8 sessions (3 today, 2 tomorrow, 3 completed)');
-  console.log('- Session attendance records for all sessions');
-  console.log('- 17 financial transactions (spanning 90 days)');
-  console.log('- Gamification profiles, badges, and achievements');
-  console.log('- Academic profiles for all 4 students');
-  console.log('- Parent-student relationships:');
-  console.log('  • Parent 1 → Student 1 (Jane) + Student 4 (Sophia)');
-  console.log('  • Parent 2 → Student 2 (Alex)');
-  console.log('  • Parent 3 → Student 3 (Michael)');
+  console.log('\n📊 Database includes (3-month history with Phase 1):');
+  console.log('\n👥 USERS & STRUCTURE:');
+  console.log('  • 2 centres (Main Campus, Online Campus)');
+  console.log('  • 14 users: 1 super admin, 1 centre admin, 1 supervisor, 1 finance admin, 2 teachers, 3 parents, 4 students');
+  console.log('  • Parent-student relationships maintained');
+  console.log('\n📚 ACADEMIC DATA:');
+  console.log('  • 4 courses with modules and lessons');
+  console.log('  • 3 active class cohorts (Spring 2026)');
+  console.log('  • 8 class memberships across 3 classes');
+  console.log('  • 9 course enrollments with progress tracking (90-day history)');
+  console.log('  • 8 live/completed sessions (3 today, 2 tomorrow, 3 completed)');
+  console.log('  • 8 attendance records (PRESENT, LATE, ABSENT, EXCUSED)');
+  console.log('  • 2 catch-up packages (1 pending, 1 completed)');
+  console.log('  • Academic profiles with reading/numeracy ages');
+  console.log('  • Gamification: XP, levels, badges, achievements');
+  console.log('\n🎫 OPERATIONS DATA:');
+  console.log('  • 20 SLA configurations (all ticket type/priority combinations)');
+  console.log('  • 8 tickets: 3 IT, 1 INVENTORY, 2 COMPLAINT, 1 MAINTENANCE, 1 GENERAL');
+  console.log('  • Ticket statuses: OPEN, IN_PROGRESS, RESOLVED, CLOSED, ESCALATED');
+  console.log('  • 4 ticket comments (internal and public)');
+  console.log('\n💰 FINANCE DATA:');
+  console.log('  • 4 fee plans: WEEKLY ($75), MONTHLY ($250), TERM ($850), ANNUAL ($2,550)');
+  console.log('  • 4 student accounts with realistic balances');
+  console.log('  • 8 invoices with line items (PAID, PARTIAL, SENT, OVERDUE)');
+  console.log('  • 7 payment records (CASH, CHECK, CARD, BANK_TRANSFER)');
+  console.log('  • 2 refund requests (1 approved, 1 pending)');
+  console.log('  • 17 legacy financial transactions (90-day history)');
+  console.log('\n🔒 GOVERNANCE DATA:');
+  console.log('  • 3 approval requests: REFUND (pending), FEE_WAIVER (pending), TUTOR_OVERRIDE (approved)');
+  console.log('  • 12 audit events (CREATE, UPDATE, APPROVE, ESCALATE actions)');
+  console.log('\n🎯 Test Scenarios Available:');
+  console.log('  ✓ Student with perfect payment history (Student 1)');
+  console.log('  ✓ Student with partial payments (Student 2)');
+  console.log('  ✓ Student with overdue balance (Student 3)');
+  console.log('  ✓ New student just enrolled (Student 4)');
+  console.log('  ✓ Tickets in all statuses including overdue escalation');
+  console.log('  ✓ Catch-up packages for absent students');
+  console.log('  ✓ Pending approval workflows');
+  console.log('  ✓ Complete audit trail for compliance');
 }
 
 main()

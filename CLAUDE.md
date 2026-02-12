@@ -191,6 +191,61 @@ const courses = await prisma.course.findMany({
   - `NEXTAUTH_SECRET`: Secret for NextAuth sessions (generate with `openssl rand -base64 32`)
   - `AUTH_TRUST_HOST`: Must be `true` for production (NextAuth v5 requirement)
 
+### Governance & Security Helpers
+
+Three critical helper modules enforce security and compliance:
+
+**Audit Logging** (`lib/audit.ts`):
+```typescript
+import { createAuditLog, auditUpdate, auditApprove } from "@/lib/audit";
+
+// Log privileged actions
+await auditUpdate(
+  session.user.id,
+  session.user.name,
+  session.user.role as Role,
+  "Invoice",
+  invoice.id,
+  { status: "PENDING" },
+  { status: "PAID" },
+  session.user.centerId,
+  request.headers.get("x-forwarded-for") || undefined
+);
+```
+
+**RBAC Permissions** (`lib/rbac.ts`):
+```typescript
+import { hasPermission, requirePermission, Permissions } from "@/lib/rbac";
+
+// Check permissions
+if (!hasPermission(session, Permissions.FINANCE_REFUND_APPROVE)) {
+  return new Response("Forbidden", { status: 403 });
+}
+
+// Or throw on missing permission
+requirePermission(session, Permissions.AUDIT_VIEW);
+```
+
+**Multi-Tenancy** (`lib/tenancy.ts`):
+```typescript
+import { getCentreIdForQuery, validateCentreAccess, preventCentreIdInjection } from "@/lib/tenancy";
+
+// Security: Prevent centreId injection from request body
+const body = await request.json();
+preventCentreIdInjection(body);
+
+// Get centreId (respects SUPER_ADMIN cross-centre access)
+const centreId = getCentreIdForQuery(session, searchParams.get("centreId"));
+
+// Validate resource access
+validateCentreAccess(session, resource.centreId);
+```
+
+**Important**:
+- Always log privileged operations (CREATE, UPDATE, DELETE, APPROVE)
+- Use RBAC helpers instead of manual role checks
+- **CRITICAL**: centreId MUST come from session only, never from request body
+
 ## Database Operations
 
 ### Schema Changes
