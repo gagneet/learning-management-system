@@ -449,6 +449,27 @@ For existing sessions with lessons:
 3. Set same lesson for all students (maintain parity)
 4. Update frontend to use new enrollment model
 
+## Bug Fixes & Post-Deployment Issues
+
+### Issue 1: Incomplete Tutor Dashboard Migration (Resolved)
+**Problem:**
+- Commit 3ce2111 partially migrated dashboard pages to the new session model
+- Tutor dashboard's `upcomingSessions` query still used removed `lesson` relation
+- `todaySessions` query missing `lesson` include in `studentEnrollments`
+- Display logic attempted to access non-existent `s.lesson.module.course.title`
+- Resulted in TypeScript build errors: "lesson does not exist in type SessionInclude"
+
+**Root Cause:**
+Incomplete refactoring left mixed old/new patterns in the same file
+
+**Resolution (Commit 2787c7c):**
+- Updated `upcomingSessions` to use `studentEnrollments` instead of `lesson`
+- Added `lesson` include to `studentEnrollments` in both queries
+- Changed display logic to use safe optional chaining: `s.studentEnrollments[0]?.course?.title`
+- Aligned with patterns used in student and supervisor dashboards
+
+**Impact:** Build now succeeds, tutor dashboard displays correctly
+
 ## Future Enhancements
 
 ### Potential Additions:
