@@ -78,13 +78,10 @@ export default async function TutorDashboardPage() {
         },
       },
       include: {
-        lesson: {
+        studentEnrollments: {
           include: {
-            module: {
-              include: {
-                course: true,
-              },
-            },
+            course: { select: { title: true } },
+            lesson: { select: { title: true } },
           },
         },
         attendance: true,
@@ -105,8 +102,7 @@ export default async function TutorDashboardPage() {
         studentEnrollments: {
           include: {
             course: { select: { title: true } },
-              },
-            },
+            lesson: { select: { title: true } },
           },
         },
         attendance: {
@@ -239,7 +235,7 @@ export default async function TutorDashboardPage() {
                         </span>
                       </div>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {s.lesson.module.course.title} - {s.lesson.title}
+                        {s.studentEnrollments[0]?.course?.title || 'Course'} - {s.studentEnrollments[0]?.lesson?.title || 'Lesson'}
                       </p>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <span>{new Date(s.startTime).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
@@ -379,7 +375,7 @@ export default async function TutorDashboardPage() {
                         {s.title}
                       </h4>
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        {s.lesson.module.course.title} - {s.lesson.title}
+                        {s.studentEnrollments[0]?.course?.title || 'Course'} - {s.studentEnrollments[0]?.lesson?.title || 'Lesson'}
                       </p>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400">
                         <span>{new Date(s.startTime).toLocaleDateString()}</span>
