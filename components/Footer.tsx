@@ -60,7 +60,7 @@ export function Footer() {
               </li>
               <li>
                 <Link
-                  href="/api"
+                  href="/docs"
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   API Reference
