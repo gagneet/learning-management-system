@@ -470,6 +470,33 @@ Incomplete refactoring left mixed old/new patterns in the same file
 
 **Impact:** Build now succeeds, tutor dashboard displays correctly
 
+### Issue 2: Attendance Model Mismatch in Tutor Dashboards (Resolved)
+**Problem:**
+- Tutor session pages accessed `a.status` on `SessionAttendance` records
+- `SessionAttendance` model uses `attended: boolean`, not `status` enum
+- `AttendanceStatus` enum exists on `AttendanceRecord` model, not `SessionAttendance`
+- Session pages referenced non-existent `duration` field (should calculate from startTime/endTime)
+- TypeScript build errors: "Property 'status' does not exist" and "implicitly has 'any' type"
+
+**Root Cause:**
+Confusion between two attendance models:
+- `SessionAttendance`: Simple boolean `attended` field (used for sessions)
+- `AttendanceRecord`: Full enum `status` field with PRESENT/ABSENT/LATE/EXCUSED (used for classes)
+
+**Resolution (Commit 43caf38):**
+- Changed `a.status === "PRESENT"` to `a.attended` throughout tutor sessions
+- Changed `a.status === "ABSENT"` to `!a.attended`
+- Removed references to "LATE" status (not available)
+- Calculate duration: `Math.round((endTime - startTime) / (1000 * 60))`
+- Added explicit TypeScript types to `student.courses.map()` callback
+
+**Files Fixed:**
+- `app/dashboard/tutor/sessions/[id]/page.tsx`: Attendance stats and display
+- `app/dashboard/tutor/sessions/page.tsx`: Past sessions attendance calculations
+- `app/dashboard/tutor/students/page.tsx`: TypeScript type inference
+
+**Impact:** Build succeeds, attendance displays correctly as Present/Absent
+
 ## Future Enhancements
 
 ### Potential Additions:

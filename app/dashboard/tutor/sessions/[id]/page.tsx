@@ -86,6 +86,11 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
       ? (presentCount / sessionData.attendanceRecords.length) * 100
       : 0;
 
+  // Calculate duration from startTime and endTime
+  const durationMinutes = sessionData.endTime
+    ? Math.round((new Date(sessionData.endTime).getTime() - new Date(sessionData.startTime).getTime()) / (1000 * 60))
+    : null;
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
       <nav className="bg-white dark:bg-gray-800 shadow-sm">
@@ -174,7 +179,8 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Duration</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                {sessionDuration} minutes
+                <!-- {sessionDuration} minutes -->
+                {durationMinutes ? `${durationMinutes} minutes` : 'Not set'}
               </div>
             </div>
             <div>
@@ -277,14 +283,12 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                   <div className="flex items-center gap-4 flex-1">
                     <span
                       className={`px-3 py-1 text-xs rounded-full ${
-                        record.status === "PRESENT"
+                        record.attended
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                          : record.status === "ABSENT"
-                          ? "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
-                          : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
+                          : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }`}
                     >
-                      {record.status}
+                      {record.attended ? "Present" : "Absent"}
                     </span>
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white">

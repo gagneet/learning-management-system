@@ -156,6 +156,13 @@ export default async function TutorSessionsPage() {
                         </span>
                         <span>⏱️ {s.duration || (s.endTime ? Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / (1000 * 60)) : 60)} minutes</span>
                         <span>👥 {s.attendanceRecords.length} attendees</span>
+                        <!-- TODO: Is the following correct?
+                        {s.endTime && (
+                          <span>⏱️ {Math.round((new Date(s.endTime).getTime() - new Date(s.startTime).getTime()) / (1000 * 60))} minutes</span>
+                        )}
+                        <span>👥 {s.attendance.length} attendees</span>
+                        -->
+
                         {s.sessionMode === "PHYSICAL" && s.physicalLocation && (
                           <span>📍 {s.physicalLocation}</span>
                         )}
