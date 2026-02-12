@@ -34,6 +34,7 @@ async function main() {
   await prisma.ticketComment.deleteMany({});
   await prisma.ticket.deleteMany({});
   await prisma.catchUpPackage.deleteMany({});
+  await prisma.studentSessionEnrollment.deleteMany({});
   await prisma.sessionAttendance.deleteMany({});
   await prisma.refund.deleteMany({});
   await prisma.payment.deleteMany({});
@@ -1014,7 +1015,6 @@ async function main() {
       startTime: todaySession1StartTime,
       endTime: todaySession1EndTime,
       status: 'SCHEDULED',
-      lessonId: lesson1_1_1.id,
       tutorId: teacher1.id,
     },
   });
@@ -1033,7 +1033,6 @@ async function main() {
       startTime: todaySession2StartTime,
       endTime: todaySession2EndTime,
       status: 'SCHEDULED',
-      lessonId: lesson2_1_1.id,
       tutorId: teacher1.id,
     },
   });
@@ -1052,7 +1051,6 @@ async function main() {
       startTime: todaySession3StartTime,
       endTime: todaySession3EndTime,
       status: 'SCHEDULED',
-      lessonId: lesson3_1_1.id,
       tutorId: teacher2.id,
     },
   });
@@ -1072,7 +1070,6 @@ async function main() {
       startTime: tomorrowSession1StartTime,
       endTime: tomorrowSession1EndTime,
       status: 'SCHEDULED',
-      lessonId: lesson1_2_1.id,
       tutorId: teacher1.id,
     },
   });
@@ -1091,7 +1088,6 @@ async function main() {
       startTime: tomorrowSession2StartTime,
       endTime: tomorrowSession2EndTime,
       status: 'SCHEDULED',
-      lessonId: lesson2_1_2.id,
       tutorId: teacher1.id,
     },
   });
@@ -1112,7 +1108,6 @@ async function main() {
       endTime: completedSession1EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session1.mp4',
-      lessonId: lesson1_1_1.id,
       tutorId: teacher1.id,
     },
   });
@@ -1132,7 +1127,6 @@ async function main() {
       endTime: completedSession2EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session2.mp4',
-      lessonId: lesson2_1_1.id,
       tutorId: teacher1.id,
     },
   });
@@ -1152,12 +1146,195 @@ async function main() {
       endTime: completedSession3EndTime,
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session3.mp4',
-      lessonId: lesson3_1_1.id,
       tutorId: teacher2.id,
     },
   });
 
   console.log('✅ Sessions created');
+
+  // Create Student Session Enrollments (multi-student model)
+  // This demonstrates the MAJOR PIVOT: each student can work on different content in the same session
+  await prisma.studentSessionEnrollment.createMany({
+    data: [
+      // Today's Session 1 - Programming Q&A (3 students, different lessons)
+      {
+        sessionId: todaySession1.id,
+        studentId: student1.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: false,
+        notes: 'Working on Introduction to Programming',
+      },
+      {
+        sessionId: todaySession1.id,
+        studentId: student2.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: false,
+        notes: 'Reviewing programming basics',
+      },
+      {
+        sessionId: todaySession1.id,
+        studentId: student3.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: false,
+        notes: 'Catching up on fundamentals',
+      },
+
+      // Today's Session 2 - HTML Workshop (3 students)
+      {
+        sessionId: todaySession2.id,
+        studentId: student1.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: false,
+        notes: 'HTML structure and tags',
+      },
+      {
+        sessionId: todaySession2.id,
+        studentId: student2.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: false,
+        notes: 'Building first webpage',
+      },
+      {
+        sessionId: todaySession2.id,
+        studentId: student4.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: false,
+        notes: 'Introduction to HTML',
+      },
+
+      // Today's Session 3 - Algebra Study Group (2 students, different levels)
+      {
+        sessionId: todaySession3.id,
+        studentId: student1.id,
+        courseId: course3.id,
+        lessonId: lesson3_1_1.id,
+        completed: false,
+        notes: 'Advanced algebraic expressions',
+      },
+      {
+        sessionId: todaySession3.id,
+        studentId: student3.id,
+        courseId: course3.id,
+        lessonId: lesson3_1_1.id,
+        completed: false,
+        notes: 'Basic algebra review',
+      },
+
+      // Tomorrow's Session 1 - Variables Deep Dive
+      {
+        sessionId: tomorrowSession1.id,
+        studentId: student1.id,
+        courseId: course1.id,
+        lessonId: lesson1_2_1.id,
+        completed: false,
+        notes: 'Advanced variable concepts',
+      },
+      {
+        sessionId: tomorrowSession1.id,
+        studentId: student2.id,
+        courseId: course1.id,
+        lessonId: lesson1_2_1.id,
+        completed: false,
+        notes: 'Variable practice exercises',
+      },
+
+      // Tomorrow's Session 2 - CSS Styling
+      {
+        sessionId: tomorrowSession2.id,
+        studentId: student1.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_2.id,
+        completed: false,
+        notes: 'CSS layout techniques',
+      },
+      {
+        sessionId: tomorrowSession2.id,
+        studentId: student2.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_2.id,
+        completed: false,
+        notes: 'Styling basics',
+      },
+      {
+        sessionId: tomorrowSession2.id,
+        studentId: student4.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_2.id,
+        completed: false,
+        notes: 'First CSS styles',
+      },
+
+      // Completed Session 1 (with completion status)
+      {
+        sessionId: completedSession1.id,
+        studentId: student1.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        notes: 'Successfully completed introduction',
+      },
+      {
+        sessionId: completedSession1.id,
+        studentId: student2.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        notes: 'Good understanding of basics',
+      },
+
+      // Completed Session 2
+      {
+        sessionId: completedSession2.id,
+        studentId: student1.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: true,
+        notes: 'Excellent progress on HTML',
+      },
+      {
+        sessionId: completedSession2.id,
+        studentId: student2.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: false,
+        notes: 'Needs more practice',
+      },
+      {
+        sessionId: completedSession2.id,
+        studentId: student4.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: true,
+        notes: 'Quick learner',
+      },
+
+      // Completed Session 3
+      {
+        sessionId: completedSession3.id,
+        studentId: student1.id,
+        courseId: course3.id,
+        lessonId: lesson3_1_1.id,
+        completed: true,
+        notes: 'Mastered algebraic expressions',
+      },
+      {
+        sessionId: completedSession3.id,
+        studentId: student3.id,
+        courseId: course3.id,
+        lessonId: lesson3_1_1.id,
+        completed: false,
+        notes: 'Struggled with concepts, needs follow-up',
+      },
+    ],
+  });
+
+  console.log('✅ Student session enrollments created (multi-student model)');
 
   // Create Session Attendance
   await prisma.sessionAttendance.createMany({

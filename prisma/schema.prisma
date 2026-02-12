@@ -116,6 +116,9 @@ model User {
   // NEW: Student session enrollments (for personalized session content)
   studentSessionEnrollments StudentSessionEnrollment[] @relation("StudentEnrollments")
 
+  // NEW: Tutor sessions (sessions where this user is the tutor)
+  tutorSessions             Session[]                  @relation("TutorSessions")
+
   // Parent-Student relationships
   parentId      String?
   parent        User?    @relation("ParentStudents", fields: [parentId], references: [id], onDelete: SetNull)
@@ -374,9 +377,10 @@ model Session {
   
   // REMOVED: lessonId - no longer tied to a single lesson
   // Sessions now support multiple students on different content
-  
+
   tutorId         String         // Required - every session has a tutor
-  
+  tutor           User           @relation("TutorSessions", fields: [tutorId], references: [id])
+
   // Phase 1: Link to ClassCohort (optional, for group management)
   classId         String?
   class           ClassCohort?   @relation("ClassSessions", fields: [classId], references: [id])
