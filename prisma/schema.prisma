@@ -297,6 +297,11 @@ model AcademicProfile {
   numeracyAge         Float?   // Numeracy/Math age in years
   comprehensionIndex  Float?   // Comprehension level (0-100)
   writingProficiency  Float?   // Writing proficiency level (0-100)
+  
+  // NEW: Subject-level tracking for multi-level learning
+  // Format: { "English": { "targetLevel": "Grade 4", "currentLevel": "Grade 3" }, "Math": { ... } }
+  subjectLevels       Json?    // Subject-specific learning levels
+  
   createdAt           DateTime @default(now())
   updatedAt           DateTime @updatedAt
   

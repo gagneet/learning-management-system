@@ -114,6 +114,7 @@ export async function PUT(
       numeracyAge,
       comprehensionIndex,
       writingProficiency,
+      subjectLevels,
     } = body;
 
     // Check if user exists and is in the same center
@@ -133,6 +134,11 @@ export async function PUT(
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
+    // Validate subjectLevels if provided
+    if (subjectLevels && typeof subjectLevels !== 'object') {
+      return NextResponse.json({ error: "subjectLevels must be an object" }, { status: 400 });
+    }
+
     // Update or create profile
     const profile = await prisma.academicProfile.upsert({
       where: { userId },
@@ -142,6 +148,7 @@ export async function PUT(
         numeracyAge,
         comprehensionIndex,
         writingProficiency,
+        subjectLevels: subjectLevels || undefined,
       },
       create: {
         userId,
@@ -150,6 +157,7 @@ export async function PUT(
         numeracyAge,
         comprehensionIndex,
         writingProficiency,
+        subjectLevels: subjectLevels || undefined,
       },
       include: {
         user: {
