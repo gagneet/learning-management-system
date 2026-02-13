@@ -13,8 +13,15 @@ export default function AcademicIntelligencePage() {
       <nav className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              AetherLearn
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+              <Image
+                src="/aetherlearn-header-logo.png"
+                alt="Aether Learn"
+                width={180}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
             <div className="flex items-center gap-6">
               <Link href="/features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600">
