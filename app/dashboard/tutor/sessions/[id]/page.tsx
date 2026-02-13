@@ -5,9 +5,9 @@ import Link from "next/link";
 import ThemeToggle from "@/components/ThemeToggle";
 
 interface SessionDetailsPageProps {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 export default async function SessionDetailsPage({ params }: SessionDetailsPageProps) {
@@ -23,9 +23,12 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
     redirect("/dashboard");
   }
 
+  // Await params in Next.js 16
+  const { id } = await params;
+
   // Fetch session details
   const sessionData = await prisma.session.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: {
       studentEnrollments: {
         include: {
@@ -72,24 +75,29 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
     redirect("/dashboard");
   }
 
-  // Calculate duration if not set
-  const sessionDuration = sessionData.duration ||
-    (sessionData.endTime
-      ? Math.round((new Date(sessionData.endTime).getTime() - new Date(sessionData.startTime).getTime()) / (1000 * 60))
-      : 60); // Default 60 minutes if no endTime
-
-  const presentCount = sessionData.attendanceRecords.filter((a) => a.status === "PRESENT").length;
-  const absentCount = sessionData.attendanceRecords.filter((a) => a.status === "ABSENT").length;
-  const lateCount = sessionData.attendanceRecords.filter((a) => a.status === "LATE").length;
-  const attendanceRate =
-    sessionData.attendanceRecords.length > 0
-      ? (presentCount / sessionData.attendanceRecords.length) * 100
-      : 0;
-
   // Calculate duration from startTime and endTime
   const durationMinutes = sessionData.endTime
     ? Math.round((new Date(sessionData.endTime).getTime() - new Date(sessionData.startTime).getTime()) / (1000 * 60))
-    : null;
+    : sessionData.duration || null;
+
+  const presentCount = sessionData.attendanceRecords?.filter((a) => a.status === "PRESENT").length || 0;
+  const absentCount = sessionData.attendanceRecords?.filter((a) => a.status === "ABSENT").length || 0;
+  const lateCount = sessionData.attendanceRecords?.filter((a) => a.status === "LATE").length || 0;
+  const totalRecords = sessionData.attendanceRecords?.length || 0;
+  const attendanceRate = totalRecords > 0 ? (presentCount / totalRecords) * 100 : 0;
+
+  // Format dates consistently on the server
+  const startDate = new Date(sessionData.startTime);
+  const dateStr = startDate.toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+  const timeStr = startDate.toLocaleTimeString('en-US', {
+    hour: '2-digit',
+    minute: '2-digit',
+    hour12: true
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
@@ -164,16 +172,13 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Date</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                {new Date(sessionData.startTime).toLocaleDateString()}
+                {dateStr}
               </div>
             </div>
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Time</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                {new Date(sessionData.startTime).toLocaleTimeString([], {
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {timeStr}
               </div>
             </div>
             <div>
@@ -235,7 +240,7 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="text-3xl mb-2">👥</div>
             <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
-              {sessionData.attendanceRecords.length}
+              {totalRecords}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Registered</div>
           </div>
@@ -264,17 +269,17 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
         {/* Attendance List */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
           <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-6">
-            Attendance ({sessionData.attendanceRecords.length})
+            Attendance ({totalRecords})
           </h2>
 
-          {sessionData.attendanceRecords.length === 0 ? (
+          {totalRecords === 0 ? (
             <div className="text-center py-12">
               <div className="text-6xl mb-4">👥</div>
               <p className="text-gray-500 dark:text-gray-400 text-lg">No attendance records yet</p>
             </div>
           ) : (
             <div className="space-y-2">
-              {sessionData.attendanceRecords.map((record) => (
+              {sessionData.attendanceRecords?.map((record) => (
                 <div
                   key={record.id}
                   className="flex items-center justify-between p-4 border border-gray-200 dark:border-gray-700 rounded-lg hover:shadow-md transition-shadow"
@@ -284,10 +289,12 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                       className={`px-3 py-1 text-xs rounded-full ${
                         record.status === "PRESENT"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
+                          : record.status === "LATE"
+                          ? "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }`}
                     >
-                      {record.status === "PRESENT" ? "Present" : record.status}
+                      {record.status}
                     </span>
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white">
@@ -300,7 +307,11 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                   </div>
                   {record.markedAt && (
                     <div className="text-sm text-gray-600 dark:text-gray-400">
-                      Marked: {new Date(record.markedAt).toLocaleTimeString()}
+                      Marked: {new Date(record.markedAt).toLocaleTimeString('en-US', {
+                        hour: '2-digit',
+                        minute: '2-digit',
+                        hour12: true
+                      })}
                     </div>
                   )}
                 </div>

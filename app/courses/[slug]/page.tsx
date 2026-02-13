@@ -4,9 +4,9 @@ import { prisma } from "@/lib/prisma";
 import Link from "next/link";
 
 interface CoursePageProps {
-  params: {
+  params: Promise<{
     slug: string;
-  };
+  }>;
 }
 
 export default async function CoursePage({ params }: CoursePageProps) {
@@ -18,11 +18,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
 
   const { user } = session;
 
+  // Await params in Next.js 16
+  const { slug } = await params;
+
   // Fetch course with all details
   const course = await prisma.course.findFirst({
     where: {
       centerId: user.centerId,
-      slug: params.slug,
+      slug,
     },
     include: {
       teacher: {

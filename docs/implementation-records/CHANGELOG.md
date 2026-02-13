@@ -1,5 +1,45 @@
 # Phase 1 Implementation Changelog
 
+## Version 1.0.1 - 2026-02-13
+
+### 🐛 Bug Fixes & Improvements
+
+#### Tutor Dashboard Fixes
+- **Fixed session field inconsistency**: Updated TutorDashboardClient to use `meetingLink` instead of non-existent `joinUrl`
+- **Fixed Next.js 16 compatibility**: Updated dynamic route params to use Promise-based API (`await params`)
+  - `/dashboard/tutor/sessions/[id]/page.tsx`
+  - `/courses/[slug]/page.tsx`
+- **Fixed session detail page hydration**: Improved date formatting and attendance record handling
+- **Fixed 404 errors**: Created missing tutor dashboard routes
+- **Fixed favicon**: Added favicon.ico for browser compatibility
+
+#### New Pages Created
+- **`/dashboard/tutor/resources`**: Teaching resources hub with templates, assessments, and materials
+- **`/dashboard/tutor/marking`**: Marking queue page showing:
+  - Homework assignments needing grading (using `status === "SUBMITTED"`)
+  - Students with low progress (< 50%)
+  - Students who haven't started courses
+- **`/admin/courses/new`**: Redirect to existing course creation route
+
+#### Technical Improvements
+- Updated HomeworkAssignment queries to use correct `status` field instead of `isSubmitted/isGraded`
+- Added optional chaining for attendance records to prevent null reference errors
+- Standardized date formatting with consistent locale strings to prevent hydration mismatches
+- Improved status color coding for attendance (PRESENT/LATE/ABSENT)
+
+#### Files Modified
+- `app/dashboard/tutor/TutorDashboardClient.tsx`
+- `app/dashboard/tutor/sessions/[id]/page.tsx`
+- `app/courses/[slug]/page.tsx`
+
+#### Files Created
+- `app/dashboard/tutor/resources/page.tsx`
+- `app/dashboard/tutor/marking/page.tsx`
+- `app/admin/courses/new/page.tsx`
+- `public/favicon.ico`
+
+---
+
 ## Version 1.0.0 - 2026-02-11
 
 ### ✅ Completed

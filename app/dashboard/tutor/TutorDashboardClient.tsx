@@ -198,9 +198,9 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
                         <span>{s.attendance.length} attendees</span>
                       </div>
                     </div>
-                    {s.joinUrl && s.status !== "COMPLETED" && (
+                    {s.sessionMode === "ONLINE" && s.meetingLink && s.status !== "COMPLETED" && (
                       <a
-                        href={s.joinUrl}
+                        href={s.meetingLink}
                         target="_blank"
                         rel="noopener noreferrer"
                         className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm whitespace-nowrap"
@@ -341,9 +341,9 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
                       </span>
                     </div>
                   </div>
-                  {s.joinUrl && (
+                  {s.sessionMode === "ONLINE" && s.meetingLink && (
                     <a
-                      href={s.joinUrl}
+                      href={s.meetingLink}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm whitespace-nowrap"
