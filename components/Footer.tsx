@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -7,8 +8,17 @@ export function Footer() {
     <footer className="bg-gray-900 text-white mt-auto">
       <div className="container mx-auto px-4 py-12">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
-          {/* About Section */}
+          {/* Brand & About Section */}
           <div>
+            <div className="mb-4">
+              <Image
+                src="/aether-learn.png"
+                alt="Aether Learn"
+                width={150}
+                height={50}
+                className="h-12 w-auto mb-4"
+              />
+            </div>
             <h3 className="text-lg font-semibold mb-4">About</h3>
             <ul className="space-y-2">
               <li>
@@ -142,7 +152,7 @@ export function Footer() {
         <div className="border-t border-gray-700 mt-8 pt-8">
           <div className="text-center text-gray-400">
             <p className="mb-2">
-              &copy; {currentYear} Learning Management System. All rights reserved.
+              &copy; {currentYear} Aether Learn. All rights reserved.
             </p>
             <p className="text-sm">
               🔒 All actions are logged for security and compliance.{" "}

@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
 
 interface HeaderProps {
@@ -76,8 +77,15 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
         <div className="flex justify-between items-center">
           {/* Left side - Logo and breadcrumbs */}
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="text-2xl font-bold text-blue-600 hover:text-blue-700">
-              LMS
+            <Link href="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
+              <Image
+                src="/aether-learn.png"
+                alt="Aether Learn"
+                width={120}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
             {breadcrumbs && breadcrumbs.length > 0 && (
               <>
