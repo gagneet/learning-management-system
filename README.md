@@ -42,6 +42,25 @@ This reflects the real-world tutoring model where students are grouped by time s
 - **Student**: Course enrollment and learning activities
 - Permission-based authorization (75+ permissions across domains) ⭐UPDATED
 
+### 🎨 User Dashboards ⭐NEW
+- **Collapsible Sections**: Reduce information overload with expandable/collapsible dashboard sections
+  - Smooth animations and transitions
+  - User preferences saved via localStorage
+  - Smart defaults (critical sections expanded, supplementary collapsed)
+  - Keyboard navigation and accessibility support
+- **Quick Action Cards**: Task-oriented navigation with role-specific action cards
+  - 6 customized actions per role
+  - Dynamic badges showing live counts (pending tasks, student count, etc.)
+  - Visual icons for quick identification
+  - Direct links to common workflows
+- **Role-Specific Dashboards**:
+  - **Student**: Learning progress, upcoming sessions, assignments, gamification stats
+  - **Tutor**: Session planning, marking queue, student analytics, my courses
+  - **Supervisor**: Financial metrics, performance analytics, attendance trends, tutor management
+  - **Admin**: User management, course oversight, system analytics
+- **Hybrid Architecture**: Server-side data fetching with client-side interactivity
+- **Mobile Responsive**: Optimized for all screen sizes with touch-friendly interactions
+
 ### 📚 Academic Domain
 - **Multi-Level Adaptive Sessions** ⭐NEW: One tutor, multiple students, different courses/levels simultaneously
 - **Session Planner** ⭐NEW: Calendar-based planning interface with multi-step wizard
