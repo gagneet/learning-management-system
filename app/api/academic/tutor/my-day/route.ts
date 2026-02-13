@@ -45,7 +45,6 @@ export async function GET(request: NextRequest) {
       prisma.session.findMany({
         where: {
           tutorId,
-          centreId,
           startTime: {
             gte: today,
             lt: tomorrow,
@@ -85,7 +84,6 @@ export async function GET(request: NextRequest) {
       // 2. Active help requests (PENDING or ACKNOWLEDGED)
       prisma.helpRequest.findMany({
         where: {
-          centreId,
           status: {
             in: ['PENDING', 'ACKNOWLEDGED', 'IN_PROGRESS'],
           },
@@ -160,7 +158,7 @@ export async function GET(request: NextRequest) {
         where: {
           course: {
             teacherId: tutorId,
-            centreId,
+            centerId: centreId,
           },
         },
         include: {
@@ -183,7 +181,6 @@ export async function GET(request: NextRequest) {
       // 5. Recent activity (last 7 days)
       prisma.exerciseAttempt.findMany({
         where: {
-          centreId,
           student: {
             enrollments: {
               some: {
@@ -231,7 +228,7 @@ export async function GET(request: NextRequest) {
       if (studentMap.has(attempt.studentId)) {
         const student = studentMap.get(attempt.studentId);
         student.attemptsCount++;
-        student.attemptsTotal += attempt.maxScore > 0 ? (attempt.score / attempt.maxScore) * 100 : 0;
+        student.attemptsTotal += attempt.maxScore > 0 && attempt.score !== null ? (attempt.score / attempt.maxScore) * 100 : 0;
       }
     });
 

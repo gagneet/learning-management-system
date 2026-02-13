@@ -157,9 +157,10 @@ export async function POST(request: NextRequest) {
               data: {
                 sessionId,
                 studentId,
-                attendanceRecordId: attendanceRecord.id,
+                attendanceId: attendanceRecord.id,
                 status: 'PENDING',
                 dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+                resources: [], // Empty array - tutor can add resources later
                 notes: `Auto-generated catch-up for missed session: ${sessionData.title}`,
                 centreId: session.user.centerId!,
               },
@@ -172,32 +173,32 @@ export async function POST(request: NextRequest) {
             });
 
             // Log audit trail
-            await createAuditLog(
-              session.user.id,
-              session.user.name!,
-              session.user.role as any,
-              'CREATE',
-              'CatchUpPackage',
-              catchUpPackage.id,
-              null,
-              catchUpData,
-              session.user.centerId!
-            );
+            await createAuditLog({
+              userId: session.user.id,
+              userName: session.user.name!,
+              userRole: session.user.role as any,
+              action: 'CREATE',
+              resourceType: 'CatchUpPackage',
+              resourceId: catchUpPackage.id,
+              beforeState: null,
+              afterState: catchUpData,
+              centreId: session.user.centerId!,
+            });
           }
         }
 
         // Log attendance marking
-        await createAuditLog(
-          session.user.id,
-          session.user.name!,
-          session.user.role as any,
-          'CREATE',
-          'AttendanceRecord',
-          attendanceRecord.id,
-          null,
-          { sessionId, studentId, status },
-          session.user.centerId!
-        );
+        await createAuditLog({
+          userId: session.user.id,
+          userName: session.user.name!,
+          userRole: session.user.role as any,
+          action: 'CREATE',
+          resourceType: 'AttendanceRecord',
+          resourceId: attendanceRecord.id,
+          beforeState: null,
+          afterState: { sessionId, studentId, status },
+          centreId: session.user.centerId!,
+        });
       } catch (error: any) {
         results.errors.push({
           studentId: record.studentId,
