@@ -15,7 +15,7 @@ export default function RoleBasedAccessPage() {
           <div className="flex justify-between items-center">
             <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
               <Image
-                src="/aetherlearn-header-logo.png"
+                src="/aetherlearn-header-logo.svg"
                 alt="Aether Learn"
                 width={180}
                 height={40}

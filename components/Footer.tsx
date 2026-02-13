@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <Link href="/" className="block mb-4 hover:opacity-80 transition-opacity">
               <Image
-                src="/aetherlearn-footer-logo.png"
+                src="/aetherlearn-footer-logo.svg"
                 alt="Aether Learn"
                 width={180}
                 height={34}
