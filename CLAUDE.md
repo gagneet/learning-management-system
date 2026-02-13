@@ -359,6 +359,16 @@ If deployment fails or issues occur:
 - Logs: `./logs/pm2-*.log`
 - Auto-restart on crash with exponential backoff
 
+**CRITICAL - Environment Variables:**
+- PM2 does NOT automatically load `.env` files - you must explicitly define all critical environment variables in `ecosystem.config.cjs` under `env_production`
+- Required variables in PM2 config:
+  - `NEXTAUTH_URL`: Must match public production URL exactly (e.g., `https://lms.gagneet.com`)
+  - `NEXTAUTH_SECRET`: Production secret for session encryption
+  - `AUTH_TRUST_HOST`: Must be `'true'` (string) for NextAuth v5 in production
+  - `DATABASE_URL`: PostgreSQL connection string
+- Without these in PM2 config, the app may inherit environment variables from system environment, causing incorrect redirects
+- After updating `ecosystem.config.cjs`, restart with: `pm2 delete lms-nextjs && pm2 start ecosystem.config.cjs --env production && pm2 save`
+
 ## Special Features
 
 ### Gamification System
@@ -423,6 +433,8 @@ Use demo credentials from database seed (3-month history):
 - Course slugs are unique per center, not globally (composite unique constraint)
 - Use `npm run db:generate` after any schema changes
 - PM2 runs on port 3001 (not 3000) in production
+- **PM2 Environment Variables**: PM2 does NOT load .env files automatically - all critical env vars (NEXTAUTH_URL, NEXTAUTH_SECRET, AUTH_TRUST_HOST, DATABASE_URL) MUST be explicitly defined in `ecosystem.config.cjs`
+- If experiencing redirect issues (e.g., redirecting to wrong domain), check PM2 environment with `pm2 jlist | jq '.[0].pm2_env.env'`
 - Session data includes role and centerId - use these for authorization
 - Prisma client must be imported from `@/lib/prisma` (singleton pattern)
 - **Tailwind CSS v3 only** - v4 causes incomplete CSS generation (known issue)
