@@ -179,7 +179,6 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             <div>
               <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">Duration</div>
               <div className="text-lg font-semibold text-gray-900 dark:text-white">
-                <!-- {sessionDuration} minutes -->
                 {durationMinutes ? `${durationMinutes} minutes` : 'Not set'}
               </div>
             </div>
@@ -283,12 +282,12 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
                   <div className="flex items-center gap-4 flex-1">
                     <span
                       className={`px-3 py-1 text-xs rounded-full ${
-                        record.attended
+                        record.status === "PRESENT"
                           ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
                           : "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200"
                       }`}
                     >
-                      {record.attended ? "Present" : "Absent"}
+                      {record.status === "PRESENT" ? "Present" : record.status}
                     </span>
                     <div>
                       <div className="font-semibold text-gray-900 dark:text-white">
