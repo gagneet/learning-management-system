@@ -5,6 +5,7 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import ThemeToggle from "./ThemeToggle";
+import NotificationBell from "./NotificationBell";
 
 interface HeaderProps {
   user: {
@@ -127,9 +128,10 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
             )}
           </div>
 
-          {/* Right side - Theme toggle and user menu */}
+          {/* Right side - Theme toggle, notifications, and user menu */}
           <div className="flex items-center gap-4">
             <ThemeToggle />
+            <NotificationBell />
 
             {/* User dropdown */}
             <div className="relative" ref={dropdownRef}>
