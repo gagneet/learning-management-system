@@ -65,6 +65,47 @@ PM2 does not automatically load `.env` or `.env.production` files. If critical e
 - CSRF token errors
 - Infinite redirect loops
 
+### Issue: Redirect to localhost:3001 with CloudFlare Tunnel
+
+**Symptoms:**
+- Accessing `https://lms.gagneet.com` redirects to `http://localhost:3001`
+- Next.js middleware forcing HTTPS redirect with wrong hostname
+
+**Root Cause:**
+When using CloudFlare Tunnel, CloudFlare terminates SSL and forwards HTTP traffic to Nginx on port 80. If Nginx sets `X-Forwarded-Proto: $scheme` (which equals `http`), the Next.js middleware detects non-HTTPS traffic and triggers a redirect, but uses the backend hostname instead of the public URL.
+
+**Solution:**
+
+1. **Update Nginx configuration** to always send `https` as the forwarded protocol:
+   ```bash
+   sudo sed -i 's/proxy_set_header X-Forwarded-Proto \$scheme;/proxy_set_header X-Forwarded-Proto https;/g' /etc/nginx/sites-available/lms
+   sudo nginx -t
+   sudo systemctl reload nginx
+   ```
+
+2. **Verify the change:**
+   ```bash
+   grep "X-Forwarded-Proto" /etc/nginx/sites-available/lms
+   # Should show: proxy_set_header X-Forwarded-Proto https;
+   ```
+
+3. **Test the fix:**
+   ```bash
+   curl -I http://localhost:3001/login -H "X-Forwarded-Proto: https" -H "Host: lms.gagneet.com"
+   # Should return 200 OK, not 307 redirect
+   ```
+
+**Why this works:**
+- CloudFlare Tunnel handles SSL termination
+- Connection between CloudFlare and Nginx is HTTP (secure tunnel)
+- Setting `X-Forwarded-Proto: https` tells Next.js the original request was HTTPS
+- Next.js middleware skips the HTTPS redirect when it sees the header
+
+**Prevention:**
+- When using CloudFlare Tunnel or any SSL-terminating proxy, configure Nginx to send `X-Forwarded-Proto: https`
+- Document proxy architecture in deployment notes
+- Test with proper forwarded headers during development
+
 ---
 
 ## PM2 & Deployment

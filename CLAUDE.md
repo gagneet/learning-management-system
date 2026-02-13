@@ -434,6 +434,7 @@ Use demo credentials from database seed (3-month history):
 - Use `npm run db:generate` after any schema changes
 - PM2 runs on port 3001 (not 3000) in production
 - **PM2 Environment Variables**: PM2 does NOT load .env files automatically - all critical env vars (NEXTAUTH_URL, NEXTAUTH_SECRET, AUTH_TRUST_HOST, DATABASE_URL) MUST be explicitly defined in `ecosystem.config.cjs`
+- **Nginx with CloudFlare Tunnel**: Set `proxy_set_header X-Forwarded-Proto https;` (not `$scheme`) because CloudFlare terminates SSL and forwards HTTP to Nginx
 - If experiencing redirect issues (e.g., redirecting to wrong domain), check PM2 environment with `pm2 jlist | jq '.[0].pm2_env.env'`
 - Session data includes role and centerId - use these for authorization
 - Prisma client must be imported from `@/lib/prisma` (singleton pattern)
