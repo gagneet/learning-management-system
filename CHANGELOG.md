@@ -7,6 +7,90 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.2.0] - 2026-02-13
+
+### Added - Session Planner (Phase 1.2)
+
+#### Calendar-Based Session Planning
+- **Week Calendar View**: Visual 7-day calendar grid with session cards
+  - Color-coded session status (COMPLETED, SCHEDULED, DRAFT, CANCELLED, LIVE)
+  - Navigate forward/backward by week
+  - Quick session creation from empty days
+  - Today highlight with blue accent
+  - Status legend for clarity
+
+- **Multi-Step Planning Form** (6-step wizard, 3 functional in MVP)
+  - **Step 1: Basic Details**
+    - Date picker with time selection
+    - Duration auto-calculation
+    - Session type (Individual, Group, Workshop)
+    - Course/subject selection
+  - **Step 2: Student Selection**
+    - Grid of student cards with context
+    - Multi-select with checkboxes
+    - Student performance and goals display
+    - Selected count in header
+  - **Step 3: Content Planning**
+    - AI-recommended exercises (top 3)
+    - Exercise metadata (type, difficulty, time)
+    - One-click exercise addition
+    - Selected exercises list with remove option
+  - **Steps 4-6**: Placeholders for Phase 2
+    - Session Structure (timeline builder)
+    - Resources & Materials
+    - Objectives & Notes
+
+- **Session Creation Integration**
+  - Creates session via `/api/sessions/create`
+  - Auto-generates session title from course + type
+  - Assigns selected students to session
+  - Creates homework assignments for exercises
+  - Refreshes calendar after creation
+  - Error handling with user feedback
+
+- **Dashboard Features**
+  - Quick stats cards (upcoming sessions, students, courses)
+  - Planning tips section
+  - Easy navigation to/from sessions list
+
+#### Components Created
+- `CalendarView.tsx` - Week calendar with session cards (349 lines)
+- `SessionPlanningForm.tsx` - Multi-step planning wizard (572 lines)
+
+#### Routes Created
+- `/dashboard/tutor/planner` - Session planning interface
+  - Server component for data fetching (132 lines)
+  - Client orchestrator component (230 lines)
+
+### Changed
+
+- **Sessions List Page**: Added "📅 Session Planner" button for easy access
+
+### Technical Implementation
+
+- **Architecture**: Server Components for data fetching, Client Components for interactivity
+- **API Integration**: Uses existing session creation and homework APIs
+- **Type Safety**: Full TypeScript with interfaces and type guards
+- **Responsive Design**: Mobile-first with Tailwind CSS breakpoints
+- **State Management**: React useState for form and calendar state
+- **Data Flow**: Server → Client with prop passing and router.refresh()
+
+### Documentation
+
+- `SESSION_PLANNER_IMPLEMENTATION_SUMMARY.md` - Complete implementation summary (502 lines)
+- `SESSION_PLANNER_UX_DESIGN.md` - Comprehensive UX/UI design document (1,478 lines)
+- `DEPLOYMENT-2026-02-13-PHASE-1.1.md` - Deployment record
+
+### Known Limitations (Phase 2 Roadmap)
+
+- Steps 4-6 not implemented (Structure, Resources, Objectives)
+- Month view not functional (only week view)
+- Template library not implemented
+- Cannot edit existing sessions (create only)
+- Basic AI recommendations (not data-driven)
+
+---
+
 ## [1.1.0] - 2026-02-13
 
 ### Added - Phase 1 Individualized Tutoring Platform (Completion)

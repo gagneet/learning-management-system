@@ -44,6 +44,12 @@ This reflects the real-world tutoring model where students are grouped by time s
 
 ### 📚 Academic Domain
 - **Multi-Level Adaptive Sessions** ⭐NEW: One tutor, multiple students, different courses/levels simultaneously
+- **Session Planner** ⭐NEW: Calendar-based planning interface with multi-step wizard
+  - Week calendar view with visual session cards
+  - Student selection with performance context
+  - AI-recommended exercise assignment
+  - Automated homework creation
+  - Quick stats and planning tips
 - **Course Management**: Hierarchical structure (Course → Module → Lesson → Content)
 - **Class Cohorts**: Group-based learning with capacity management
 - **Live Sessions**: Flexible video (Teams/Zoom) or physical classroom options
