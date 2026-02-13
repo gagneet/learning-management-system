@@ -154,7 +154,7 @@ export default async function TutorStudentsPage() {
               {students.map((student) => (
                 <div
                   key={student.id}
-                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md transition-shadow"
+                  className="border border-gray-200 dark:border-gray-700 rounded-lg p-4 hover:shadow-md hover:border-blue-500 transition-all"
                 >
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex-1">
@@ -173,7 +173,7 @@ export default async function TutorStudentsPage() {
                     </div>
                   </div>
 
-                  <div>
+                  <div className="mb-4">
                     <h4 className="text-sm font-semibold text-gray-900 dark:text-white mb-2">
                       Enrolled Courses ({student.courses.length}):
                     </h4>
@@ -186,6 +186,7 @@ export default async function TutorStudentsPage() {
                           <Link
                             href={`/courses/${course.slug}`}
                             className="text-blue-600 hover:underline flex-1"
+                            onClick={(e) => e.stopPropagation()}
                           >
                             {course.title}
                           </Link>
@@ -200,6 +201,16 @@ export default async function TutorStudentsPage() {
                         </div>
                       ))}
                     </div>
+                  </div>
+
+                  {/* Action Button */}
+                  <div className="flex gap-2">
+                    <Link
+                      href={`/dashboard/tutor/students/${student.id}`}
+                      className="flex-1 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-center transition-colors"
+                    >
+                      View Full Profile
+                    </Link>
                   </div>
                 </div>
               ))}
