@@ -163,23 +163,29 @@ export default async function TutorSessionsPage() {
                       </div>
                     </div>
                     <div className="flex gap-2">
+                      <Link
+                        href={`/dashboard/tutor/sessions/${s.id}/live`}
+                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                          s.status === "LIVE"
+                            ? "bg-green-600 text-white hover:bg-green-700 animate-pulse"
+                            : "bg-blue-600 text-white hover:bg-blue-700"
+                        }`}
+                      >
+                        {s.status === "LIVE" ? "🎯 Dashboard" : "▶ Go Live"}
+                      </Link>
                       {s.sessionMode === "ONLINE" && s.meetingLink && (
                         <a
                           href={s.meetingLink}
                           target="_blank"
                           rel="noopener noreferrer"
-                          className={`px-4 py-2 rounded-lg transition-colors ${
-                            s.status === "LIVE"
-                              ? "bg-red-600 text-white hover:bg-red-700"
-                              : "bg-blue-600 text-white hover:bg-blue-700"
-                          }`}
+                          className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
                         >
-                          {s.status === "LIVE" ? "Join Now" : "Join Session"}
+                          Meeting Link
                         </a>
                       )}
                       <Link
                         href={`/dashboard/tutor/sessions/${s.id}`}
-                        className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                        className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
                       >
                         Details
                       </Link>
