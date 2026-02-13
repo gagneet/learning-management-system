@@ -226,7 +226,7 @@ export default function CalendarView({
                       return (
                         <Link
                           key={session.id}
-                          href={`/dashboard/tutor/planner/sessions/${session.id}`}
+                          href={`/dashboard/tutor/sessions/${session.id}`}
                           className={`block ${config.bg} ${config.border} border-l-4 rounded-lg p-2 hover:shadow-md transition-all cursor-pointer`}
                         >
                           <div className="flex items-start gap-2 mb-1">

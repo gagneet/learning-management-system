@@ -17,6 +17,21 @@ interface HeaderProps {
   breadcrumbs?: Array<{ label: string; href?: string }>;
 }
 
+// Helper to get dashboard URL based on role
+const getDashboardUrl = (role: string) => {
+  switch (role) {
+    case "STUDENT":
+      return "/dashboard/student";
+    case "TEACHER":
+      return "/dashboard/tutor";
+    case "CENTER_SUPERVISOR":
+    case "FINANCE_ADMIN":
+      return "/dashboard/supervisor";
+    default:
+      return "/dashboard";
+  }
+};
+
 export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: HeaderProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
@@ -77,11 +92,11 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
         <div className="flex justify-between items-center">
           {/* Left side - Logo and breadcrumbs */}
           <div className="flex items-center gap-4">
-            <Link href="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
+            <Link href={getDashboardUrl(user.role)} className="flex items-center hover:opacity-80 transition-opacity">
               <Image
-                src="/aether-learn.png"
+                src="/aetherlearn-header-logo.png"
                 alt="Aether Learn"
-                width={120}
+                width={180}
                 height={40}
                 className="h-10 w-auto"
                 priority

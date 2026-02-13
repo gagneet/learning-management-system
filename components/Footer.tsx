@@ -10,15 +10,15 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand & About Section */}
           <div>
-            <div className="mb-4">
+            <Link href="/" className="block mb-4 hover:opacity-80 transition-opacity">
               <Image
-                src="/aether-learn.png"
+                src="/aetherlearn-footer-logo.png"
                 alt="Aether Learn"
-                width={150}
-                height={50}
-                className="h-12 w-auto mb-4"
+                width={180}
+                height={34}
+                className="h-8 w-auto"
               />
-            </div>
+            </Link>
             <h3 className="text-lg font-semibold mb-4">About</h3>
             <ul className="space-y-2">
               <li>
