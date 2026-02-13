@@ -35,6 +35,10 @@ model Center {
   feePlans        FeePlan[]          @relation("FeePlans")
   studentAccounts StudentAccount[]   @relation("StudentAccounts")
   invoices        Invoice[]          @relation("Invoices")
+
+  // Phase 1: Individualized Tutoring Platform
+  awards          Award[]            @relation("CentreAwards")
+  sessionTemplates SessionTemplate[]  @relation("CentreTemplates")
 }
 
 // User model with role-based access
@@ -63,6 +67,7 @@ enum ThemePreference {
 enum SessionMode {
   ONLINE    // Online/virtual session
   PHYSICAL  // Physical/in-person session
+  HYBRID    // Mixed: some students online, some physical
 }
 
 model User {
@@ -141,6 +146,31 @@ model User {
   requestedRefunds   Refund[]           @relation("RequestedRefunds")
   approvedRefunds    Refund[]           @relation("ApprovedRefunds")
 
+  // Phase 1: Individualized Tutoring Platform
+  studentAssessments      SubjectAssessment[]   @relation("StudentAssessments")
+  assessorAssessments     SubjectAssessment[]   @relation("AssessorAssessments")
+  studentProfileLogs      AcademicProfileLog[]  @relation("StudentProfileLogs")
+  updatedByLogs           AcademicProfileLog[]  @relation("UpdatedByLogs")
+  studentAttempts         ExerciseAttempt[]     @relation("StudentAttempts")
+  studentHomework         HomeworkAssignment[]  @relation("StudentHomework")
+  assignedHomework        HomeworkAssignment[]  @relation("AssignedHomework")
+  assessorReviews         AssessmentReview[]    @relation("AssessorReviews")
+  studentPhysicalWork     PhysicalWorkUpload[]  @relation("StudentPhysicalWork")
+  uploadedPhysicalWork    PhysicalWorkUpload[]  @relation("UploadedPhysicalWork")
+  studentHelpRequests     HelpRequest[]         @relation("StudentHelpRequests")
+  resolvedHelpRequests    HelpRequest[]         @relation("ResolvedHelpRequests")
+  studentNotes            TutorNote[]           @relation("StudentNotes")
+  tutorNotes              TutorNote[]           @relation("TutorNotes")
+  assignedByTutor         ContentAssignment[]   @relation("AssignedByTutor")
+  assignedToStudent       ContentAssignment[]   @relation("AssignedToStudent")
+  studentGoals            StudentGoal[]         @relation("StudentGoals")
+  studentTraits           StudentStrengthWeakness[] @relation("StudentTraits")
+  identifiedTraits        StudentStrengthWeakness[] @relation("IdentifiedTraits")
+  sentMessages            ChatMessage[]         @relation("SentMessages")
+  receivedMessages        ChatMessage[]         @relation("ReceivedMessages")
+  studentRedemptions      AwardRedemption[]     @relation("StudentRedemptions")
+  tutorTemplates          SessionTemplate[]     @relation("TutorTemplates")
+
   @@index([centerId])
   @@index([email])
   @@index([parentId])
@@ -168,10 +198,20 @@ model Course {
   // Course hierarchy
   modules     Module[]
   enrollments Enrollment[]
-  
+
   // NEW: Session enrollments (students working on this course in sessions)
   sessionEnrollments StudentSessionEnrollment[] @relation("SessionEnrollments")
-  
+
+  // Phase 1: Individualized Tutoring Platform
+  courseAssessments      SubjectAssessment[]      @relation("CourseAssessments")
+  courseProfileLogs      AcademicProfileLog[]     @relation("CourseProfileLogs")
+  courseUnits            ContentUnit[]            @relation("CourseUnits")
+  courseHomework         HomeworkAssignment[]     @relation("CourseHomework")
+  courseRubrics          AssessmentRubric[]       @relation("CourseRubrics")
+  courseNotes            TutorNote[]              @relation("CourseNotes")
+  courseAssignments      ContentAssignment[]      @relation("CourseAssignments")
+  courseTraits           StudentStrengthWeakness[] @relation("CourseTraits")
+
   @@unique([centerId, slug])
   @@index([centerId])
   @@index([teacherId])
@@ -211,14 +251,22 @@ model Lesson {
   
   moduleId    String
   module      Module   @relation(fields: [moduleId], references: [id], onDelete: Cascade)
-  
+
+  // Phase 1: Link to ContentUnit (optional, for new content hierarchy)
+  unitId      String?
+  unit        ContentUnit? @relation("UnitLessons", fields: [unitId], references: [id], onDelete: SetNull)
+
   contents    Content[]
   progress    Progress[]
-  
+
   // NEW: Session enrollments (students working on this lesson in sessions)
   sessionEnrollments StudentSessionEnrollment[] @relation("SessionEnrollments")
-  
+
+  // Phase 1: Exercises
+  exercises   Exercise[]   @relation("LessonExercises")
+
   @@index([moduleId])
+  @@index([unitId])
 }
 
 // Content model - supports multiple content types
@@ -397,7 +445,11 @@ model Session {
   attendance      SessionAttendance[]
   attendanceRecords AttendanceRecord[] @relation("AttendanceRecords")
   catchUpPackages CatchUpPackage[]   @relation("CatchUpPackages")
-  
+
+  // Phase 1: Real-time session interaction
+  helpRequests    HelpRequest[]
+  chatMessages    ChatMessage[]
+
   @@index([tutorId])
   @@index([startTime])
   @@index([status])
@@ -429,10 +481,19 @@ model StudentSessionEnrollment {
   // Student's progress in this session
   completed       Boolean  @default(false)
   notes           String?  // Tutor notes specific to this student's session
-  
+
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
-  
+
+  // Phase 1: Real-time session tracking
+  exerciseAttempts    ExerciseAttempt[]
+  homeworkAssignments HomeworkAssignment[]
+  physicalUploads     PhysicalWorkUpload[]
+  helpRequests        HelpRequest[]
+  activities          StudentSessionActivity[]
+  tutorNotes          TutorNote[]
+  contentAssignments  ContentAssignment[]
+
   @@unique([sessionId, studentId])
   @@index([sessionId])
   @@index([studentId])
@@ -553,6 +614,10 @@ enum XPSource {
   READING_ACTIVITY
   HELPING_PEER
   STREAK_MILESTONE
+  AWARD_REDEMPTION
+  AWARD_REFUND
+  GOAL_COMPLETE
+  EXERCISE_COMPLETE
 }
 
 // Badge Definitions (reusable templates)
@@ -1221,4 +1286,643 @@ model Refund {
   @@index([centreId, status])
   @@index([paymentId])
   @@index([refundNumber])
+}
+
+// =============================================================================
+// PHASE 1: INDIVIDUALIZED TUTORING PLATFORM MODELS
+// Architecture: Multi-student, multi-course, multi-level sessions
+// =============================================================================
+
+// -----------------------------------------------------------------------------
+// Academic Assessment System
+// -----------------------------------------------------------------------------
+
+// Per-subject assessed levels (Grade 7 student learning at Grade 4 English)
+model SubjectAssessment {
+  id                  String    @id @default(cuid())
+  studentId           String
+  courseId            String
+  assessedGradeLevel  Int       // The grade level they're working at (e.g., 4)
+  readingAge          Float?    // In years, e.g., 8.5
+  numeracyAge         Float?
+  comprehensionLevel  Float?
+  writingLevel        Float?
+  lastAssessedAt      DateTime  @default(now())
+  assessedById        String    // Who made this assessment
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  student             User      @relation("StudentAssessments", fields: [studentId], references: [id], onDelete: Cascade)
+  course              Course    @relation("CourseAssessments", fields: [courseId], references: [id], onDelete: Cascade)
+  assessedBy          User      @relation("AssessorAssessments", fields: [assessedById], references: [id])
+  profileLogs         AcademicProfileLog[]
+
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([assessedGradeLevel])
+}
+
+enum ProfileUpdateType {
+  ASSESSMENT_RESULT
+  TUTOR_OVERRIDE
+  DIAGNOSTIC_TEST
+  LEVEL_ADVANCEMENT
+  LEVEL_REGRESSION
+}
+
+// Track all changes to academic profiles over time
+model AcademicProfileLog {
+  id                  String            @id @default(cuid())
+  studentId           String
+  courseId            String
+  subjectAssessmentId String
+  previousLevel       Int
+  newLevel            Int
+  updateType          ProfileUpdateType
+  reason              String?           @db.Text
+  updatedById         String
+  assessmentReviewId  String?
+  createdAt           DateTime          @default(now())
+
+  student             User              @relation("StudentProfileLogs", fields: [studentId], references: [id], onDelete: Cascade)
+  course              Course            @relation("CourseProfileLogs", fields: [courseId], references: [id], onDelete: Cascade)
+  subjectAssessment   SubjectAssessment @relation(fields: [subjectAssessmentId], references: [id], onDelete: Cascade)
+  updatedBy           User              @relation("UpdatedByLogs", fields: [updatedById], references: [id])
+  assessmentReview    AssessmentReview? @relation(fields: [assessmentReviewId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, courseId])
+  @@index([createdAt])
+}
+
+// -----------------------------------------------------------------------------
+// Content Hierarchy: Course → GradeLevel → ContentUnit → Lesson → Exercise
+// -----------------------------------------------------------------------------
+
+// Grade levels (Class 1, Class 2, etc.)
+model GradeLevel {
+  id          String   @id @default(cuid())
+  level       Int      @unique  // 1, 2, 3... representing Class 1, Class 2...
+  label       String             // "Class 1", "Class 2", "Year 1", etc.
+
+  units       ContentUnit[]
+  assessmentRubrics AssessmentRubric[]
+
+  @@index([level])
+}
+
+// Content units within a grade level
+model ContentUnit {
+  id            String    @id @default(cuid())
+  courseId      String
+  gradeLevelId  String
+  sequenceOrder Int
+  title         String
+  description   String?   @db.Text
+  isActive      Boolean   @default(true)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  course        Course     @relation("CourseUnits", fields: [courseId], references: [id], onDelete: Cascade)
+  gradeLevel    GradeLevel @relation(fields: [gradeLevelId], references: [id], onDelete: Cascade)
+  lessons       Lesson[]   @relation("UnitLessons")
+
+  @@unique([courseId, gradeLevelId, sequenceOrder])
+  @@index([courseId, gradeLevelId])
+}
+
+// -----------------------------------------------------------------------------
+// Exercise System
+// -----------------------------------------------------------------------------
+
+enum ExerciseType {
+  MULTIPLE_CHOICE
+  FILL_IN_BLANK
+  SHORT_ANSWER
+  LONG_ANSWER
+  NUMERICAL
+  MATCHING
+  WORKSHEET    // Physical work
+}
+
+// Granular exercises within lessons
+model Exercise {
+  id              String       @id @default(cuid())
+  lessonId        String
+  unitId          String?      // Denormalized for easier queries
+  sequenceOrder   Int
+  exerciseType    ExerciseType
+  title           String
+  instructions    String?      @db.Text
+  questions       Json         // [{question, options?, type}]
+  expectedAnswers Json?        // [{answer, acceptableVariants?}]
+  maxScore        Int
+  timeLimit       Int?         // in minutes
+  isAutoGradable  Boolean      @default(false)
+  difficulty      String?      // EASY, MEDIUM, HARD, CHALLENGE
+  isActive        Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  lesson          Lesson       @relation("LessonExercises", fields: [lessonId], references: [id], onDelete: Cascade)
+  attempts        ExerciseAttempt[]
+  physicalUploads PhysicalWorkUpload[]
+  homeworkAssignments HomeworkAssignment[]
+  homeworkExercises   HomeworkExercise[] @relation("HomeworkExerciseJunction")
+  contentAssignments  ContentAssignment[]
+  activities      StudentSessionActivity[] @relation("ActivityExercises")
+  helpRequests    HelpRequest[] @relation("HelpRequestExercises")
+
+  @@unique([lessonId, sequenceOrder])
+  @@index([lessonId])
+  @@index([exerciseType])
+  @@index([isActive])
+}
+
+enum AttemptStatus {
+  IN_PROGRESS
+  SUBMITTED
+  AUTO_GRADED
+  UNDER_REVIEW
+  GRADED
+}
+
+// Student attempts at exercises
+model ExerciseAttempt {
+  id                  String       @id @default(cuid())
+  studentId           String
+  exerciseId          String
+  sessionEnrollmentId String?
+  homeworkAssignmentId String?
+  answers             Json         // [{questionIndex, answer, isCorrect?}]
+  score               Float?
+  maxScore            Int
+  status              AttemptStatus @default(IN_PROGRESS)
+  startedAt           DateTime     @default(now())
+  submittedAt         DateTime?
+  autoGraded          Boolean      @default(false)
+  timeSpent           Int?         // seconds
+  createdAt           DateTime     @default(now())
+  updatedAt           DateTime     @updatedAt
+
+  student             User                      @relation("StudentAttempts", fields: [studentId], references: [id], onDelete: Cascade)
+  exercise            Exercise                  @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  sessionEnrollment   StudentSessionEnrollment? @relation(fields: [sessionEnrollmentId], references: [id], onDelete: SetNull)
+  homeworkAssignment  HomeworkAssignment?       @relation(fields: [homeworkAssignmentId], references: [id], onDelete: SetNull)
+  reviews             AssessmentReview[]
+
+  @@index([studentId, exerciseId])
+  @@index([sessionEnrollmentId])
+  @@index([homeworkAssignmentId])
+  @@index([status])
+  @@index([submittedAt])
+}
+
+// -----------------------------------------------------------------------------
+// Homework System
+// -----------------------------------------------------------------------------
+
+enum HomeworkStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  SUBMITTED
+  GRADED
+  RETURNED
+}
+
+model HomeworkAssignment {
+  id                  String         @id @default(cuid())
+  centreId            String
+  studentId           String
+  courseId            String
+  exerciseId          String         // Primary/main exercise (for backwards compatibility)
+  assignedById        String         // Tutor who assigned it
+  sessionEnrollmentId String?        // Session during which it was assigned
+  dueDate             DateTime
+  status              HomeworkStatus @default(NOT_STARTED)
+  totalMaxScore       Int            @default(0)  // Sum of all exercises' maxScore
+  totalScore          Float?         // Actual score achieved
+  startedAt           DateTime?
+  submittedAt         DateTime?
+  gradedAt            DateTime?
+  gradedById          String?        // Who graded this homework
+  feedback            String?        @db.Text
+  notes               String?        @db.Text
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  student             User           @relation("StudentHomework", fields: [studentId], references: [id], onDelete: Cascade)
+  course              Course         @relation("CourseHomework", fields: [courseId], references: [id], onDelete: Cascade)
+  exercise            Exercise       @relation(fields: [exerciseId], references: [id], onDelete: Cascade)
+  assignedBy          User           @relation("AssignedHomework", fields: [assignedById], references: [id])
+  sessionEnrollment   StudentSessionEnrollment? @relation(fields: [sessionEnrollmentId], references: [id], onDelete: SetNull)
+  attempts            ExerciseAttempt[]
+  exercises           HomeworkExercise[] // Many-to-many: multiple exercises per homework
+
+  @@index([centreId, studentId, status])
+  @@index([studentId, dueDate])
+  @@index([assignedById])
+  @@index([courseId])
+}
+
+// Junction table for homework assignments with multiple exercises
+model HomeworkExercise {
+  id           String             @id @default(cuid())
+  homeworkId   String
+  exerciseId   String
+  order        Int                @default(0) // Order in which exercises should be completed
+  isCompleted  Boolean            @default(false)
+  score        Float?
+  createdAt    DateTime           @default(now())
+
+  homework     HomeworkAssignment @relation(fields: [homeworkId], references: [id], onDelete: Cascade)
+  exercise     Exercise           @relation("HomeworkExerciseJunction", fields: [exerciseId], references: [id], onDelete: Cascade)
+
+  @@unique([homeworkId, exerciseId])
+  @@index([homeworkId])
+  @@index([exerciseId])
+}
+
+// -----------------------------------------------------------------------------
+// Assessment & Review System
+// -----------------------------------------------------------------------------
+
+enum AssessmentStatus {
+  PENDING
+  IN_REVIEW
+  COMPLETED
+  RETURNED
+}
+
+model AssessmentReview {
+  id                   String           @id @default(cuid())
+  assessorId           String
+  exerciseAttemptId    String?
+  physicalWorkUploadId String?
+  rubricId             String?
+  criteriaScores       Json?            // [{criterionName, score, maxScore, comment}]
+  overallScore         Float
+  maxScore             Float
+  feedback             String?          @db.Text
+  status               AssessmentStatus @default(PENDING)
+  reviewedAt           DateTime?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  assessor             User                @relation("AssessorReviews", fields: [assessorId], references: [id])
+  exerciseAttempt      ExerciseAttempt?    @relation(fields: [exerciseAttemptId], references: [id], onDelete: SetNull)
+  physicalWorkUpload   PhysicalWorkUpload? @relation(fields: [physicalWorkUploadId], references: [id], onDelete: SetNull)
+  rubric               AssessmentRubric?   @relation(fields: [rubricId], references: [id], onDelete: SetNull)
+  profileLogs          AcademicProfileLog[]
+
+  @@index([assessorId])
+  @@index([exerciseAttemptId])
+  @@index([physicalWorkUploadId])
+  @@index([status])
+}
+
+model AssessmentRubric {
+  id            String       @id @default(cuid())
+  courseId      String
+  gradeLevelId  String
+  exerciseType  ExerciseType
+  name          String
+  description   String?      @db.Text
+  criteria      Json         // [{name, description, maxPoints, levels:[]}]
+  maxScore      Int
+  isActive      Boolean      @default(true)
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+
+  course        Course       @relation("CourseRubrics", fields: [courseId], references: [id], onDelete: Cascade)
+  gradeLevel    GradeLevel   @relation(fields: [gradeLevelId], references: [id], onDelete: Cascade)
+  reviews       AssessmentReview[]
+
+  @@unique([courseId, gradeLevelId, exerciseType, name])
+  @@index([courseId, gradeLevelId])
+}
+
+// -----------------------------------------------------------------------------
+// Physical Work & QR System
+// -----------------------------------------------------------------------------
+
+model PhysicalWorkUpload {
+  id                  String    @id @default(cuid())
+  studentId           String
+  exerciseId          String?
+  sessionEnrollmentId String?
+  imageUrls           String[]  // Array of image URLs in MinIO/S3
+  qrCodeIdentifier    String?   @unique  // Links to physical QR code (AE-{studentId}-{exerciseId}-{sessionId})
+  annotations         Json?     // Fabric.js canvas JSON for tutor markings
+  uploadedById        String
+  notes               String?   @db.Text
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  student             User                      @relation("StudentPhysicalWork", fields: [studentId], references: [id], onDelete: Cascade)
+  exercise            Exercise?                 @relation(fields: [exerciseId], references: [id], onDelete: SetNull)
+  sessionEnrollment   StudentSessionEnrollment? @relation(fields: [sessionEnrollmentId], references: [id], onDelete: SetNull)
+  uploadedBy          User                      @relation("UploadedPhysicalWork", fields: [uploadedById], references: [id])
+  reviews             AssessmentReview[]
+
+  @@index([studentId])
+  @@index([qrCodeIdentifier])
+  @@index([sessionEnrollmentId])
+  @@index([exerciseId])
+}
+
+// -----------------------------------------------------------------------------
+// Real-Time Session Interaction
+// -----------------------------------------------------------------------------
+
+enum ActivityStatus {
+  NOT_STARTED
+  WORKING
+  WAITING_HELP
+  COMPLETED
+  IDLE
+}
+
+// Track what each student is doing in real-time during a session
+model StudentSessionActivity {
+  id            String         @id @default(cuid())
+  enrollmentId  String
+  exerciseId    String?
+  status        ActivityStatus @default(NOT_STARTED)
+  startedAt     DateTime?
+  completedAt   DateTime?
+  progressPct   Int            @default(0)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  enrollment    StudentSessionEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  exercise      Exercise?                @relation("ActivityExercises", fields: [exerciseId], references: [id], onDelete: SetNull)
+
+  @@index([enrollmentId])
+  @@index([status])
+  @@index([exerciseId])
+}
+
+enum HelpRequestStatus {
+  PENDING
+  ACKNOWLEDGED
+  IN_PROGRESS
+  RESOLVED
+  CANCELLED
+}
+
+enum HelpRequestPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model HelpRequest {
+  id              String            @id @default(cuid())
+  studentId       String
+  sessionId       String
+  enrollmentId    String?
+  exerciseId      String?           // Optional - for context about which exercise student needs help with
+  message         String?           @db.Text
+  priority        HelpRequestPriority @default(MEDIUM)
+  status          HelpRequestStatus @default(PENDING)
+  createdAt       DateTime          @default(now())
+  acknowledgedAt  DateTime?
+  resolvedAt      DateTime?
+  resolvedById    String?
+  responseText    String?           @db.Text
+
+  student         User              @relation("StudentHelpRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  session         Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  enrollment      StudentSessionEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: SetNull)
+  exercise        Exercise?         @relation("HelpRequestExercises", fields: [exerciseId], references: [id], onDelete: SetNull)
+  resolvedBy      User?             @relation("ResolvedHelpRequests", fields: [resolvedById], references: [id])
+
+  @@index([sessionId, status])
+  @@index([studentId])
+  @@index([createdAt])
+  @@index([exerciseId])
+  @@index([priority])
+}
+
+// -----------------------------------------------------------------------------
+// Tutor Notes & Content Assignment
+// -----------------------------------------------------------------------------
+
+enum NoteVisibility {
+  INTERNAL    // Only tutors/assessors/supervisors can see
+  EXTERNAL    // Parents can also see
+}
+
+model TutorNote {
+  id            String         @id @default(cuid())
+  enrollmentId  String?
+  studentId     String
+  courseId      String?
+  tutorId       String
+  content       String         @db.Text
+  visibility    NoteVisibility @default(INTERNAL)
+  createdAt     DateTime       @default(now())
+  updatedAt     DateTime       @updatedAt
+
+  enrollment    StudentSessionEnrollment? @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  student       User           @relation("StudentNotes", fields: [studentId], references: [id], onDelete: Cascade)
+  course        Course?        @relation("CourseNotes", fields: [courseId], references: [id], onDelete: SetNull)
+  tutor         User           @relation("TutorNotes", fields: [tutorId], references: [id])
+
+  @@index([enrollmentId])
+  @@index([studentId])
+  @@index([tutorId])
+  @@index([visibility])
+}
+
+// Tutor overrides for content auto-sequencing
+model ContentAssignment {
+  id                    String    @id @default(cuid())
+  tutorId               String
+  studentId             String
+  courseId              String
+  sessionEnrollmentId   String?
+  exerciseId            String?
+  overridesAutoSequence Boolean   @default(true)
+  reason                String?   @db.Text
+  isActive              Boolean   @default(true)
+  assignedAt            DateTime  @default(now())
+
+  tutor                 User                      @relation("AssignedByTutor", fields: [tutorId], references: [id])
+  student               User                      @relation("AssignedToStudent", fields: [studentId], references: [id], onDelete: Cascade)
+  course                Course                    @relation("CourseAssignments", fields: [courseId], references: [id], onDelete: Cascade)
+  sessionEnrollment     StudentSessionEnrollment? @relation(fields: [sessionEnrollmentId], references: [id], onDelete: SetNull)
+  exercise              Exercise?                 @relation(fields: [exerciseId], references: [id], onDelete: SetNull)
+
+  @@index([studentId, courseId, isActive])
+  @@index([sessionEnrollmentId])
+  @@index([tutorId])
+}
+
+// -----------------------------------------------------------------------------
+// Student Goals, Strengths & Weaknesses
+// -----------------------------------------------------------------------------
+
+model StudentGoal {
+  id          String    @id @default(cuid())
+  studentId   String
+  goalText    String    @db.Text
+  category    String?   // ACADEMIC, PERSONAL, SKILL, etc.
+  targetDate  DateTime?
+  isAchieved  Boolean   @default(false)
+  achievedAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student     User      @relation("StudentGoals", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([studentId])
+  @@index([isAchieved])
+}
+
+model StudentStrengthWeakness {
+  id          String    @id @default(cuid())
+  studentId   String
+  courseId    String?
+  type        String    // STRENGTH, WEAKNESS
+  description String    @db.Text
+  identifiedBy String   // User ID who identified this
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  student     User      @relation("StudentTraits", fields: [studentId], references: [id], onDelete: Cascade)
+  course      Course?   @relation("CourseTraits", fields: [courseId], references: [id], onDelete: SetNull)
+  identifier  User      @relation("IdentifiedTraits", fields: [identifiedBy], references: [id])
+
+  @@index([studentId])
+  @@index([courseId])
+  @@index([type])
+}
+
+// -----------------------------------------------------------------------------
+// Chat System
+// -----------------------------------------------------------------------------
+
+enum ChatMessageType {
+  STUDENT_TO_TUTOR
+  TUTOR_TO_STUDENT
+  STUDENT_TO_STUDENT
+  SYSTEM
+}
+
+model ChatMessage {
+  id              String          @id @default(cuid())
+  sessionId       String
+  senderId        String
+  recipientId     String?         // Null for broadcast
+  messageType     ChatMessageType
+  content         String          @db.Text
+  attachmentUrls  String[]
+  isRead          Boolean         @default(false)
+  createdAt       DateTime        @default(now())
+
+  session         Session         @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  sender          User            @relation("SentMessages", fields: [senderId], references: [id])
+  recipient       User?           @relation("ReceivedMessages", fields: [recipientId], references: [id])
+
+  @@index([sessionId, createdAt])
+  @@index([senderId])
+  @@index([recipientId])
+}
+
+// -----------------------------------------------------------------------------
+// Awards & Redemption System
+// -----------------------------------------------------------------------------
+
+enum AwardType {
+  GIFT
+  STICKER
+  COURSE_UNLOCK
+  CUSTOM
+}
+
+enum RedemptionStatus {
+  PENDING
+  FULFILLED
+  REJECTED
+}
+
+model Award {
+  id            String     @id @default(cuid())
+  centreId      String
+  name          String
+  description   String?    @db.Text
+  awardType     AwardType
+  xpCost        Int        // How much XP to redeem
+  stockQuantity Int?       // Null = unlimited
+  imageUrl      String?
+  isActive      Boolean    @default(true)
+  createdAt     DateTime   @default(now())
+  updatedAt     DateTime   @updatedAt
+
+  centre        Center     @relation("CentreAwards", fields: [centreId], references: [id], onDelete: Cascade)
+  redemptions   AwardRedemption[]
+
+  @@index([centreId, isActive])
+  @@index([xpCost])
+}
+
+model AwardRedemption {
+  id          String            @id @default(cuid())
+  studentId   String
+  awardId     String
+  xpSpent     Int
+  status      RedemptionStatus  @default(PENDING)
+  redeemedAt  DateTime          @default(now())
+  fulfilledAt DateTime?
+  notes       String?           @db.Text
+
+  student     User      @relation("StudentRedemptions", fields: [studentId], references: [id], onDelete: Cascade)
+  award       Award     @relation(fields: [awardId], references: [id])
+
+  @@index([studentId])
+  @@index([awardId])
+  @@index([redeemedAt])
+  @@index([status])
+}
+
+// -----------------------------------------------------------------------------
+// Session Templates (Recurring Sessions)
+// -----------------------------------------------------------------------------
+
+enum DayOfWeek {
+  MONDAY
+  TUESDAY
+  WEDNESDAY
+  THURSDAY
+  FRIDAY
+  SATURDAY
+  SUNDAY
+}
+
+model SessionTemplate {
+  id            String      @id @default(cuid())
+  tutorId       String
+  centreId      String
+  dayOfWeek     DayOfWeek
+  startTime     String      // "16:00" stored as HH:mm
+  endTime       String      // "17:00"
+  sessionMode   SessionMode
+  maxCapacity   Int         @default(15)
+  title         String?
+  description   String?     @db.Text
+  isActive      Boolean     @default(true)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  tutor         User        @relation("TutorTemplates", fields: [tutorId], references: [id])
+  centre        Center      @relation("CentreTemplates", fields: [centreId], references: [id], onDelete: Cascade)
+
+  @@index([tutorId])
+  @@index([centreId])
+  @@index([dayOfWeek])
+  @@index([isActive])
 }

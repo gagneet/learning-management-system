@@ -2970,6 +2970,773 @@ async function main() {
 
   console.log('✅ Audit events created (12 historical audit logs)');
 
+  // =============================================================================
+  // PHASE 1: INDIVIDUALIZED TUTORING PLATFORM SEED DATA
+  // =============================================================================
+
+  console.log('\n📚 Seeding Phase 1: Individualized Tutoring Platform data...');
+
+  // Clean up Phase 1 data first
+  await prisma.chatMessage.deleteMany({});
+  await prisma.awardRedemption.deleteMany({});
+  await prisma.award.deleteMany({});
+  await prisma.sessionTemplate.deleteMany({});
+  await prisma.studentStrengthWeakness.deleteMany({});
+  await prisma.studentGoal.deleteMany({});
+  await prisma.contentAssignment.deleteMany({});
+  await prisma.tutorNote.deleteMany({});
+  await prisma.helpRequest.deleteMany({});
+  await prisma.studentSessionActivity.deleteMany({});
+  await prisma.physicalWorkUpload.deleteMany({});
+  await prisma.assessmentReview.deleteMany({});
+  await prisma.assessmentRubric.deleteMany({});
+  await prisma.homeworkAssignment.deleteMany({});
+  await prisma.exerciseAttempt.deleteMany({});
+  await prisma.exercise.deleteMany({});
+  await prisma.academicProfileLog.deleteMany({});
+  await prisma.subjectAssessment.deleteMany({});
+  await prisma.contentUnit.deleteMany({});
+  await prisma.gradeLevel.deleteMany({});
+
+  console.log('✅ Phase 1 cleanup complete');
+
+  // 1. Grade Levels (Class 1-10)
+  const gradeLevels = [];
+  for (let i = 1; i <= 10; i++) {
+    const gradeLevel = await prisma.gradeLevel.create({
+      data: {
+        level: i,
+        label: `Class ${i}`,
+      },
+    });
+    gradeLevels.push(gradeLevel);
+  }
+  console.log(`✅ Grade levels created (10 levels: Class 1-10)`);
+
+  // 2. Content Units (for English course at different levels)
+  const englishCourse = await prisma.course.findFirst({
+    where: { title: { contains: 'Programming' } },
+  });
+
+  const mathCourse = await prisma.course.findFirst({
+    where: { title: { contains: 'Web Development' } },
+  });
+
+  const contentUnits = [];
+
+  // English units for Grade 3, 4, 5
+  if (englishCourse) {
+    const englishUnit1 = await prisma.contentUnit.create({
+      data: {
+        courseId: englishCourse.id,
+        gradeLevelId: gradeLevels[2].id, // Grade 3
+        sequenceOrder: 1,
+        title: 'Reading Comprehension Basics',
+        description: 'Foundational reading skills for Grade 3',
+        isActive: true,
+      },
+    });
+
+    const englishUnit2 = await prisma.contentUnit.create({
+      data: {
+        courseId: englishCourse.id,
+        gradeLevelId: gradeLevels[3].id, // Grade 4
+        sequenceOrder: 1,
+        title: 'Advanced Reading & Inference',
+        description: 'Intermediate comprehension and inference skills',
+        isActive: true,
+      },
+    });
+
+    const englishUnit3 = await prisma.contentUnit.create({
+      data: {
+        courseId: englishCourse.id,
+        gradeLevelId: gradeLevels[4].id, // Grade 5
+        sequenceOrder: 1,
+        title: 'Critical Analysis',
+        description: 'Advanced analytical reading skills',
+        isActive: true,
+      },
+    });
+
+    contentUnits.push(englishUnit1, englishUnit2, englishUnit3);
+  }
+
+  // Math units for Grade 3, 4, 5
+  if (mathCourse) {
+    const mathUnit1 = await prisma.contentUnit.create({
+      data: {
+        courseId: mathCourse.id,
+        gradeLevelId: gradeLevels[2].id, // Grade 3
+        sequenceOrder: 1,
+        title: 'Basic Fractions',
+        description: 'Introduction to fractions and parts of a whole',
+        isActive: true,
+      },
+    });
+
+    const mathUnit2 = await prisma.contentUnit.create({
+      data: {
+        courseId: mathCourse.id,
+        gradeLevelId: gradeLevels[3].id, // Grade 4
+        sequenceOrder: 1,
+        title: 'Operations with Fractions',
+        description: 'Adding, subtracting fractions',
+        isActive: true,
+      },
+    });
+
+    const mathUnit3 = await prisma.contentUnit.create({
+      data: {
+        courseId: mathCourse.id,
+        gradeLevelId: gradeLevels[4].id, // Grade 5
+        sequenceOrder: 1,
+        title: 'Decimals and Percentages',
+        description: 'Working with decimals and converting to percentages',
+        isActive: true,
+      },
+    });
+
+    contentUnits.push(mathUnit1, mathUnit2, mathUnit3);
+  }
+
+  console.log(`✅ Content units created (${contentUnits.length} units across grade levels)`);
+
+  // 3. Exercises (various types)
+  const lessons = await prisma.lesson.findMany({ take: 6 });
+  const exercises = [];
+
+  if (lessons.length > 0) {
+    // Multiple Choice Exercise
+    const exercise1 = await prisma.exercise.create({
+      data: {
+        lessonId: lessons[0].id,
+        unitId: contentUnits[0]?.id,
+        sequenceOrder: 1,
+        exerciseType: 'MULTIPLE_CHOICE',
+        title: 'Reading Comprehension Quiz',
+        instructions: 'Read the passage and answer the questions',
+        questions: [
+          {
+            question: 'What is the main idea of the passage?',
+            options: ['Option A', 'Option B', 'Option C', 'Option D'],
+            correctIndex: 1,
+          },
+          {
+            question: 'Who is the main character?',
+            options: ['Alice', 'Bob', 'Charlie', 'Diana'],
+            correctIndex: 0,
+          },
+        ],
+        expectedAnswers: [
+          { questionIndex: 0, answer: 1 },
+          { questionIndex: 1, answer: 0 },
+        ],
+        maxScore: 20,
+        timeLimit: 15,
+        isAutoGradable: true,
+        difficulty: 'MEDIUM',
+      },
+    });
+    exercises.push(exercise1);
+
+    // Fill in Blank Exercise
+    const exercise2 = await prisma.exercise.create({
+      data: {
+        lessonId: lessons[1].id,
+        unitId: contentUnits[1]?.id,
+        sequenceOrder: 1,
+        exerciseType: 'FILL_IN_BLANK',
+        title: 'Vocabulary Practice',
+        instructions: 'Fill in the blanks with the correct words',
+        questions: [
+          { question: 'The cat ___ on the mat.', blank: 0 },
+          { question: 'She ___ to school every day.', blank: 0 },
+        ],
+        expectedAnswers: [
+          { questionIndex: 0, answer: 'sat', acceptableVariants: ['sits', 'was sitting'] },
+          { questionIndex: 1, answer: 'walks', acceptableVariants: ['goes', 'travels'] },
+        ],
+        maxScore: 10,
+        timeLimit: 10,
+        isAutoGradable: true,
+        difficulty: 'EASY',
+      },
+    });
+    exercises.push(exercise2);
+
+    // Short Answer Exercise
+    const exercise3 = await prisma.exercise.create({
+      data: {
+        lessonId: lessons[2].id,
+        unitId: contentUnits[2]?.id,
+        sequenceOrder: 1,
+        exerciseType: 'SHORT_ANSWER',
+        title: 'Comprehension Questions',
+        instructions: 'Answer the following questions in complete sentences',
+        questions: [
+          { question: 'Why did the author use the word "transform"?' },
+          { question: 'What do you think will happen next?' },
+        ],
+        expectedAnswers: null, // Manual grading required
+        maxScore: 16,
+        timeLimit: 20,
+        isAutoGradable: false,
+        difficulty: 'HARD',
+      },
+    });
+    exercises.push(exercise3);
+
+    // Numerical Exercise (Math)
+    const exercise4 = await prisma.exercise.create({
+      data: {
+        lessonId: lessons[3].id,
+        unitId: contentUnits[3]?.id,
+        sequenceOrder: 1,
+        exerciseType: 'NUMERICAL',
+        title: 'Fraction Addition',
+        instructions: 'Solve the following fraction problems',
+        questions: [
+          { question: '1/2 + 1/4 = ?', type: 'fraction' },
+          { question: '3/5 - 1/5 = ?', type: 'fraction' },
+        ],
+        expectedAnswers: [
+          { questionIndex: 0, answer: '3/4' },
+          { questionIndex: 1, answer: '2/5' },
+        ],
+        maxScore: 10,
+        timeLimit: 15,
+        isAutoGradable: true,
+        difficulty: 'MEDIUM',
+      },
+    });
+    exercises.push(exercise4);
+
+    // Worksheet (Physical)
+    const exercise5 = await prisma.exercise.create({
+      data: {
+        lessonId: lessons[4].id,
+        unitId: contentUnits[4]?.id,
+        sequenceOrder: 1,
+        exerciseType: 'WORKSHEET',
+        title: 'Handwriting Practice',
+        instructions: 'Complete the worksheet on paper and submit for review',
+        questions: [
+          { question: 'Practice writing the alphabet in cursive', type: 'handwriting' },
+        ],
+        expectedAnswers: null,
+        maxScore: 20,
+        timeLimit: null,
+        isAutoGradable: false,
+        difficulty: 'EASY',
+      },
+    });
+    exercises.push(exercise5);
+  }
+
+  console.log(`✅ Exercises created (${exercises.length} exercises of various types)`);
+
+  // 4. Subject Assessments (showing students at different levels)
+  // Note: student1-4 and teacher1-2 variables already exist from earlier in seed file
+
+  const subjectAssessments = [];
+
+  if (student1 && englishCourse && teacher1) {
+    // Student 1: Grade 7 student working at Grade 5 English (high performer)
+    const assessment1 = await prisma.subjectAssessment.create({
+      data: {
+        studentId: student1.id,
+        courseId: englishCourse.id,
+        assessedGradeLevel: 5,
+        readingAge: 11.5,
+        comprehensionLevel: 82.0,
+        writingLevel: 78.0,
+        assessedById: teacher1.id,
+        notes: 'Strong reader, excellent comprehension, needs work on creative writing',
+      },
+    });
+    subjectAssessments.push(assessment1);
+  }
+
+  if (student1 && mathCourse && teacher1) {
+    // Student 1: Math at Grade 6 (slightly above)
+    const assessment2 = await prisma.subjectAssessment.create({
+      data: {
+        studentId: student1.id,
+        courseId: mathCourse.id,
+        assessedGradeLevel: 6,
+        numeracyAge: 12.0,
+        assessedById: teacher1.id,
+        notes: 'Strong mathematical reasoning, good problem-solving skills',
+      },
+    });
+    subjectAssessments.push(assessment2);
+  }
+
+  if (student2 && englishCourse && teacher1) {
+    // Student 2: Grade 7 student working at Grade 4 English (below grade level)
+    const assessment3 = await prisma.subjectAssessment.create({
+      data: {
+        studentId: student2.id,
+        courseId: englishCourse.id,
+        assessedGradeLevel: 4,
+        readingAge: 9.2,
+        comprehensionLevel: 65.0,
+        writingLevel: 60.0,
+        assessedById: teacher1.id,
+        notes: 'Struggles with inference and complex texts. Benefits from additional support.',
+      },
+    });
+    subjectAssessments.push(assessment3);
+  }
+
+  if (student3 && englishCourse && teacher1) {
+    // Student 3: Grade 6 working at Grade 3 English (significantly behind)
+    const assessment4 = await prisma.subjectAssessment.create({
+      data: {
+        studentId: student3.id,
+        courseId: englishCourse.id,
+        assessedGradeLevel: 3,
+        readingAge: 7.8,
+        comprehensionLevel: 52.0,
+        writingLevel: 48.0,
+        assessedById: teacher1.id,
+        notes: 'Requires intensive intervention. Recommend additional 1-on-1 support.',
+      },
+    });
+    subjectAssessments.push(assessment4);
+  }
+
+  console.log(`✅ Subject assessments created (${subjectAssessments.length} assessments showing multi-level learning)`);
+
+  // 5. Academic Profile Logs (showing progression)
+  if (subjectAssessments.length > 0 && teacher1) {
+    await prisma.academicProfileLog.createMany({
+      data: [
+        {
+          studentId: student1!.id,
+          courseId: englishCourse!.id,
+          subjectAssessmentId: subjectAssessments[0].id,
+          previousLevel: 4,
+          newLevel: 5,
+          updateType: 'ASSESSMENT_RESULT',
+          reason: 'Demonstrated consistent 85%+ scores on Grade 5 material',
+          updatedById: teacher1.id,
+          createdAt: new Date(Date.now() - THIRTY_DAYS_MS),
+        },
+        {
+          studentId: student2!.id,
+          courseId: englishCourse!.id,
+          subjectAssessmentId: subjectAssessments[2].id,
+          previousLevel: 3,
+          newLevel: 4,
+          updateType: 'DIAGNOSTIC_TEST',
+          reason: 'Initial diagnostic assessment placed at Grade 4',
+          updatedById: teacher1.id,
+          createdAt: new Date(Date.now() - SIXTY_DAYS_MS),
+        },
+      ],
+    });
+    console.log('✅ Academic profile logs created (2 historical level changes)');
+  }
+
+  // 6. Exercise Attempts
+  if (exercises.length > 0 && student1) {
+    await prisma.exerciseAttempt.createMany({
+      data: [
+        {
+          studentId: student1.id,
+          exerciseId: exercises[0].id,
+          answers: [{ questionIndex: 0, answer: 1, isCorrect: true }, { questionIndex: 1, answer: 0, isCorrect: true }],
+          score: 20,
+          maxScore: 20,
+          status: 'GRADED',
+          submittedAt: new Date(Date.now() - TWO_DAYS_MS),
+          autoGraded: true,
+          timeSpent: 720, // 12 minutes
+        },
+        {
+          studentId: student2!.id,
+          exerciseId: exercises[1].id,
+          answers: [{ questionIndex: 0, answer: 'sat' }, { questionIndex: 1, answer: 'walks' }],
+          score: 10,
+          maxScore: 10,
+          status: 'AUTO_GRADED',
+          submittedAt: new Date(Date.now() - ONE_DAY_MS),
+          autoGraded: true,
+          timeSpent: 480, // 8 minutes
+        },
+        {
+          studentId: student3!.id,
+          exerciseId: exercises[2].id,
+          answers: [
+            { questionIndex: 0, answer: 'He used it to show change' },
+            { questionIndex: 1, answer: 'The character will find the treasure' }
+          ],
+          score: null,
+          maxScore: 16,
+          status: 'UNDER_REVIEW',
+          submittedAt: new Date(Date.now() - FIVE_DAYS_MS),
+          autoGraded: false,
+          timeSpent: 1200, // 20 minutes
+        },
+      ],
+    });
+    console.log('✅ Exercise attempts created (3 attempts with various statuses)');
+  }
+
+  // 7. Homework Assignments
+  if (exercises.length > 1 && student1 && teacher1 && englishCourse) {
+    await prisma.homeworkAssignment.createMany({
+      data: [
+        {
+          centreId: center1.id,
+          studentId: student1.id,
+          courseId: englishCourse.id,
+          exerciseId: exercises[0].id,
+          assignedById: teacher1.id,
+          dueDate: new Date(Date.now() + TWO_DAYS_MS),
+          status: 'NOT_STARTED',
+          notes: 'Complete before Friday session',
+        },
+        {
+          centreId: center1.id,
+          studentId: student2!.id,
+          courseId: englishCourse.id,
+          exerciseId: exercises[1].id,
+          assignedById: teacher1.id,
+          dueDate: new Date(Date.now() - ONE_DAY_MS),
+          status: 'SUBMITTED',
+          submittedAt: new Date(Date.now() - ONE_DAY_MS),
+          notes: 'Review vocabulary words',
+        },
+      ],
+    });
+    console.log('✅ Homework assignments created (2 assignments: 1 pending, 1 submitted)');
+  }
+
+  // 8. Assessment Rubrics
+  if (englishCourse && gradeLevels.length > 0) {
+    await prisma.assessmentRubric.createMany({
+      data: [
+        {
+          courseId: englishCourse.id,
+          gradeLevelId: gradeLevels[3].id, // Grade 4
+          exerciseType: 'SHORT_ANSWER',
+          name: 'Reading Comprehension Rubric',
+          description: 'Rubric for grading short answer reading comprehension questions',
+          criteria: [
+            {
+              name: 'Content Understanding',
+              description: 'Demonstrates understanding of the text',
+              maxPoints: 5,
+              levels: [
+                { score: 5, description: 'Excellent understanding' },
+                { score: 3, description: 'Good understanding' },
+                { score: 1, description: 'Limited understanding' },
+              ],
+            },
+            {
+              name: 'Use of Evidence',
+              description: 'Supports answer with evidence from text',
+              maxPoints: 5,
+              levels: [
+                { score: 5, description: 'Strong evidence' },
+                { score: 3, description: 'Some evidence' },
+                { score: 1, description: 'Little evidence' },
+              ],
+            },
+          ],
+          maxScore: 10,
+        },
+      ],
+    });
+    console.log('✅ Assessment rubrics created (1 comprehensive rubric)');
+  }
+
+  // 9. Physical Work Uploads (with QR codes)
+  if (exercises.length > 4 && student1 && teacher1) {
+    await prisma.physicalWorkUpload.create({
+      data: {
+        studentId: student1.id,
+        exerciseId: exercises[4].id,
+        imageUrls: [
+          'https://storage.example.com/uploads/student1_handwriting_page1.jpg',
+          'https://storage.example.com/uploads/student1_handwriting_page2.jpg',
+        ],
+        qrCodeIdentifier: `AE-${student1.id.substring(0, 8)}-${exercises[4].id.substring(0, 8)}-${Date.now()}`,
+        annotations: {
+          objects: [
+            { type: 'circle', left: 100, top: 150, radius: 20, stroke: 'red', fill: 'transparent' },
+            { type: 'text', left: 130, top: 145, text: 'Good!', fill: 'green', fontSize: 16 },
+          ],
+        },
+        uploadedById: teacher1.id,
+        notes: 'Excellent progress on cursive writing',
+      },
+    });
+    console.log('✅ Physical work upload created (1 scanned worksheet with annotations)');
+  }
+
+  // 10. Student Session Activities (real-time tracking)
+  const sessionEnrollments = await prisma.studentSessionEnrollment.findMany({ take: 3 });
+  if (sessionEnrollments.length > 0 && exercises.length > 0) {
+    await prisma.studentSessionActivity.createMany({
+      data: [
+        {
+          enrollmentId: sessionEnrollments[0].id,
+          exerciseId: exercises[0].id,
+          status: 'COMPLETED',
+          startedAt: new Date(Date.now() - 3600000),
+          completedAt: new Date(Date.now() - 1800000),
+          progressPct: 100,
+        },
+        {
+          enrollmentId: sessionEnrollments[1]?.id || sessionEnrollments[0].id,
+          exerciseId: exercises[1].id,
+          status: 'WORKING',
+          startedAt: new Date(Date.now() - 1200000),
+          progressPct: 65,
+        },
+      ],
+    });
+    console.log('✅ Student session activities created (2 real-time activity trackers)');
+  }
+
+  // 11. Help Requests
+  const sessions = await prisma.session.findMany({ where: { status: 'LIVE' }, take: 1 });
+  if (sessions.length > 0 && student2) {
+    await prisma.helpRequest.createMany({
+      data: [
+        {
+          studentId: student2.id,
+          sessionId: sessions[0].id,
+          enrollmentId: sessionEnrollments[1]?.id,
+          message: 'I don\'t understand question 3',
+          status: 'PENDING',
+        },
+      ],
+    });
+    console.log('✅ Help requests created (1 pending help request)');
+  }
+
+  // 12. Tutor Notes
+  if (sessionEnrollments.length > 0 && student1 && englishCourse && teacher1) {
+    await prisma.tutorNote.createMany({
+      data: [
+        {
+          enrollmentId: sessionEnrollments[0].id,
+          studentId: student1.id,
+          courseId: englishCourse.id,
+          tutorId: teacher1.id,
+          content: 'Jane struggled with inference questions today. Plan more practice on this skill.',
+          visibility: 'INTERNAL',
+        },
+        {
+          studentId: student1.id,
+          courseId: englishCourse.id,
+          tutorId: teacher1.id,
+          content: 'Jane showed excellent progress this week! Keep up the great work.',
+          visibility: 'EXTERNAL', // Parents can see this
+        },
+      ],
+    });
+    console.log('✅ Tutor notes created (2 notes: 1 internal, 1 external)');
+  }
+
+  // 13. Content Assignments (tutor overrides)
+  if (student2 && englishCourse && exercises.length > 0 && teacher1) {
+    await prisma.contentAssignment.create({
+      data: {
+        tutorId: teacher1.id,
+        studentId: student2.id,
+        courseId: englishCourse.id,
+        exerciseId: exercises[0].id,
+        overridesAutoSequence: true,
+        reason: 'Student needs extra practice on this concept before moving forward',
+        isActive: true,
+      },
+    });
+    console.log('✅ Content assignment created (1 tutor override)');
+  }
+
+  // 14. Student Goals
+  if (student1) {
+    await prisma.studentGoal.createMany({
+      data: [
+        {
+          studentId: student1.id,
+          goalText: 'Read 10 books this term',
+          category: 'ACADEMIC',
+          targetDate: new Date(Date.now() + NINETY_DAYS_MS),
+          isAchieved: false,
+        },
+        {
+          studentId: student1.id,
+          goalText: 'Improve reading age by 1 year',
+          category: 'SKILL',
+          targetDate: new Date(Date.now() + NINETY_DAYS_MS),
+          isAchieved: false,
+        },
+      ],
+    });
+    console.log('✅ Student goals created (2 goals)');
+  }
+
+  // 15. Student Strengths & Weaknesses
+  if (student1 && student2 && englishCourse && teacher1) {
+    await prisma.studentStrengthWeakness.createMany({
+      data: [
+        {
+          studentId: student1.id,
+          courseId: englishCourse.id,
+          type: 'STRENGTH',
+          description: 'Excellent vocabulary and word recognition',
+          identifiedBy: teacher1.id,
+        },
+        {
+          studentId: student1.id,
+          courseId: englishCourse.id,
+          type: 'WEAKNESS',
+          description: 'Needs improvement in creative writing organization',
+          identifiedBy: teacher1.id,
+        },
+        {
+          studentId: student2.id,
+          courseId: englishCourse.id,
+          type: 'WEAKNESS',
+          description: 'Struggles with reading comprehension inference questions',
+          identifiedBy: teacher1.id,
+        },
+      ],
+    });
+    console.log('✅ Student strengths/weaknesses created (3 traits identified)');
+  }
+
+  // 16. Chat Messages
+  if (sessions.length > 0 && student1 && teacher1) {
+    await prisma.chatMessage.createMany({
+      data: [
+        {
+          sessionId: sessions[0].id,
+          senderId: student1.id,
+          recipientId: teacher1.id,
+          messageType: 'STUDENT_TO_TUTOR',
+          content: 'Can you help me with question 5?',
+          isRead: true,
+        },
+        {
+          sessionId: sessions[0].id,
+          senderId: teacher1.id,
+          recipientId: student1.id,
+          messageType: 'TUTOR_TO_STUDENT',
+          content: 'Sure! Let me share a hint: think about what happened in the previous paragraph.',
+          isRead: false,
+        },
+      ],
+    });
+    console.log('✅ Chat messages created (2 messages: student-tutor conversation)');
+  }
+
+  // 17. Awards
+  await prisma.award.createMany({
+    data: [
+      {
+        centreId: center1.id,
+        name: 'Gold Star Sticker',
+        description: 'Shiny gold star sticker for achievement',
+        awardType: 'STICKER',
+        xpCost: 50,
+        stockQuantity: 100,
+        imageUrl: 'https://cdn.example.com/awards/gold-star.png',
+        isActive: true,
+      },
+      {
+        centreId: center1.id,
+        name: 'Bonus Math Course',
+        description: 'Unlock an advanced mathematics course',
+        awardType: 'COURSE_UNLOCK',
+        xpCost: 500,
+        stockQuantity: null, // Unlimited
+        isActive: true,
+      },
+      {
+        centreId: center1.id,
+        name: 'Book Voucher',
+        description: '$10 book voucher from local bookstore',
+        awardType: 'GIFT',
+        xpCost: 200,
+        stockQuantity: 20,
+        imageUrl: 'https://cdn.example.com/awards/book-voucher.png',
+        isActive: true,
+      },
+    ],
+  });
+
+  const awards = await prisma.award.findMany({ where: { centreId: center1.id } });
+  console.log(`✅ Awards created (${awards.length} redeemable awards)`);
+
+  // 18. Award Redemptions
+  if (student1 && awards.length > 0) {
+    await prisma.awardRedemption.create({
+      data: {
+        studentId: student1.id,
+        awardId: awards[0].id,
+        xpSpent: 50,
+        fulfilledAt: new Date(Date.now() - FIVE_DAYS_MS),
+        notes: 'Redeemed for excellent performance on reading quiz',
+      },
+    });
+    console.log('✅ Award redemption created (1 redemption)');
+  }
+
+  // 19. Session Templates (recurring sessions)
+  if (teacher1) {
+    await prisma.sessionTemplate.createMany({
+      data: [
+        {
+          tutorId: teacher1.id,
+          centreId: center1.id,
+          dayOfWeek: 'MONDAY',
+          startTime: '16:00',
+          endTime: '17:00',
+          sessionMode: 'ONLINE',
+          maxCapacity: 10,
+          title: 'Monday Afternoon Session',
+          description: 'English and Math tutoring',
+          isActive: true,
+        },
+        {
+          tutorId: teacher1.id,
+          centreId: center1.id,
+          dayOfWeek: 'WEDNESDAY',
+          startTime: '16:00',
+          endTime: '17:00',
+          sessionMode: 'PHYSICAL',
+          maxCapacity: 12,
+          title: 'Wednesday In-Person Session',
+          description: 'Mixed subjects with hands-on activities',
+          isActive: true,
+        },
+        {
+          tutorId: teacher1.id,
+          centreId: center1.id,
+          dayOfWeek: 'FRIDAY',
+          startTime: '15:00',
+          endTime: '16:30',
+          sessionMode: 'HYBRID',
+          maxCapacity: 15,
+          title: 'Friday Hybrid Session',
+          description: 'Some students online, some in-person',
+          isActive: true,
+        },
+      ],
+    });
+    console.log('✅ Session templates created (3 recurring weekly sessions)');
+  }
+
+  console.log('\n✨ Phase 1 seed data complete!\n');
+
   console.log('\n🎉 Database seeded successfully!');
   console.log('\n📝 Login credentials:');
   console.log('\n🔧 Administrators:');
@@ -3004,6 +3771,26 @@ async function main() {
   console.log('  • 2 catch-up packages (1 pending, 1 completed)');
   console.log('  • Academic profiles with reading/numeracy ages');
   console.log('  • Gamification: XP, levels, badges, achievements');
+  console.log('\n🎯 PHASE 1: INDIVIDUALIZED TUTORING PLATFORM:');
+  console.log('  • 10 grade levels (Class 1-10 for content hierarchy)');
+  console.log('  • 6 content units across grade levels (English & Math)');
+  console.log('  • 5 exercises: MULTIPLE_CHOICE, FILL_IN_BLANK, SHORT_ANSWER, NUMERICAL, WORKSHEET');
+  console.log('  • 4 subject assessments (students working at different levels per subject)');
+  console.log('  • 2 academic profile logs (historical level progression)');
+  console.log('  • 3 exercise attempts (auto-graded and manual review)');
+  console.log('  • 2 homework assignments (1 pending, 1 submitted)');
+  console.log('  • 1 assessment rubric (Reading Comprehension for Grade 4)');
+  console.log('  • 1 physical work upload with QR code and annotations');
+  console.log('  • 2 student session activities (real-time: WORKING, COMPLETED)');
+  console.log('  • 1 help request (student needing assistance)');
+  console.log('  • 2 tutor notes (1 internal, 1 external/parent-visible)');
+  console.log('  • 1 content assignment (tutor override)');
+  console.log('  • 2 student goals (academic targets)');
+  console.log('  • 3 student strengths/weaknesses identified');
+  console.log('  • 2 chat messages (student-tutor conversation)');
+  console.log('  • 3 redeemable awards (stickers, course unlocks, gifts)');
+  console.log('  • 1 award redemption (XP spent)');
+  console.log('  • 3 session templates (recurring weekly schedule)');
   console.log('\n🎫 OPERATIONS DATA:');
   console.log('  • 20 SLA configurations (all ticket type/priority combinations)');
   console.log('  • 8 tickets: 3 IT, 1 INVENTORY, 2 COMPLAINT, 1 MAINTENANCE, 1 GENERAL');
