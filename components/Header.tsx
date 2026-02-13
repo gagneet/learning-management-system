@@ -95,9 +95,9 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
             <Link href={getDashboardUrl(user.role)} className="flex items-center hover:opacity-80 transition-opacity">
               <Image
                 src="/aetherlearn-header-logo.svg"
-                alt="Aether Learn"
-                width={180}
-                height={40}
+                alt="AetherLearn"
+                width={240}
+                height={60}
                 className="h-10 w-auto"
                 priority
               />

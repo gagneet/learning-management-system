@@ -4,11 +4,12 @@ import { lexend, inter, atkinson } from "./fonts";
 import { Providers } from "@/components/Providers";
 
 export const metadata: Metadata = {
-  title: "Aether Learn - Learning Management System",
-  description: "A comprehensive LMS for managing courses, users, and learning content",
+  title: "AetherLearn - Learning Management System",
+  description: "A comprehensive LMS for managing courses, users, and learning content with gamification, academic intelligence, and multi-centre management",
   icons: {
-    icon: '/icon.png',
-    apple: '/icon.png',
+    icon: '/aetherlearn-favicon.ico',
+    apple: '/aetherlearn-favicon.png',
+    shortcut: '/aetherlearn-favicon.ico',
   },
 };
 
