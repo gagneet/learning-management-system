@@ -93,39 +93,49 @@ type StudentAssessment = {
 type StudentGoal = {
   id: string;
   studentId: string;
-  title: string;
-  description: string | null;
+  goalText: string;
+  category: string | null;
   targetDate: Date | null;
-  status: string;
-  progress: number;
-  createdAt: Date;
+  isAchieved: boolean;
   achievedAt: Date | null;
+  createdAt: Date;
+  updatedAt: Date;
 };
 
 type AwardRedemption = {
   id: string;
   studentId: string;
   awardId: string;
-  xpCost: number;
+  xpSpent: number;
   status: string;
   redeemedAt: Date;
   fulfilledAt: Date | null;
+  notes: string | null;
   award: {
     id: string;
     name: string;
     description: string | null;
+    awardType: string;
     xpCost: number;
-    category: string;
+    stockQuantity: number | null;
+    imageUrl: string | null;
+    isActive: boolean;
+    createdAt: Date;
+    updatedAt: Date;
+    centreId: string;
   };
 };
 
 type TutorNote = {
   id: string;
   studentId: string;
+  courseId: string | null;
   tutorId: string;
+  enrollmentId: string | null;
   content: string;
-  isVisibleToParent: boolean;
+  visibility: string;
   createdAt: Date;
+  updatedAt: Date;
   tutor: {
     name: string;
   };
@@ -136,12 +146,18 @@ type StudentSessionEnrollment = {
   studentId: string;
   sessionId: string;
   courseId: string | null;
-  enrolledAt: Date;
+  lessonId: string | null;
+  exerciseContent: any;
+  assessmentData: any;
+  completed: boolean;
+  notes: string | null;
+  createdAt: Date;
+  updatedAt: Date;
   session: {
     id: string;
     title: string;
     startTime: Date;
-    endTime: Date;
+    endTime: Date | null;
     status: string;
     sessionMode: string;
     tutor: {
@@ -155,27 +171,33 @@ type StudentSessionEnrollment = {
 
 type HomeworkAssignment = {
   id: string;
+  centreId: string;
   studentId: string;
   courseId: string;
-  exerciseId: string | null;
-  title: string;
-  description: string | null;
+  exerciseId: string;
+  assignedById: string;
+  sessionEnrollmentId: string | null;
   dueDate: Date;
   status: string;
-  submittedAt: Date | null;
-  totalMaxScore: number | null;
+  totalMaxScore: number;
   totalScore: number | null;
+  startedAt: Date | null;
+  submittedAt: Date | null;
+  gradedAt: Date | null;
+  gradedById: string | null;
   feedback: string | null;
+  notes: string | null;
   createdAt: Date;
+  updatedAt: Date;
   course: {
     title: string;
   };
   exercise: {
     title: string;
-  } | null;
-  gradedBy: {
+  };
+  assignedBy: {
     name: string;
-  } | null;
+  };
 };
 
 type AttendanceRecord = {
@@ -183,8 +205,12 @@ type AttendanceRecord = {
   studentId: string;
   sessionId: string;
   status: string;
-  markedAt: Date;
+  markedAt: Date | null;
+  markedById: string | null;
   notes: string | null;
+  centreId: string;
+  createdAt: Date;
+  updatedAt: Date;
   session: {
     id: string;
     title: string;
@@ -192,7 +218,7 @@ type AttendanceRecord = {
   };
   markedBy: {
     name: string;
-  };
+  } | null;
 };
 
 type Stats = {
@@ -340,7 +366,8 @@ export function StudentProfileClient({
 
   const filteredNotes = notes.filter((note) => {
     if (filterParentVisible === null) return true;
-    return note.isVisibleToParent === filterParentVisible;
+    const isExternal = note.visibility === "EXTERNAL";
+    return isExternal === filterParentVisible;
   });
 
   const filteredAssessments = assessments;
@@ -633,31 +660,19 @@ export function StudentProfileClient({
                 <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Active Goals</h4>
                 <div className="space-y-3">
                   {goals
-                    .filter((goal) => goal.status === "ACTIVE")
+                    .filter((goal) => !goal.isAchieved)
                     .map((goal) => (
                       <div key={goal.id} className="bg-blue-50 dark:bg-blue-900 rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900 dark:text-white">{goal.title}</div>
-                            {goal.description && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{goal.description}</div>
+                            <div className="font-medium text-gray-900 dark:text-white">{goal.goalText}</div>
+                            {goal.category && (
+                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Category: {goal.category}</div>
                             )}
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(goal.status)}`}>
-                            {goal.status}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor("ACTIVE")}`}>
+                            Active
                           </span>
-                        </div>
-                        <div className="mt-3">
-                          <div className="flex items-center justify-between text-sm mb-1">
-                            <span className="text-gray-600 dark:text-gray-400">Progress</span>
-                            <span className="font-medium text-gray-900 dark:text-white">{goal.progress}%</span>
-                          </div>
-                          <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                            <div
-                              className="bg-blue-600 h-2 rounded-full transition-all"
-                              style={{ width: `${goal.progress}%` }}
-                            ></div>
-                          </div>
                         </div>
                         {goal.targetDate && (
                           <div className="text-sm text-gray-600 dark:text-gray-400 mt-2">
@@ -674,18 +689,18 @@ export function StudentProfileClient({
                 <h4 className="text-md font-medium text-gray-700 dark:text-gray-300 mb-3">Achieved Goals</h4>
                 <div className="space-y-3">
                   {goals
-                    .filter((goal) => goal.status === "ACHIEVED")
+                    .filter((goal) => goal.isAchieved)
                     .map((goal) => (
                       <div key={goal.id} className="bg-green-50 dark:bg-green-900 rounded-lg p-4">
                         <div className="flex justify-between items-start mb-2">
                           <div className="flex-1">
-                            <div className="font-medium text-gray-900 dark:text-white">{goal.title}</div>
-                            {goal.description && (
-                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">{goal.description}</div>
+                            <div className="font-medium text-gray-900 dark:text-white">{goal.goalText}</div>
+                            {goal.category && (
+                              <div className="text-sm text-gray-600 dark:text-gray-400 mt-1">Category: {goal.category}</div>
                             )}
                           </div>
-                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(goal.status)}`}>
-                            {goal.status}
+                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor("ACHIEVED")}`}>
+                            Achieved
                           </span>
                         </div>
                         {goal.achievedAt && (
@@ -819,10 +834,10 @@ export function StudentProfileClient({
                             {award.award.name}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                            {award.award.category}
+                            {award.award.awardType}
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                            {award.xpCost} XP
+                            {award.xpSpent} XP
                           </td>
                           <td className="px-4 py-4 whitespace-nowrap">
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusBadgeColor(award.status)}`}>
@@ -918,7 +933,7 @@ export function StudentProfileClient({
                   <div
                     key={note.id}
                     className={`rounded-lg p-4 ${
-                      note.isVisibleToParent
+                      note.visibility === "EXTERNAL"
                         ? "bg-green-50 dark:bg-green-900 border-l-4 border-green-500"
                         : "bg-gray-50 dark:bg-gray-900 border-l-4 border-gray-500"
                     }`}
@@ -926,7 +941,7 @@ export function StudentProfileClient({
                     <div className="flex justify-between items-start mb-2">
                       <div className="font-medium text-gray-900 dark:text-white">
                         {note.tutor.name}
-                        {note.isVisibleToParent && (
+                        {note.visibility === "EXTERNAL" && (
                           <span className="ml-2 px-2 py-1 bg-green-100 dark:bg-green-800 text-green-800 dark:text-green-200 text-xs rounded-full">
                             Visible to Parent
                           </span>
@@ -1087,7 +1102,7 @@ export function StudentProfileClient({
                         {homeworkAssignments.slice(0, 20).map((homework) => (
                           <tr key={homework.id}>
                             <td className="px-4 py-4 text-sm font-medium text-gray-900 dark:text-white">
-                              {homework.title}
+                              {homework.exercise.title}
                             </td>
                             <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">
                               {homework.course.title}
@@ -1103,12 +1118,12 @@ export function StudentProfileClient({
                               </span>
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-900 dark:text-white">
-                              {homework.totalScore !== null && homework.totalMaxScore !== null
+                              {homework.totalScore !== null && homework.totalMaxScore
                                 ? `${homework.totalScore}/${homework.totalMaxScore}`
                                 : "N/A"}
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                              {homework.gradedBy?.name || "N/A"}
+                              {homework.assignedBy.name}
                             </td>
                           </tr>
                         ))}
@@ -1160,7 +1175,7 @@ export function StudentProfileClient({
                               </span>
                             </td>
                             <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
-                              {record.markedBy.name}
+                              {record.markedBy?.name || "N/A"}
                             </td>
                             <td className="px-4 py-4 text-sm text-gray-600 dark:text-gray-400">{record.notes || "-"}</td>
                           </tr>
