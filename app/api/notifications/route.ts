@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     // });
 
     // Mock notifications for development
-    const mockNotifications = [];
+    const mockNotifications: any[] = [];
 
     return NextResponse.json({
       notifications: mockNotifications,

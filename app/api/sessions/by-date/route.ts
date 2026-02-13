@@ -52,13 +52,7 @@ export async function GET(request: NextRequest) {
             email: true,
           },
         },
-        course: {
-          select: {
-            title: true,
-            slug: true,
-          },
-        },
-        students: {
+        studentEnrollments: {
           select: {
             student: {
               select: {
@@ -67,11 +61,17 @@ export async function GET(request: NextRequest) {
                 email: true,
               },
             },
+            course: {
+              select: {
+                title: true,
+                slug: true,
+              },
+            },
           },
         },
         _count: {
           select: {
-            students: true,
+            studentEnrollments: true,
             attendanceRecords: true,
           },
         },
