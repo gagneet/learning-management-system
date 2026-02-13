@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import ThemeToggle from "@/components/ThemeToggle";
+import Header from "@/components/Header";
 import { AdminDashboardClient } from "./AdminDashboardClient";
 
 export default async function DashboardPage() {
@@ -69,35 +69,10 @@ export default async function DashboardPage() {
     : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-              LMS Dashboard
-            </h1>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <span className="text-sm text-gray-600 dark:text-gray-400">
-                {user.email}
-              </span>
-              <span className="px-3 py-1 bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 rounded-full text-sm">
-                {user.role}
-              </span>
-              <form action="/api/auth/signout" method="POST">
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg text-sm"
-                >
-                  Sign Out
-                </button>
-              </form>
-            </div>
-          </div>
-        </div>
-      </nav>
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <Header user={{ name: user.name!, email: user.email!, role: user.role }} title="Admin Dashboard" />
 
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 flex-1">
         <AdminDashboardClient
           data={{
             userName: user.name!,

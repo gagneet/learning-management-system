@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
 
@@ -12,8 +13,15 @@ export default function ContactPage() {
       <nav className="bg-white dark:bg-gray-800 shadow-sm">
         <div className="container mx-auto px-4 py-4">
           <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              LMS
+            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
+              <Image
+                src="/aetherlearn-header-logo.png"
+                alt="Aether Learn"
+                width={180}
+                height={40}
+                className="h-10 w-auto"
+                priority
+              />
             </Link>
             <div className="flex items-center gap-4">
               <Link
