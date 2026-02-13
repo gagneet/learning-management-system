@@ -96,6 +96,24 @@ Course (status: DRAFT/PUBLISHED/ARCHIVED)
 - **Cascade Deletes**: Most relationships use `onDelete: Cascade`
 - **Indexing**: All foreign keys and frequently queried fields are indexed
 
+### Phase 1 Schema Enhancements (Feb 2026)
+**HelpRequest Enhancements:**
+- `priority` field (LOW, MEDIUM, HIGH, URGENT) for request prioritization
+- `exerciseId` field for exercise-specific help context
+- `IN_PROGRESS` status in workflow (PENDING → ACKNOWLEDGED → IN_PROGRESS → RESOLVED)
+- `responseText` field for tutor responses
+
+**HomeworkAssignment Multiple Exercises:**
+- `HomeworkExercise` junction table enables many-to-many relationship
+- Single `exerciseId` maintained for backwards compatibility
+- Junction table tracks: order, isCompleted, individual scores
+- `totalMaxScore`, `totalScore`, `gradedById`, `feedback` fields added
+
+**AwardRedemption Status Tracking:**
+- `RedemptionStatus` enum (PENDING, FULFILLED, REJECTED)
+- `status` field with default PENDING
+- `fulfilledAt` timestamp preserved for audit trail
+
 ## Project Structure
 
 ```
@@ -108,7 +126,17 @@ app/
 │   ├── gamification/             # XP, badges, achievements
 │   ├── financial/                # Financial transactions & reports
 │   ├── sessions/                 # Live session management
-│   └── health/                   # Health check endpoint
+│   ├── health/                   # Health check endpoint
+│   └── v1/                       # Phase 1 Individualized Tutoring APIs
+│       ├── awards/               # Award system and redemptions
+│       ├── exercises/            # Exercise management and submission
+│       ├── homework/             # Homework assignments (multi-exercise)
+│       ├── help-requests/        # Real-time help requests (with priority)
+│       ├── student-goals/        # Student goal tracking
+│       ├── tutor-notes/          # Session notes with visibility controls
+│       └── students/[id]/        # Student-specific endpoints
+│           ├── assessments/      # Subject-level assessments
+│           └── next-content/     # Auto-sequenced content recommendation
 ├── dashboard/                    # Role-specific dashboards
 │   ├── page.tsx                  # Main dashboard (role-based routing)
 │   ├── student/                  # Student dashboard
