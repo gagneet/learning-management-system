@@ -71,24 +71,30 @@ export default function SessionPlannerClient({
 
       const newSession = await response.json();
 
-      // Create homework assignments for selected exercises if any
+      // ⚡ Bolt Optimization: Batch Homework Creation
+      // Reduces multiple sequential API calls to a single batch request
       if (data.selectedExercises && data.selectedExercises.length > 0) {
+        const assignments = [];
         for (const studentId of data.selectedStudentIds) {
           for (const exercise of data.selectedExercises) {
-            await fetch("/api/v1/homework", {
-              method: "POST",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({
-                studentId,
-                courseId: data.courseId,
-                exerciseId: exercise.id,
-                dueDate: endTime.toISOString(),
-                notes: `Assigned during ${data.sessionType} session`,
-              }),
+            assignments.push({
+              studentId,
+              courseId: data.courseId,
+              exerciseId: exercise.id,
+              dueDate: endTime.toISOString(),
+              notes: `Assigned during ${data.sessionType} session`,
             });
           }
+        }
+
+        if (assignments.length > 0) {
+          await fetch("/api/v1/homework/batch", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ assignments }),
+          });
         }
       }
 
