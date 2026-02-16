@@ -2,12 +2,14 @@
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useNotifications } from './NotificationProvider';
 import { getNotificationIcon, getNotificationColor } from '@/lib/notifications';
 
 export default function NotificationBell() {
   const [isOpen, setIsOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { notifications, unreadCount, markAsRead, markAllAsRead, clearAll } = useNotifications();
 
   // Close dropdown when clicking outside
@@ -26,7 +28,7 @@ export default function NotificationBell() {
     markAsRead(id);
     setIsOpen(false);
     if (link) {
-      window.location.href = link;
+      router.push(link);
     }
   };
 
@@ -43,7 +45,11 @@ export default function NotificationBell() {
     <div className="relative" ref={dropdownRef}>
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500"
+        aria-label={unreadCount > 0 ? `Notifications (${unreadCount} unread)` : 'Notifications'}
+        aria-expanded={isOpen}
+        aria-haspopup="true"
+        title="Notifications"
       >
         <svg
           className="w-6 h-6 text-gray-700 dark:text-gray-300"
@@ -59,7 +65,7 @@ export default function NotificationBell() {
           />
         </svg>
         {unreadCount > 0 && (
-          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">
+          <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full animate-pulse">
             {unreadCount > 99 ? '99+' : unreadCount}
           </span>
         )}
@@ -118,10 +124,10 @@ export default function NotificationBell() {
               </div>
             ) : (
               notifications.map((notification) => (
-                <div
+                <button
                   key={notification.id}
                   onClick={() => handleNotificationClick(notification.id, notification.link)}
-                  className={`px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${
+                  className={`w-full text-left px-4 py-3 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors focus:outline-none focus:bg-gray-100 dark:focus:bg-gray-700 ${
                     !notification.read ? 'bg-blue-50 dark:bg-blue-900/20' : ''
                   }`}
                 >
@@ -153,7 +159,7 @@ export default function NotificationBell() {
                       </div>
                     </div>
                   </div>
-                </div>
+                </button>
               ))
             )}
           </div>
