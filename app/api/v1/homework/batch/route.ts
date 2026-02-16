@@ -33,17 +33,24 @@ export async function POST(request: NextRequest) {
     }
 
     // Prepare data for batch creation
-    const homeworkData = assignments.map((a: any) => ({
-      studentId: a.studentId,
-      courseId: a.courseId,
-      centreId: user.centerId!,
-      exerciseId: a.exerciseId,
-      sessionEnrollmentId: a.sessionEnrollmentId || null,
-      notes: a.notes || null,
-      dueDate: new Date(a.dueDate),
-      assignedById: user.id,
-      status: "NOT_STARTED" as const,
-    }));
+    // Prepare data for batch creation
+    const homeworkData = assignments.map((a: any) => {
+      if (!a.studentId || !a.courseId || !a.exerciseId || !a.dueDate) {
+        throw new Error("Missing required fields: studentId, courseId, exerciseId, and dueDate are required");
+      }
+      
+      return {
+        studentId: a.studentId,
+        courseId: a.courseId,
+        centreId: user.centerId!,
+        exerciseId: a.exerciseId,
+        sessionEnrollmentId: a.sessionEnrollmentId || null,
+        notes: a.notes || null,
+        dueDate: new Date(a.dueDate),
+        assignedById: user.id,
+        status: "NOT_STARTED" as const,
+      };
+    });
 
     // Perform batch creation
     const result = await prisma.homeworkAssignment.createMany({
