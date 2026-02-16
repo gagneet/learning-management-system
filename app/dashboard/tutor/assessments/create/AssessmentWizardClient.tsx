@@ -200,23 +200,24 @@ export default function AssessmentWizardClient({
         throw new Error(error.error || "Failed to create assessment");
       }
 
-      // Assign recommended exercises if any selected
+      // ⚡ Bolt Optimization: Batch Homework Creation
+      // Reduces multiple sequential API calls to a single batch request
       if (selectedExercises.length > 0 && scheduleDate) {
-        for (const exerciseId of selectedExercises) {
-          await fetch("/api/v1/homework", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              studentId: selectedStudent,
-              courseId: selectedCourse,
-              exerciseId,
-              notes: "Assessment follow-up exercise",
-              dueDate: new Date(scheduleDate).toISOString(),
-            }),
-          });
-        }
+        const assignments = selectedExercises.map(exerciseId => ({
+          studentId: selectedStudent,
+          courseId: selectedCourse,
+          exerciseId,
+          notes: "Assessment follow-up exercise",
+          dueDate: new Date(scheduleDate).toISOString(),
+        }));
+
+        await fetch("/api/v1/homework/batch", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ assignments }),
+        });
       }
 
       alert("Assessment created successfully!");
