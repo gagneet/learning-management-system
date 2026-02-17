@@ -33,13 +33,13 @@ export async function GET(request: NextRequest) {
     const tomorrow = new Date(today);
     tomorrow.setDate(tomorrow.getDate() + 1);
 
-    // Fetch all data in parallel
+    // ⚡ Bolt Optimization: Split data fetching into two stages to optimize the recentActivity query.
+    // Stage 1: Fetch base data in parallel.
     const [
       todaySessions,
       helpRequests,
       pendingMarking,
       allStudents,
-      recentActivity,
     ] = await Promise.all([
       // 1. Today's sessions
       prisma.session.findMany({
@@ -177,30 +177,26 @@ export async function GET(request: NextRequest) {
           },
         },
       }),
-
-      // 5. Recent activity (last 7 days)
-      prisma.exerciseAttempt.findMany({
-        where: {
-          student: {
-            enrollments: {
-              some: {
-                course: {
-                  teacherId: tutorId,
-                },
-              },
-            },
-          },
-          createdAt: {
-            gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-          },
-        },
-        select: {
-          studentId: true,
-          score: true,
-          maxScore: true,
-        },
-      }),
     ]);
+
+    // Stage 2: Extract unique student IDs and fetch recent activity specifically for them.
+    // ⚡ Bolt Optimization: Using studentId index directly is much faster than the previous
+    // nested 'some' filter which required multiple expensive joins in the database.
+    const studentIds = Array.from(new Set(allStudents.map((e) => e.user.id)));
+
+    const recentActivity = await prisma.exerciseAttempt.findMany({
+      where: {
+        studentId: { in: studentIds },
+        createdAt: {
+          gte: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+        },
+      },
+      select: {
+        studentId: true,
+        score: true,
+        maxScore: true,
+      },
+    });
 
     // Calculate students needing attention
     const studentMap = new Map();
