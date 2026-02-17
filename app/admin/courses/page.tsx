@@ -20,7 +20,7 @@ export default async function AdminCoursesPage() {
   // Fetch courses
   const courses = await prisma.course.findMany({
     where: {
-      centerId: user.centerId,
+      centerId: user.centerId as string,
     },
     include: {
       teacher: {

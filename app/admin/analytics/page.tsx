@@ -17,9 +17,9 @@ export default async function AdminAnalyticsPage() {
   }
 
   // Fetch analytics data
-  const where: any = {};
+  const where: { centerId?: string } = {};
   if (user.role !== "SUPER_ADMIN") {
-    where.centerId = user.centerId;
+    where.centerId = user.centerId as string;
   }
 
   const [totalUsers, totalCourses, totalEnrollments] = await Promise.all([
