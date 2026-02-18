@@ -150,8 +150,8 @@ export default async function VideoSessionPage({ params }: VideoSessionPageProps
     currentExercise: enrollment.exerciseContent
       ? JSON.parse(enrollment.exerciseContent as string)?.title
       : undefined,
-    progress: enrollment.progressPercent || 0,
-    status: (enrollment.status as any) || "NOT_STARTED",
+    progress: enrollment.completed ? 100 : 0,
+    status: (enrollment.completed ? "COMPLETED" : (enrollment.joinedAt ? "WORKING" : "NOT_STARTED")) as "COMPLETED" | "NOT_STARTED" | "WORKING" | "WAITING_HELP" | "IDLE",
     sessionTime: Math.floor((enrollment.activeMs || 0) / 1000),
     totalTime: Math.floor((enrollment.activeMs || 0) / 1000),
   }));

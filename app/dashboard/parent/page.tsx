@@ -110,7 +110,7 @@ export default async function ParentDashboardPage() {
         },
         take: 10,
       },
-      homeworkAssignments: {
+      studentHomework: {
         where: {
           dueDate: {
             gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
@@ -182,7 +182,7 @@ export default async function ParentDashboardPage() {
       enrollments: child.enrollments,
       upcomingSessions,
       todaySessions,
-      homeworkAssignments: child.homeworkAssignments,
+      homeworkAssignments: child.studentHomework,
       recentActivity: [], // Can be populated separately if needed
     };
   });

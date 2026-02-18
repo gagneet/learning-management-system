@@ -72,24 +72,26 @@ export async function GET(
       expiresIn: 7200, // 2 hours
     });
 
-    // Track participant join (create or update VideoParticipant record)
-    await prisma.videoParticipant.upsert({
+    // Track participant join - create a new record each time they request a token
+    // (participants may join multiple times; each join is a separate record)
+    const existingParticipant = await prisma.videoParticipant.findFirst({
       where: {
-        sessionId_userId: {
-          sessionId: sessionData.id,
-          userId: session.user.id,
-        },
-      },
-      create: {
         sessionId: sessionData.id,
         userId: session.user.id,
-        participantId: `${session.user.id}-${Date.now()}`, // Temporary, will be updated when they actually join
-        joinedAt: new Date(),
-      },
-      update: {
-        leftAt: null, // Reset leftAt if rejoining
+        leftAt: null, // Only look for active (not yet left) participants
       },
     });
+
+    if (!existingParticipant) {
+      await prisma.videoParticipant.create({
+        data: {
+          sessionId: sessionData.id,
+          userId: session.user.id,
+          participantId: `${session.user.id}-${Date.now()}`, // Temporary, updated when they actually join via Daily.co
+          joinedAt: new Date(),
+        },
+      });
+    }
 
     return NextResponse.json({
       success: true,

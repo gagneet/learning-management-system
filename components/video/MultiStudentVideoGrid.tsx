@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import DailyIframe, { DailyCall, DailyEventObjectParticipant } from "@daily-co/daily-js";
+import DailyIframe, { DailyCall, DailyEventObjectParticipant, DailyEventObjectParticipants } from "@daily-co/daily-js";
 
 interface VideoParticipant {
   userId: string;

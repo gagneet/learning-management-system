@@ -195,34 +195,54 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             </div>
           </div>
 
-          {sessionData.videoRoomId && (
-            <div className="mt-6">
+          {/* Video Session button - show for all ONLINE/HYBRID sessions (room auto-created on video page) */}
+          {(sessionData.sessionMode === "ONLINE" || sessionData.sessionMode === "HYBRID") && (
+            <div className="mt-6 flex flex-wrap gap-3">
               <Link
                 href={`/dashboard/tutor/sessions/${sessionData.id}/video`}
-                className={`inline-block px-8 py-3 rounded-lg transition-colors mr-3 ${
+                className={`inline-block px-8 py-3 rounded-lg transition-colors ${
                   sessionData.status === "LIVE"
-                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    ? "bg-purple-600 text-white hover:bg-purple-700 animate-pulse"
                     : "bg-purple-600 text-white hover:bg-purple-700"
                 }`}
               >
                 {sessionData.status === "LIVE" ? "📹 Live Video Session" : "📹 Start Video Session"}
               </Link>
+              {sessionData.status !== "LIVE" && (
+                <Link
+                  href={`/dashboard/tutor/sessions/${sessionData.id}/live`}
+                  className="inline-block px-8 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  🎯 Session Dashboard
+                </Link>
+              )}
             </div>
           )}
 
-          {!sessionData.videoRoomId && sessionData.sessionMode === "ONLINE" && sessionData.meetingLink && (
-            <div className="mt-6">
+          {sessionData.sessionMode === "PHYSICAL" && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                href={`/dashboard/tutor/sessions/${sessionData.id}/live`}
+                className={`inline-block px-8 py-3 rounded-lg transition-colors ${
+                  sessionData.status === "LIVE"
+                    ? "bg-green-600 text-white hover:bg-green-700 animate-pulse"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }`}
+              >
+                {sessionData.status === "LIVE" ? "🎯 Live Dashboard" : "▶ Start Session"}
+              </Link>
+            </div>
+          )}
+
+          {sessionData.meetingLink && (
+            <div className="mt-3">
               <a
                 href={sessionData.meetingLink}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`inline-block px-8 py-3 rounded-lg transition-colors ${
-                  sessionData.status === "LIVE"
-                    ? "bg-red-600 text-white hover:bg-red-700"
-                    : "bg-blue-600 text-white hover:bg-blue-700"
-                }`}
+                className="inline-block px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors text-sm"
               >
-                {sessionData.status === "LIVE" ? "🔴 Join Live Session" : "Join Session"}
+                🔗 External Meeting Link
               </a>
             </div>
           )}

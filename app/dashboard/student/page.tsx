@@ -51,9 +51,15 @@ export default async function StudentDashboardPage() {
               },
             },
             modules: {
-              select: {
-                id: true,
-                title: true,
+              include: {
+                lessons: {
+                  include: {
+                    progress: {
+                      where: { userId: user.id },
+                    },
+                  },
+                  orderBy: { order: "asc" },
+                },
               },
               orderBy: { order: "asc" },
             },

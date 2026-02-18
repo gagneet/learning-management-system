@@ -177,7 +177,7 @@ export default async function TutorSessionsPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      {s.videoRoomId ? (
+                      {(s.sessionMode === "ONLINE" || s.sessionMode === "HYBRID") ? (
                         <Link
                           href={`/dashboard/tutor/sessions/${s.id}/video`}
                           className={`px-4 py-2 rounded-lg font-medium transition-colors ${
@@ -186,7 +186,7 @@ export default async function TutorSessionsPage() {
                               : "bg-purple-600 text-white hover:bg-purple-700"
                           }`}
                         >
-                          {s.status === "LIVE" ? "📹 Live Video" : "📹 Video Session"}
+                          {s.status === "LIVE" ? "📹 Live Video" : "📹 Start Video"}
                         </Link>
                       ) : (
                         <Link

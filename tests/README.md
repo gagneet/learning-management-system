@@ -76,7 +76,7 @@ npx jest --coverage tests/api/
 | `catchup-pages.spec.ts` | Student catch-up packages, tutor catch-up management |
 | `admin-classes.spec.ts` | Admin class cohort management, RBAC access control |
 | `v1-api.spec.ts` | Phase 1 v1 API: help requests, goals, awards, homework, tutor notes |
-| `video-sessions.spec.ts` | Multi-student video conferencing: Daily.co integration, RBAC, navigation, API auth |
+| `video-sessions.spec.ts` | Multi-student video conferencing: Daily.co integration, RBAC, navigation, API auth, session details Start Video button (fixed to show for all ONLINE sessions) |
 
 ### API Tests (Jest - `tests/api/`)
 

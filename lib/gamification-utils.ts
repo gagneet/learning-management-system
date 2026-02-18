@@ -130,7 +130,7 @@ export async function getStudentWithGamification(studentId: string) {
         select: {
           totalXP: true,
           level: true,
-          currentStreak: true,
+          streak: true,
         },
       },
     },

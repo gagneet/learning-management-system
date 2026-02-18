@@ -176,7 +176,7 @@ export default async function StudentSessionsPage() {
                       </div>
                     </div>
                     <div className="flex gap-2 flex-wrap">
-                      {s.videoRoomId ? (
+                      {(s.sessionMode === "ONLINE" || s.sessionMode === "HYBRID") ? (
                         <Link
                           href={`/dashboard/tutor/sessions/${s.id}/video`}
                           className={`px-4 py-2 rounded-lg transition-colors ${
@@ -187,7 +187,7 @@ export default async function StudentSessionsPage() {
                         >
                           {s.status === "LIVE" ? "📹 Join Live Video" : "📹 Join Video"}
                         </Link>
-                      ) : s.sessionMode === "ONLINE" && s.meetingLink ? (
+                      ) : s.meetingLink ? (
                         <a
                           href={s.meetingLink}
                           target="_blank"

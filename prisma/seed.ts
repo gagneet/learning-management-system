@@ -38,8 +38,18 @@ async function main() {
   // Video conferencing cleanup (must come before session cleanup)
   await prisma.videoParticipant.deleteMany({});
   await prisma.videoRecording.deleteMany({});
+  // Phase 1 session-related cleanup (must come before session cleanup)
+  await prisma.helpRequest.deleteMany({});
+  await prisma.sessionPresenceLog.deleteMany({});
+  await prisma.activityLog.deleteMany({});
+  await prisma.studentSessionActivity.deleteMany({});
+  await prisma.tutorNote.deleteMany({});
+  await prisma.contentAssignment.deleteMany({});
   await prisma.studentSessionEnrollment.deleteMany({});
   await prisma.sessionAttendance.deleteMany({});
+  await prisma.attendanceRecord.deleteMany({});
+  // Sessions cleanup (after all dependent models)
+  await prisma.session.deleteMany({});
   await prisma.refund.deleteMany({});
   await prisma.payment.deleteMany({});
   await prisma.invoiceLine.deleteMany({});
@@ -3101,17 +3111,13 @@ async function main() {
 
   console.log('\n📚 Seeding Phase 1: Individualized Tutoring Platform data...');
 
-  // Clean up Phase 1 data first
+  // Clean up Phase 1 data first (models not covered by main cleanup)
   await prisma.chatMessage.deleteMany({});
   await prisma.awardRedemption.deleteMany({});
   await prisma.award.deleteMany({});
   await prisma.sessionTemplate.deleteMany({});
   await prisma.studentStrengthWeakness.deleteMany({});
   await prisma.studentGoal.deleteMany({});
-  await prisma.contentAssignment.deleteMany({});
-  await prisma.tutorNote.deleteMany({});
-  await prisma.helpRequest.deleteMany({});
-  await prisma.studentSessionActivity.deleteMany({});
   await prisma.physicalWorkUpload.deleteMany({});
   await prisma.assessmentReview.deleteMany({});
   await prisma.assessmentRubric.deleteMany({});
@@ -4070,11 +4076,11 @@ async function main() {
     if (enrollment) {
       await prisma.sessionPresenceLog.createMany({
         data: [
-          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'JOIN', timestamp: new Date(Date.now() - 60 * 60 * 1000) },
-          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'DISCONNECT', timestamp: new Date(Date.now() - 55 * 60 * 1000) },
-          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'RECONNECT', timestamp: new Date(Date.now() - 50 * 60 * 1000) },
-          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'HEARTBEAT', timestamp: new Date(Date.now() - 40 * 60 * 1000) },
-          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'LEAVE', timestamp: new Date(Date.now() - 10 * 60 * 1000) },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'JOIN', timestamp: new Date(Date.now() - 60 * 60 * 1000), centreId: center1.id },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'DISCONNECT', timestamp: new Date(Date.now() - 55 * 60 * 1000), centreId: center1.id },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'RECONNECT', timestamp: new Date(Date.now() - 50 * 60 * 1000), centreId: center1.id },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'HEARTBEAT', timestamp: new Date(Date.now() - 40 * 60 * 1000), centreId: center1.id },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'LEAVE', timestamp: new Date(Date.now() - 10 * 60 * 1000), centreId: center1.id },
         ]
       });
 
