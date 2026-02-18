@@ -45,6 +45,9 @@ model Center {
   whiteboards     WhiteboardState[]
   studentSessionEnrollments StudentSessionEnrollment[]
   helpRequests    HelpRequest[]      @relation("CentreHelpRequests")
+  
+  // Phase 1: In-built video conferencing
+  videoRecordings VideoRecording[]   @relation("CentreVideoRecordings")
 }
 
 // User model with role-based access
@@ -179,6 +182,9 @@ model User {
   studentWhiteboards      WhiteboardState[]     @relation("StudentWhiteboards")
   sessionPresenceLogs     SessionPresenceLog[]
   activityLogs            ActivityLog[]
+  
+  // Phase 1: In-built video conferencing
+  videoParticipations     VideoParticipant[]    @relation("UserVideoParticipants")
 
   @@index([centerId])
   @@index([email])
@@ -422,15 +428,15 @@ model Session {
   title           String
   description     String?
   provider        SessionProvider
-  providerMeetingId String?      // Meeting ID from provider
-  joinUrl         String?        // Join URL for the session
+  providerMeetingId String?      // Meeting ID from provider (deprecated for video)
+  joinUrl         String?        // Join URL for the session (deprecated for video)
   startTime       DateTime
   endTime         DateTime?
   timezone        String         @default("Australia/Sydney")
   duration        Int?           // Duration in minutes (calculated from endTime-startTime or set manually)
   status          SessionStatus  @default(SCHEDULED)
-  recordingUrl    String?        // Recording URL after session
-  transcriptUrl   String?        // Transcript URL
+  recordingUrl    String?        // Recording URL after session (deprecated - use VideoRecording)
+  transcriptUrl   String?        // Transcript URL (deprecated - use VideoRecording)
   metadata        Json?          // Provider-specific metadata
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
@@ -439,6 +445,12 @@ model Session {
   sessionMode     SessionMode    @default(ONLINE)
   meetingLink     String?        // Manual meeting link for ONLINE mode
   physicalLocation String?       // Location description for PHYSICAL mode
+  
+  // NEW: In-built video conferencing fields (Phase 1)
+  videoProvider     VideoProvider  @default(DAILY)
+  videoRoomId       String?        @unique  // Daily.co room ID
+  videoRoomUrl      String?                 // Daily.co room URL
+  recordingStartedAt DateTime?              // When recording started
   
   // REMOVED: lessonId - no longer tied to a single lesson
   // Sessions now support multiple students on different content
@@ -464,11 +476,16 @@ model Session {
   helpRequests    HelpRequest[]
   chatMessages    ChatMessage[]
   whiteboards     WhiteboardState[]
+  
+  // Phase 1: In-built video conferencing
+  videoParticipants VideoParticipant[] @relation("VideoParticipants")
+  videoRecordings   VideoRecording[]   @relation("VideoRecordings")
 
   @@index([tutorId])
   @@index([startTime])
   @@index([status])
   @@index([classId])
+  @@index([videoRoomId])
   @@index([tutorId, startTime]) // Compound index for tutor's schedule queries
   @@index([centreId, startTime]) // Compound index for center-wide scheduling
 }
@@ -2062,4 +2079,67 @@ model SessionPresenceLog {
   @@index([enrollmentId])
   @@index([timestamp])
   @@index([centreId])
+}
+
+// Video Conferencing Models - Phase 1 In-Built Video Implementation
+
+enum VideoProvider {
+  DAILY    // Daily.co (primary implementation)
+  JITSI    // Jitsi Meet (future option)
+  CUSTOM   // Custom WebRTC implementation
+  NONE     // No video (fallback to external links)
+}
+
+enum RecordingStatus {
+  PROCESSING  // Recording is being processed
+  READY       // Recording is ready for viewing
+  FAILED      // Recording failed
+  DELETED     // Recording has been deleted
+}
+
+// Video Participant - tracks individual participant in video session
+model VideoParticipant {
+  id                 String   @id @default(cuid())
+  sessionId          String
+  userId             String
+  participantId      String   // Daily.co participant ID
+  joinedAt           DateTime @default(now())
+  leftAt             DateTime?
+  durationMs         Int      @default(0) // Duration in milliseconds
+  videoEnabled       Boolean  @default(true)
+  audioEnabled       Boolean  @default(true)
+  screenShareEnabled Boolean  @default(false)
+  
+  // Relations
+  session            Session  @relation("VideoParticipants", fields: [sessionId], references: [id], onDelete: Cascade)
+  user               User     @relation("UserVideoParticipants", fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([userId])
+  @@index([participantId])
+  @@index([sessionId, userId])
+}
+
+// Video Recording - tracks session recordings
+model VideoRecording {
+  id               String          @id @default(cuid())
+  sessionId        String
+  recordingId      String          @unique // Daily.co recording ID
+  startedAt        DateTime        @default(now())
+  endedAt          DateTime?
+  durationMs       Int?            // Duration in milliseconds
+  downloadUrl      String?         // URL to download recording
+  streamUrl        String?         // URL to stream recording
+  transcriptionUrl String?         // URL to transcription file
+  status           RecordingStatus @default(PROCESSING)
+  centreId         String
+  
+  // Relations
+  session          Session         @relation("VideoRecordings", fields: [sessionId], references: [id], onDelete: Cascade)
+  centre           Center          @relation("CentreVideoRecordings", fields: [centreId], references: [id], onDelete: Cascade)
+  
+  @@index([sessionId])
+  @@index([status])
+  @@index([centreId])
+  @@index([recordingId])
 }
