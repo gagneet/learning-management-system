@@ -22,7 +22,7 @@ export default async function StudentDashboardPage() {
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
   // Fetch student data
-  const [academicProfile, gamificationProfile, enrollments, upcomingSessions, todaySessions] = await Promise.all([
+  const [academicProfile, gamificationProfile, enrollments, upcomingSessions, todaySessions, incompleteLessons] = await Promise.all([
     prisma.academicProfile.findUnique({
       where: { userId: user.id },
     }),
@@ -51,15 +51,9 @@ export default async function StudentDashboardPage() {
               },
             },
             modules: {
-              include: {
-                lessons: {
-                  include: {
-                    progress: {
-                      where: { userId: user.id },
-                    },
-                  },
-                  orderBy: { order: "asc" },
-                },
+              select: {
+                id: true,
+                title: true,
               },
               orderBy: { order: "asc" },
             },
@@ -109,44 +103,60 @@ export default async function StudentDashboardPage() {
       },
       orderBy: { startTime: "asc" },
     }),
+    // Fetch incomplete lessons directly from database (optimized query)
+    prisma.lesson.findMany({
+      where: {
+        module: {
+          course: {
+            enrollments: {
+              some: {
+                userId: user.id,
+                completedAt: null, // Only active enrollments
+              },
+            },
+          },
+        },
+        progress: {
+          none: {
+            userId: user.id,
+            completed: true,
+          },
+        },
+      },
+      select: {
+        id: true,
+        title: true,
+        module: {
+          select: {
+            title: true,
+            course: {
+              select: {
+                title: true,
+                slug: true,
+              },
+            },
+          },
+        },
+      },
+      orderBy: {
+        order: "asc",
+      },
+      take: 10, // Limit to 10 for display performance
+    }),
   ]);
 
-  const completedCourses = enrollments.filter(e => e.completedAt).length;
+  const completedCourses = enrollments.filter(enrollment => enrollment.completedAt).length;
   const avgProgress = enrollments.length > 0
-    ? enrollments.reduce((sum, e) => sum + e.progress, 0) / enrollments.length
+    ? enrollments.reduce((sum, enrollment) => sum + enrollment.progress, 0) / enrollments.length
     : 0;
 
-  // Find next incomplete lessons for each enrolled course (assignments due)
-  // Limit to 10 for display performance
-  const pendingLessons: Array<{
-    lessonTitle: string;
-    courseTitle: string;
-    courseSlug: string;
-    moduleName: string;
-  }> = [];
-
-  const MAX_PENDING_LESSONS = 10;
-
-  enrollmentLoop: for (const enrollment of enrollments) {
-    if (enrollment.completedAt) continue;
-    for (const mod of enrollment.course.modules) {
-      for (const lesson of mod.lessons) {
-        const isCompleted = lesson.progress.some(p => p.completed);
-        if (!isCompleted) {
-          pendingLessons.push({
-            lessonTitle: lesson.title,
-            courseTitle: enrollment.course.title,
-            courseSlug: enrollment.course.slug,
-            moduleName: mod.title,
-          });
-          // Break early once we have enough pending lessons
-          if (pendingLessons.length >= MAX_PENDING_LESSONS) {
-            break enrollmentLoop;
-          }
-        }
-      }
-    }
-  }
+  // Map incomplete lessons to expected format (already fetched from database)
+  const pendingLessons = incompleteLessons.map((lesson) => ({
+    lessonTitle: lesson.title,
+    courseTitle: lesson.module.course.title,
+    courseSlug: lesson.module.course.slug,
+    moduleName: lesson.module.title,
+  }));
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 to-purple-50 dark:from-gray-900 dark:to-gray-800 flex flex-col">
