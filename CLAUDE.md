@@ -15,7 +15,8 @@ This is a **Learning Management System (LMS)** built with Next.js 16, React 19, 
 npm run dev           # Start development server (localhost:3000)
 npm run build         # Build for production
 npm start             # Start production server (port 3001 in PM2)
-npm run lint          # Run ESLint
+npm run lint          # Run ESLint (uses eslint.config.mjs flat config)
+npm run lint:fix      # Auto-fix ESLint issues
 ```
 
 ### Database Operations
@@ -126,6 +127,15 @@ app/
 │   ├── gamification/             # XP, badges, achievements
 │   ├── financial/                # Financial transactions & reports
 │   ├── sessions/                 # Live session management
+│   ├── notifications/            # WebSocket/polling notifications
+│   ├── academic/tutor/my-day/    # Tutor My Day data
+│   ├── attendance/               # Attendance tracking
+│   ├── catchups/                 # Catch-up packages
+│   ├── classes/                  # Class cohort management
+│   ├── cohorts/                  # Cohort management
+│   ├── finance/                  # Finance management
+│   ├── governance/               # Audit logs and approvals
+│   ├── tickets/                  # Support ticket system
 │   ├── health/                   # Health check endpoint
 │   └── v1/                       # Phase 1 Individualized Tutoring APIs
 │       ├── awards/               # Award system and redemptions
@@ -139,9 +149,31 @@ app/
 │           └── next-content/     # Auto-sequenced content recommendation
 ├── dashboard/                    # Role-specific dashboards
 │   ├── page.tsx                  # Main dashboard (role-based routing)
+│   ├── profile/                  # User profile page
+│   ├── settings/                 # User settings page
 │   ├── student/                  # Student dashboard
-│   ├── tutor/                    # Teacher dashboard
-│   └── supervisor/               # Supervisor dashboard
+│   │   ├── achievements/         # Student achievements
+│   │   ├── awards/               # Award redemptions
+│   │   ├── chat/                 # Chat history
+│   │   ├── gamification/         # XP, badges, levels
+│   │   ├── goals/                # Student goals
+│   │   ├── homework/             # Homework tracker
+│   │   └── sessions/             # Student sessions
+│   ├── tutor/                    # Teacher/Tutor dashboard
+│   │   ├── assessments/create/   # Assessment creation wizard
+│   │   ├── attendance/[id]/      # Attendance marking
+│   │   ├── content-library/      # Content library management
+│   │   ├── courses/              # Teacher's courses
+│   │   ├── history/              # Session history
+│   │   ├── marking/              # Marking queue
+│   │   ├── my-day/               # Today's schedule & tasks
+│   │   ├── planner/              # Session planner
+│   │   ├── resources/            # Teaching resources
+│   │   ├── sessions/             # Sessions management
+│   │   ├── sessions/[id]/live/   # Live session dashboard
+│   │   └── students/[id]/        # Student profile view
+│   ├── parent/                   # Parent dashboard
+│   └── supervisor/               # Supervisor/Admin dashboard
 ├── admin/                        # Admin pages
 │   ├── users/                    # User management UI
 │   ├── courses/                  # Course management UI
@@ -155,10 +187,33 @@ app/
 
 lib/
 ├── auth.ts                       # NextAuth configuration
+├── audit.ts                      # Audit logging helpers
+├── notifications.ts              # Notification types and helpers
 ├── prisma.ts                     # Prisma client singleton
-└── config/                       # Configuration files
-    ├── constants.ts              # Application constants
-    └── gamification.ts           # Gamification rules
+├── rbac.ts                       # Role-based access control helpers
+├── sessionPlanning.ts            # Session planning utilities
+├── tenancy.ts                    # Multi-tenancy helpers (centreId enforcement)
+├── config/                       # Configuration files
+│   ├── constants.ts              # Application constants
+│   └── gamification.ts           # Gamification rules
+└── design/                       # Design system tokens
+
+contexts/
+└── ThemeContext.tsx               # Theme/accessibility context provider
+
+components/
+├── Header.tsx                    # Top navigation with user menu
+├── Footer.tsx                    # Application footer
+├── NotificationBell.tsx          # Notification dropdown
+├── NotificationProvider.tsx      # Notification context provider
+├── ClickableCard.tsx             # Accessible card component
+├── ThemeToggle.tsx               # Theme switcher (LIGHT/GRAY/DARK)
+├── Providers.tsx                 # Root context providers
+└── dashboard/
+    ├── ActionCardsSection.tsx    # Quick action cards grid
+    ├── CollapsibleSection.tsx    # Collapsible dashboard section
+    └── config/
+        └── dashboardActions.ts   # Role-based action card config
 
 prisma/
 ├── schema.prisma                 # Database schema
@@ -402,6 +457,14 @@ If deployment fails or issues occur:
 - JSX: `react-jsx` (new JSX transform)
 - Target: ES2017
 
+### ESLint Configuration
+- **Version**: ESLint v9 with flat config (`eslint.config.mjs`)
+- Uses `eslint-config-next` for Next.js 16 rules
+- `npm run lint` runs `eslint app/ components/ contexts/ lib/ types/`
+- `npm run lint:fix` auto-fixes issues
+- **Note**: Next.js 16 removed `next lint` command - use `eslint` directly
+- Old `.eslintrc.json` format is not used - flat config only
+
 ### Tailwind CSS Configuration
 - **Version**: Tailwind CSS v3 (stable)
 - **Important**: Do NOT upgrade to Tailwind v4 - it has compatibility issues with Next.js 16
@@ -445,16 +508,24 @@ Use demo credentials from database seed (3-month history):
 
 ### Playwright E2E Tests
 ```bash
+npm test                         # Run all tests (alias for playwright test)
 npx playwright test              # Run all tests
 npx playwright test --ui         # Run with UI mode
 npx playwright test --headed     # Run in headed browser mode
 npx playwright show-report       # Show test report
+npx playwright test tests/dashboard.spec.ts  # Run specific test file
 ```
+
+**Prerequisites**: Run `npm run db:seed` before running tests.
 
 Test files are located in `tests/` directory:
 - `tests/home.spec.ts` - Home page and login portal tests
 - `tests/login.spec.ts` - Authentication flow tests
 - `tests/dashboard.spec.ts` - Dashboard rendering and role-based routing tests
+- `tests/theme-and-navigation.spec.ts` - Theme toggle and navigation tests
+- `tests/tutor-pages.spec.ts` - Tutor dashboard feature pages tests
+- `tests/student-features.spec.ts` - Student feature pages tests
+- `tests/api-health.spec.ts` - API health and availability tests
 
 ## API Documentation
 

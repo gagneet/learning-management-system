@@ -178,7 +178,7 @@ export default function AboutPage() {
                     <div className="text-3xl">👪</div>
                     <div>
                       <h3 className="font-semibold text-lg">Parent</h3>
-                      <p className="text-gray-600 text-sm">Monitor children's progress and academic information</p>
+                      <p className="text-gray-600 text-sm">Monitor children&apos;s progress and academic information</p>
                     </div>
                   </div>
                 </div>
@@ -215,7 +215,7 @@ export default function AboutPage() {
                 </div>
                 <div className="border rounded-lg p-6">
                   <h3 className="font-semibold text-lg mb-2">COPPA</h3>
-                  <p className="text-sm text-gray-600">Children's online privacy protection</p>
+                  <p className="text-sm text-gray-600">Children&apos;s online privacy protection</p>
                 </div>
               </div>
             </div>

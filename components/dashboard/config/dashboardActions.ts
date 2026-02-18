@@ -16,6 +16,10 @@ import {
   Award,
   CalendarPlus,
   BookMarked,
+  CalendarDays,
+  History,
+  Library,
+  ClipboardCheck,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -94,6 +98,12 @@ export function getActionCardsForRole(
     case "TEACHER":
       return [
         {
+          title: "My Day",
+          description: "Today's schedule and students",
+          icon: createElement(CalendarDays, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/my-day",
+        },
+        {
           title: "Plan Session",
           description: "Create a new session plan",
           icon: createElement(CalendarPlus, { className: "w-6 h-6" }),
@@ -134,6 +144,24 @@ export function getActionCardsForRole(
           description: "Access teaching materials",
           icon: createElement(BookMarked, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/resources",
+        },
+        {
+          title: "Session History",
+          description: "View past session records",
+          icon: createElement(History, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/history",
+        },
+        {
+          title: "Content Library",
+          description: "Manage teaching materials",
+          icon: createElement(Library, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/content-library",
+        },
+        {
+          title: "Create Assessment",
+          description: "Build assessment for students",
+          icon: createElement(ClipboardCheck, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/assessments/create",
         },
       ];
 

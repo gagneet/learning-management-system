@@ -143,7 +143,7 @@ export default function RoleBasedAccessPage() {
                 </h3>
               </div>
               <p className="text-gray-700 dark:text-gray-300 mb-2">
-                View children's progress and academic information. Monitors performance, communicates with teachers, and tracks attendance.
+                View children&apos;s progress and academic information. Monitors performance, communicates with teachers, and tracks attendance.
               </p>
               <p className="text-sm text-gray-600 dark:text-gray-400 italic">
                 Perfect for: Parents, guardians

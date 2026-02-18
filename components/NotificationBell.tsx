@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useNotifications } from './NotificationProvider';
@@ -32,14 +32,15 @@ export default function NotificationBell() {
     }
   };
 
-  const formatTimeAgo = (date: Date) => {
-    const seconds = Math.floor((Date.now() - new Date(date).getTime()) / 1000);
+  const formatTimeAgo = useCallback((date: Date) => {
+    const now = Date.now();
+    const seconds = Math.floor((now - new Date(date).getTime()) / 1000);
 
     if (seconds < 60) return 'Just now';
     if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
     if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
     return `${Math.floor(seconds / 86400)}d ago`;
-  };
+  }, []);
 
   return (
     <div className="relative" ref={dropdownRef}>

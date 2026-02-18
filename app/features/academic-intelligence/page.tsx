@@ -52,10 +52,10 @@ export default function AcademicIntelligencePage() {
               What is Academic Intelligence?
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-300 mb-4">
-              Our Academic Intelligence system goes beyond simple progress tracking. It creates detailed academic profiles for each student, measuring not just what they've completed, but how they learn, where they excel, and where they need support.
+              Our Academic Intelligence system goes beyond simple progress tracking. It creates detailed academic profiles for each student, measuring not just what they&apos;ve completed, but how they learn, where they excel, and where they need support.
             </p>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              By tracking multiple dimensions of academic performance—reading age, numeracy age, comprehension, and writing proficiency—we enable truly personalized learning experiences that adapt to each student's unique needs and pace.
+              By tracking multiple dimensions of academic performance—reading age, numeracy age, comprehension, and writing proficiency—we enable truly personalized learning experiences that adapt to each student&apos;s unique needs and pace.
             </p>
           </div>
 
@@ -107,7 +107,7 @@ export default function AcademicIntelligencePage() {
           <div className="bg-gradient-to-r from-purple-600 to-pink-600 rounded-2xl p-8 text-white mb-8">
             <h2 className="text-3xl font-bold mb-4">Personalized Learning Paths:</h2>
             <p className="text-lg mb-4">
-              Imagine a Class 3 student who reads at Class 5 level but struggles with Class 2 math. Traditional systems force them into one grade level. AetherLearn doesn't.
+              Imagine a Class 3 student who reads at Class 5 level but struggles with Class 2 math. Traditional systems force them into one grade level. AetherLearn doesn&apos;t.
             </p>
             <ul className="space-y-3 text-lg">
               <li className="flex items-start">
@@ -116,7 +116,7 @@ export default function AcademicIntelligencePage() {
               </li>
               <li className="flex items-start">
                 <span className="mr-3 text-2xl">✓</span>
-                <span>Advanced students aren't held back by their age group</span>
+                <span>Advanced students aren&apos;t held back by their age group</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-3 text-2xl">✓</span>
@@ -143,7 +143,7 @@ export default function AcademicIntelligencePage() {
               <div className="border-l-4 border-purple-600 pl-4">
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2">For Parents:</h4>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Understand your child's true academic position beyond report cards. See growth over time with clear metrics. Know when your child needs extra support.
+                  Understand your child&apos;s true academic position beyond report cards. See growth over time with clear metrics. Know when your child needs extra support.
                 </p>
               </div>
               <div className="border-l-4 border-green-600 pl-4">

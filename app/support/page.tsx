@@ -89,7 +89,7 @@ export default function SupportPage() {
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   Teachers can create courses from their dashboard. Navigate to the Courses section
-                  and click "Create New Course". Fill in the course details, add modules and
+                  and click &quot;Create New Course&quot;. Fill in the course details, add modules and
                   lessons, and publish when ready.
                 </p>
               </div>
@@ -100,7 +100,7 @@ export default function SupportPage() {
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
                   Students can browse available courses from the Courses page. Click on a course to
-                  view details and click "Enroll" to join. Some courses may require approval from
+                  view details and click &quot;Enroll&quot; to join. Some courses may require approval from
                   the teacher.
                 </p>
               </div>
@@ -129,10 +129,10 @@ export default function SupportPage() {
 
               <div className="border-b border-gray-200 dark:border-gray-700 pb-6">
                 <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-3">
-                  How can parents monitor their child's progress?
+                  How can parents monitor their child&apos;s progress?
                 </h3>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Parents have access to a dedicated dashboard showing their children's course
+                  Parents have access to a dedicated dashboard showing their children&apos;s course
                   progress, attendance, grades, and achievements. They receive notifications about
                   important events and milestones.
                 </p>
@@ -157,7 +157,7 @@ export default function SupportPage() {
               Still Need Help?
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Can't find what you're looking for? Our support team is here to help.
+              Can&apos;t find what you&apos;re looking for? Our support team is here to help.
             </p>
             <div className="flex justify-center gap-4">
               <Link

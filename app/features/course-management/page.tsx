@@ -55,7 +55,7 @@ export default function CourseManagementPage() {
               Our course management system uses a powerful three-tier hierarchy: Courses contain Modules, Modules contain Lessons, and Lessons contain diverse Content types. This structure provides maximum flexibility while maintaining organization and progress tracking.
             </p>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              Whether you're teaching programming, mathematics, languages, or any other subject, our system adapts to your content needs with support for documents, videos, interactive quizzes, SCORM packages, xAPI activities, and embedded content.
+              Whether you&apos;re teaching programming, mathematics, languages, or any other subject, our system adapts to your content needs with support for documents, videos, interactive quizzes, SCORM packages, xAPI activities, and embedded content.
             </p>
           </div>
 
@@ -69,7 +69,7 @@ export default function CourseManagementPage() {
                   <span className="text-4xl mr-4">📘</span>
                   <div>
                     <h3 className="text-2xl font-bold text-blue-600">Course</h3>
-                    <p className="text-gray-600 dark:text-gray-300">Top-level learning program (e.g., "Python Programming for Beginners")</p>
+                    <p className="text-gray-600 dark:text-gray-300">Top-level learning program (e.g., &quot;Python Programming for Beginners&quot;)</p>
                   </div>
                 </div>
                 <div className="ml-12 mt-4 space-y-3">
@@ -78,7 +78,7 @@ export default function CourseManagementPage() {
                       <span className="text-3xl mr-3">📑</span>
                       <div>
                         <h4 className="text-xl font-bold text-purple-600">Module</h4>
-                        <p className="text-gray-600 dark:text-gray-300 text-sm">Thematic section (e.g., "Variables and Data Types")</p>
+                        <p className="text-gray-600 dark:text-gray-300 text-sm">Thematic section (e.g., &quot;Variables and Data Types&quot;)</p>
                       </div>
                     </div>
                     <div className="ml-10 mt-3 space-y-2">
@@ -87,7 +87,7 @@ export default function CourseManagementPage() {
                           <span className="text-2xl mr-2">📄</span>
                           <div>
                             <h5 className="text-lg font-bold text-green-600">Lesson</h5>
-                            <p className="text-gray-600 dark:text-gray-300 text-xs">Individual learning unit (e.g., "Introduction to Strings")</p>
+                            <p className="text-gray-600 dark:text-gray-300 text-xs">Individual learning unit (e.g., &quot;Introduction to Strings&quot;)</p>
                           </div>
                         </div>
                         <div className="ml-8 mt-2 text-sm text-gray-600 dark:text-gray-400">

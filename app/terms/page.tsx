@@ -13,7 +13,7 @@ export default function TermsOfServicePage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">1. Acceptance of Terms</h2>
               <p>
-                By accessing or using the Learning Management System ("LMS", "Platform", "Service"), you agree to be bound by these Terms of Service ("Terms"). If you do not agree to these Terms, please do not use our Service.
+                By accessing or using the Learning Management System (&quot;LMS&quot;, &quot;Platform&quot;, &quot;Service&quot;), you agree to be bound by these Terms of Service (&quot;Terms&quot;). If you do not agree to these Terms, please do not use our Service.
               </p>
               <p>
                 These Terms constitute a legally binding agreement between you and LMS. We reserve the right to modify these Terms at any time, and your continued use of the Service constitutes acceptance of any changes.
@@ -39,7 +39,7 @@ export default function TermsOfServicePage() {
                 <li><strong>CENTER_SUPERVISOR:</strong> Supervisory access within their learning centre</li>
                 <li><strong>FINANCE_ADMIN:</strong> Financial management and billing oversight</li>
                 <li><strong>TEACHER:</strong> Course creation and student management</li>
-                <li><strong>PARENT:</strong> View children's progress and academic information</li>
+                <li><strong>PARENT:</strong> View children&apos;s progress and academic information</li>
                 <li><strong>STUDENT:</strong> Course enrollment and learning activities</li>
               </ul>
             </section>
@@ -90,7 +90,7 @@ export default function TermsOfServicePage() {
                 <li>A complete audit log records the transfer, including who authorized it and when</li>
                 <li>Academic records, progress, and achievements are maintained</li>
                 <li>Financial records and billing history are preserved</li>
-                <li>Previous centre administrators lose access to the user's current data</li>
+                <li>Previous centre administrators lose access to the user&apos;s current data</li>
                 <li>New centre administrators gain access according to role permissions</li>
               </ul>
 
@@ -100,7 +100,7 @@ export default function TermsOfServicePage() {
                 <li>Notify your current centre in advance when possible</li>
                 <li>Complete any outstanding obligations before transferring</li>
                 <li>Update your profile information with the new centre</li>
-                <li>Understand that access permissions may change based on the new centre's policies</li>
+                <li>Understand that access permissions may change based on the new centre&apos;s policies</li>
               </ul>
             </section>
 
@@ -195,7 +195,7 @@ export default function TermsOfServicePage() {
               <div className="bg-gray-100 p-6 rounded-lg mb-4">
                 <p className="font-semibold mb-2">DISCLAIMER</p>
                 <p>
-                  THE SERVICE IS PROVIDED "AS IS" AND "AS AVAILABLE" WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.
+                  THE SERVICE IS PROVIDED &quot;AS IS&quot; AND &quot;AS AVAILABLE&quot; WITHOUT WARRANTIES OF ANY KIND, EITHER EXPRESS OR IMPLIED. WE DO NOT WARRANT THAT THE SERVICE WILL BE UNINTERRUPTED, ERROR-FREE, OR SECURE.
                 </p>
               </div>
               <p className="mb-4">

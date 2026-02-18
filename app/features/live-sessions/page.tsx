@@ -92,13 +92,13 @@ export default function LiveSessionsPage() {
               <div className="border-l-4 border-purple-600 pl-4">
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">🎯 True Personalization</h4>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Students aren't constrained by their classmates' abilities. Advanced students get challenging content, struggling students get appropriate support—all in the same session without anyone feeling singled out.
+                  Students aren&apos;t constrained by their classmates&apos; abilities. Advanced students get challenging content, struggling students get appropriate support—all in the same session without anyone feeling singled out.
                 </p>
               </div>
               <div className="border-l-4 border-green-600 pl-4">
                 <h4 className="font-bold text-gray-900 dark:text-white mb-2 text-lg">📅 Scheduling Freedom</h4>
                 <p className="text-gray-600 dark:text-gray-300">
-                  Parents can book students into available time slots regardless of what course they're taking. No more "Math class is full" or "This time only has English." Every slot can accommodate any subject.
+                  Parents can book students into available time slots regardless of what course they&apos;re taking. No more &quot;Math class is full&quot; or &quot;This time only has English.&quot; Every slot can accommodate any subject.
                 </p>
               </div>
               <div className="border-l-4 border-orange-600 pl-4">
@@ -203,7 +203,7 @@ export default function LiveSessionsPage() {
               <div className="bg-purple-50 dark:bg-purple-900/30 rounded-lg p-4">
                 <h4 className="font-bold text-purple-900 dark:text-purple-300 mb-2">⏱️ Live Session View</h4>
                 <p className="text-sm text-gray-700 dark:text-gray-300">
-                  During sessions, see which students are active, what lesson they're on, and flag students who need immediate help. Quick access to all student materials.
+                  During sessions, see which students are active, what lesson they&apos;re on, and flag students who need immediate help. Quick access to all student materials.
                 </p>
               </div>
               <div className="bg-green-50 dark:bg-green-900/30 rounded-lg p-4">

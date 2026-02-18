@@ -50,6 +50,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       // Use theme from session if available
       const userTheme = (session.user as any).themePreference as ThemeMode;
       if (userTheme && ["LIGHT", "GRAY", "DARK"].includes(userTheme)) {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setThemeModeState(userTheme);
       }
     } else {
@@ -67,7 +68,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
       const savedTier = localStorage.getItem('ageTier') as AgeTierId | null;
       const savedMode = localStorage.getItem('accessibilityMode') as AccessibilityMode | null;
 
-      if (savedTier) setTier(savedTier);
+      if (savedTier) setTier(savedTier); // eslint-disable-line react-hooks/set-state-in-effect
       if (savedMode) setAccessibilityMode(savedMode);
     }
   }, []);

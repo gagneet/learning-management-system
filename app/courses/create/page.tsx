@@ -202,7 +202,7 @@ export default async function CourseCreatePage() {
                 📝 Next Steps
               </h3>
               <p className="text-gray-600 dark:text-gray-400 mb-2">
-                After creating your course, you'll be able to:
+                After creating your course, you&apos;ll be able to:
               </p>
               <ul className="list-disc pl-6 text-gray-600 dark:text-gray-400 space-y-1">
                 <li>Add modules to organize your course content</li>
@@ -218,7 +218,7 @@ export default async function CourseCreatePage() {
             <p className="text-sm text-gray-500 dark:text-gray-400">
               Note: This is a UI demonstration page. To fully implement course creation,
               <br />
-              you'll need to connect this form to the existing API endpoint at{" "}
+              you&apos;ll need to connect this form to the existing API endpoint at{" "}
               <code className="bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
                 POST /api/courses
               </code>

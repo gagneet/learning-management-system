@@ -27,6 +27,7 @@ export function CollapsibleSection({
 
   // Load persisted state from localStorage
   useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
     setIsMounted(true);
     if (persistKey && typeof window !== "undefined") {
       try {

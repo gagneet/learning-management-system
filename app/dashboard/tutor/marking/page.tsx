@@ -318,7 +318,7 @@ export default async function TutorMarkingPage() {
         {notStarted.length > 0 && (
           <div className="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg p-6">
             <h3 className="text-xl font-bold text-yellow-900 dark:text-yellow-100 mb-4">
-              Students Who Haven't Started ({notStarted.length})
+              Students Who Haven&apos;t Started ({notStarted.length})
             </h3>
             <div className="space-y-2">
               {notStarted.map((enrollment) => (

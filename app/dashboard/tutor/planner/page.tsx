@@ -122,7 +122,7 @@ export default async function SessionPlannerPage() {
     type: e.exerciseType,
     difficulty: e.difficulty === "EASY" ? 1 : e.difficulty === "MEDIUM" ? 2 : e.difficulty === "HARD" ? 3 : e.difficulty === "CHALLENGE" ? 4 : 2,
     estimatedTime: e.timeLimit || 30,
-    isRecommended: Math.random() > 0.5, // TODO: Add real recommendation logic
+    isRecommended: false, // TODO: Add real recommendation logic
   }));
 
   return (

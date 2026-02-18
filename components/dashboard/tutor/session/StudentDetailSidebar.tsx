@@ -442,7 +442,7 @@ export default function StudentDetailSidebar({
             {student.notes && student.notes.length > 0 && (
               <div>
                 <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                  📝 Today's Session Notes ({student.notes.length})
+                  📝 Today&apos;s Session Notes ({student.notes.length})
                 </h3>
                 <div className="space-y-3">
                   {student.notes.map((note) => (

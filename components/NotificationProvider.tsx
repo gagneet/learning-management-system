@@ -30,7 +30,6 @@ interface NotificationProviderProps {
 
 export function NotificationProvider({ children, userId }: NotificationProviderProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [unreadCount, setUnreadCount] = useState(0);
 
   // Poll for new notifications every 30 seconds
   useEffect(() => {
@@ -57,11 +56,8 @@ export function NotificationProvider({ children, userId }: NotificationProviderP
     return () => clearInterval(interval);
   }, [userId]);
 
-  // Update unread count whenever notifications change
-  useEffect(() => {
-    const count = notifications.filter(n => !n.read).length;
-    setUnreadCount(count);
-  }, [notifications]);
+  // Compute unread count as derived value
+  const unreadCount = notifications.filter(n => !n.read).length;
 
   const addNotification = useCallback((notification: Notification) => {
     setNotifications(prev => [notification, ...prev]);

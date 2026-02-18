@@ -266,7 +266,7 @@ export default function DocsPage() {
               Need More Help?
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mb-6">
-              Can't find what you're looking for? Visit our support center or contact us directly.
+              Can&apos;t find what you&apos;re looking for? Visit our support center or contact us directly.
             </p>
             <div className="flex justify-center gap-4">
               <Link

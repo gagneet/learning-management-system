@@ -152,7 +152,7 @@ export default function GamificationPage() {
               </li>
               <li className="flex items-start">
                 <span className="mr-3 text-2xl">📊</span>
-                <span>Course-specific rankings to see who's excelling in each subject</span>
+                <span>Course-specific rankings to see who&apos;s excelling in each subject</span>
               </li>
               <li className="flex items-start">
                 <span className="mr-3 text-2xl">👥</span>

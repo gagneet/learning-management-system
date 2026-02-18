@@ -160,7 +160,7 @@ export default function FeaturesPage() {
                 Parent Portal
               </h3>
               <p className="text-gray-600 dark:text-gray-300">
-                Parents can monitor their children's progress, attendance, and academic performance
+                Parents can monitor their children&apos;s progress, attendance, and academic performance
                 in real-time.
               </p>
             </div>

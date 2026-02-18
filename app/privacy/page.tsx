@@ -13,7 +13,7 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">1. Introduction</h2>
               <p>
-                Welcome to the Learning Management System ("LMS", "we", "us", or "our"). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our learning management platform.
+                Welcome to the Learning Management System (&quot;LMS&quot;, &quot;we&quot;, &quot;us&quot;, or &quot;our&quot;). We are committed to protecting your personal information and your right to privacy. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you use our learning management platform.
               </p>
             </section>
 
@@ -116,7 +116,7 @@ export default function PrivacyPolicyPage() {
               <div className="bg-yellow-50 border-l-4 border-yellow-500 p-6 mb-4">
                 <p className="font-semibold text-yellow-900 mb-2">Multi-Tenancy Isolation</p>
                 <p className="text-yellow-800">
-                  Our platform uses a multi-tenant architecture where each learning centre's data is completely isolated. Centre A cannot access Centre B's data, ensuring privacy and security.
+                  Our platform uses a multi-tenant architecture where each learning centre&apos;s data is completely isolated. Centre A cannot access Centre B&apos;s data, ensuring privacy and security.
                 </p>
               </div>
             </section>
@@ -156,9 +156,9 @@ export default function PrivacyPolicyPage() {
             </section>
 
             <section>
-              <h2 className="text-2xl font-semibold mb-4">8. Children's Privacy</h2>
+              <h2 className="text-2xl font-semibold mb-4">8. Children&apos;s Privacy</h2>
               <p>
-                We comply with COPPA and similar laws. For students under 13, we require parental consent before collecting personal information. Parents can review, modify, or delete their child's information at any time.
+                We comply with COPPA and similar laws. For students under 13, we require parental consent before collecting personal information. Parents can review, modify, or delete their child&apos;s information at any time.
               </p>
             </section>
 
@@ -172,7 +172,7 @@ export default function PrivacyPolicyPage() {
             <section>
               <h2 className="text-2xl font-semibold mb-4">10. Changes to This Policy</h2>
               <p>
-                We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the "Last updated" date. Your continued use of the platform after changes constitutes acceptance of the updated policy.
+                We may update this Privacy Policy from time to time. We will notify you of any material changes by posting the new policy on this page and updating the &quot;Last updated&quot; date. Your continued use of the platform after changes constitutes acceptance of the updated policy.
               </p>
             </section>
 

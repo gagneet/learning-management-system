@@ -55,7 +55,7 @@ export default function MultiCentrePage() {
               Our platform is built from the ground up to support multiple learning centres (tenants) within a single installation. Each centre operates independently with complete data isolation, custom branding, and autonomous management.
             </p>
             <p className="text-lg text-gray-600 dark:text-gray-300">
-              Whether you're running a franchise of learning centers, managing regional branches, or operating educational hubs across different locations, our multi-tenancy architecture ensures each centre maintains its identity while benefiting from centralized infrastructure.
+              Whether you&apos;re running a franchise of learning centers, managing regional branches, or operating educational hubs across different locations, our multi-tenancy architecture ensures each centre maintains its identity while benefiting from centralized infrastructure.
             </p>
           </div>
 
@@ -65,7 +65,7 @@ export default function MultiCentrePage() {
                 🔒 Complete Data Isolation
               </h3>
               <p className="text-gray-700 dark:text-gray-300">
-                Each centre's data is completely isolated. Users, courses, and financial records remain strictly separated with no cross-centre visibility except for super admins.
+                Each centre&apos;s data is completely isolated. Users, courses, and financial records remain strictly separated with no cross-centre visibility except for super admins.
               </p>
             </div>
 

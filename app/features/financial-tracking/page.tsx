@@ -160,7 +160,7 @@ export default function FinancialTrackingPage() {
           <div className="bg-gradient-to-r from-blue-600 to-green-600 rounded-2xl p-8 text-white mb-8">
             <h2 className="text-3xl font-bold mb-4">Multi-Currency Support:</h2>
             <p className="text-lg mb-4">
-              Operating internationally? We've got you covered:
+              Operating internationally? We&apos;ve got you covered:
             </p>
             <ul className="space-y-3 text-lg">
               <li className="flex items-start">

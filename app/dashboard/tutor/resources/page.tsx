@@ -142,7 +142,7 @@ export default async function TutorResourcesPage() {
                 Resource Library Coming Soon
               </h3>
               <p className="text-blue-800 dark:text-blue-200">
-                We're building a comprehensive resource library to support your teaching. Check back soon for
+                We&apos;re building a comprehensive resource library to support your teaching. Check back soon for
                 ready-to-use templates, assessments, and teaching materials. In the meantime, you can create
                 custom content through the{" "}
                 <Link href="/admin/courses" className="underline font-semibold">
