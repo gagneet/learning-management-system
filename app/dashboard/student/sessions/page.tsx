@@ -72,6 +72,10 @@ export default async function StudentSessionsPage() {
         attendance: {
           where: { userId: user.id },
         },
+        videoRecordings: {
+          select: { status: true, streamUrl: true },
+          take: 1,
+        },
       },
       orderBy: { startTime: "desc" },
       take: 20,
@@ -171,8 +175,19 @@ export default async function StudentSessionsPage() {
                         )}
                       </div>
                     </div>
-                    {s.sessionMode === "ONLINE" && s.meetingLink && (
-                      <div>
+                    <div className="flex gap-2 flex-wrap">
+                      {s.videoRoomId ? (
+                        <Link
+                          href={`/dashboard/tutor/sessions/${s.id}/video`}
+                          className={`px-4 py-2 rounded-lg transition-colors ${
+                            s.status === "LIVE"
+                              ? "bg-purple-600 text-white hover:bg-purple-700 animate-pulse"
+                              : "bg-purple-600 text-white hover:bg-purple-700"
+                          }`}
+                        >
+                          {s.status === "LIVE" ? "📹 Join Live Video" : "📹 Join Video"}
+                        </Link>
+                      ) : s.sessionMode === "ONLINE" && s.meetingLink ? (
                         <a
                           href={s.meetingLink}
                           target="_blank"
@@ -185,8 +200,8 @@ export default async function StudentSessionsPage() {
                         >
                           {s.status === "LIVE" ? "Join Now" : "Join Session"}
                         </a>
-                      </div>
-                    )}
+                      ) : null}
+                    </div>
                   </div>
                   {s.description && (
                     <p className="mt-3 text-gray-600 dark:text-gray-400 text-sm">
@@ -246,8 +261,18 @@ export default async function StudentSessionsPage() {
                           </span>
                         </div>
                       </div>
-                      {s.recordingUrl && (
-                        <div>
+                      <div className="flex gap-2">
+                        {s.videoRecordings && s.videoRecordings[0]?.status === "READY" && s.videoRecordings[0]?.streamUrl && (
+                          <a
+                            href={s.videoRecordings[0].streamUrl!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            📼 Watch Recording
+                          </a>
+                        )}
+                        {s.recordingUrl && (
                           <a
                             href={s.recordingUrl}
                             target="_blank"
@@ -256,8 +281,8 @@ export default async function StudentSessionsPage() {
                           >
                             View Recording
                           </a>
-                        </div>
-                      )}
+                        )}
+                      </div>
                     </div>
                   </div>
                 );

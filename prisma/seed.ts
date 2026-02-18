@@ -35,6 +35,9 @@ async function main() {
   await prisma.ticketComment.deleteMany({});
   await prisma.ticket.deleteMany({});
   await prisma.catchUpPackage.deleteMany({});
+  // Video conferencing cleanup (must come before session cleanup)
+  await prisma.videoParticipant.deleteMany({});
+  await prisma.videoRecording.deleteMany({});
   await prisma.studentSessionEnrollment.deleteMany({});
   await prisma.sessionAttendance.deleteMany({});
   await prisma.refund.deleteMany({});
@@ -1159,6 +1162,50 @@ async function main() {
     },
   });
 
+  // Video-enabled session (Daily.co integrated)
+  const videoSessionStartTime = new Date(today);
+  videoSessionStartTime.setHours(13, 0, 0, 0);
+  const videoSessionEndTime = new Date(today);
+  videoSessionEndTime.setHours(14, 0, 0, 0);
+
+  const videoSession = await prisma.session.create({
+    data: {
+      title: 'Multi-Student Video Session',
+      description: 'In-built Daily.co video session with multiple students at different levels',
+      provider: 'OTHER',
+      startTime: videoSessionStartTime,
+      endTime: videoSessionEndTime,
+      status: 'SCHEDULED',
+      tutorId: teacher1.id,
+      centreId: center1.id,
+      videoProvider: 'DAILY',
+      videoRoomId: 'demo-room-aetherlearn-001',
+      videoRoomUrl: 'https://aetherlearn.daily.co/demo-room-aetherlearn-001',
+    },
+  });
+
+  // Completed video session (for recording demo)
+  const completedVideoSessionStart = new Date(yesterday);
+  completedVideoSessionStart.setHours(10, 0, 0, 0);
+  const completedVideoSessionEnd = new Date(yesterday);
+  completedVideoSessionEnd.setHours(11, 0, 0, 0);
+
+  const completedVideoSession = await prisma.session.create({
+    data: {
+      title: 'Recorded Programming Session',
+      description: 'A completed video session with a recording available',
+      provider: 'OTHER',
+      startTime: completedVideoSessionStart,
+      endTime: completedVideoSessionEnd,
+      status: 'COMPLETED',
+      tutorId: teacher1.id,
+      centreId: center1.id,
+      videoProvider: 'DAILY',
+      videoRoomId: 'completed-room-aetherlearn-001',
+      videoRoomUrl: 'https://aetherlearn.daily.co/completed-room-aetherlearn-001',
+    },
+  });
+
   console.log('✅ Sessions created');
 
   // Create Student Session Enrollments (multi-student model)
@@ -1358,6 +1405,55 @@ async function main() {
         lessonId: lesson3_1_1.id,
         completed: false,
         notes: 'Struggled with concepts, needs follow-up',
+        centreId: center1.id,
+      },
+
+      // Video Session - Multi-student (3 students on different courses)
+      {
+        sessionId: videoSession.id,
+        studentId: student1.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: false,
+        notes: 'Working on programming fundamentals via video',
+        centreId: center1.id,
+      },
+      {
+        sessionId: videoSession.id,
+        studentId: student2.id,
+        courseId: course2.id,
+        lessonId: lesson2_1_1.id,
+        completed: false,
+        notes: 'HTML basics via video session',
+        centreId: center1.id,
+      },
+      {
+        sessionId: videoSession.id,
+        studentId: student3.id,
+        courseId: course3.id,
+        lessonId: lesson3_1_1.id,
+        completed: false,
+        notes: 'Algebra review via video session',
+        centreId: center1.id,
+      },
+
+      // Completed Video Session enrollments
+      {
+        sessionId: completedVideoSession.id,
+        studentId: student1.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        notes: 'Great engagement in video session',
+        centreId: center1.id,
+      },
+      {
+        sessionId: completedVideoSession.id,
+        studentId: student2.id,
+        courseId: course1.id,
+        lessonId: lesson1_1_1.id,
+        completed: true,
+        notes: 'Good participation',
         centreId: center1.id,
       },
     ],
@@ -4013,6 +4109,67 @@ async function main() {
   }
 
   console.log('✅ Advanced time tracking seed data complete');
+
+  // ============================================================================
+  // Video Conferencing Seed Data
+  // ============================================================================
+
+  // Video Participants for completed video session (demonstrates participation tracking)
+  await prisma.videoParticipant.createMany({
+    data: [
+      {
+        sessionId: completedVideoSession.id,
+        userId: teacher1.id,
+        participantId: 'daily-participant-tutor-001',
+        joinedAt: new Date(completedVideoSession.startTime.getTime()),
+        leftAt: new Date(completedVideoSession.endTime!.getTime()),
+        durationMs: 60 * 60 * 1000, // 60 minutes
+        videoEnabled: true,
+        audioEnabled: true,
+        screenShareEnabled: false,
+      },
+      {
+        sessionId: completedVideoSession.id,
+        userId: student1.id,
+        participantId: 'daily-participant-student1-001',
+        joinedAt: new Date(completedVideoSession.startTime.getTime() + 2 * 60 * 1000),
+        leftAt: new Date(completedVideoSession.endTime!.getTime()),
+        durationMs: 58 * 60 * 1000, // 58 minutes
+        videoEnabled: true,
+        audioEnabled: true,
+        screenShareEnabled: false,
+      },
+      {
+        sessionId: completedVideoSession.id,
+        userId: student2.id,
+        participantId: 'daily-participant-student2-001',
+        joinedAt: new Date(completedVideoSession.startTime.getTime() + 5 * 60 * 1000),
+        leftAt: new Date(completedVideoSession.endTime!.getTime() - 10 * 60 * 1000),
+        durationMs: 45 * 60 * 1000, // 45 minutes
+        videoEnabled: true,
+        audioEnabled: false, // Muted
+        screenShareEnabled: false,
+      },
+    ],
+  });
+
+  // Video Recording for completed video session
+  await prisma.videoRecording.create({
+    data: {
+      sessionId: completedVideoSession.id,
+      recordingId: 'daily-recording-demo-001',
+      startedAt: new Date(completedVideoSession.startTime.getTime()),
+      endedAt: new Date(completedVideoSession.endTime!.getTime()),
+      durationMs: 60 * 60 * 1000, // 60 minutes
+      downloadUrl: 'https://storage.daily.co/recordings/demo-recording-001.mp4',
+      streamUrl: 'https://stream.daily.co/recordings/demo-recording-001',
+      transcriptionUrl: null,
+      status: 'READY',
+      centreId: center1.id,
+    },
+  });
+
+  console.log('✅ Video conferencing seed data created (participants + recording)');
 }
 
 main()

@@ -64,6 +64,10 @@ export default async function TutorSessionsPage() {
           },
         },
         attendanceRecords: true,
+        videoRecordings: {
+          select: { status: true, downloadUrl: true, streamUrl: true },
+          take: 1,
+        },
       },
       orderBy: { startTime: "desc" },
       take: 20,
@@ -172,17 +176,30 @@ export default async function TutorSessionsPage() {
                         )}
                       </div>
                     </div>
-                    <div className="flex gap-2">
-                      <Link
-                        href={`/dashboard/tutor/sessions/${s.id}/live`}
-                        className={`px-4 py-2 rounded-lg font-medium transition-colors ${
-                          s.status === "LIVE"
-                            ? "bg-green-600 text-white hover:bg-green-700 animate-pulse"
-                            : "bg-blue-600 text-white hover:bg-blue-700"
-                        }`}
-                      >
-                        {s.status === "LIVE" ? "🎯 Dashboard" : "▶ Go Live"}
-                      </Link>
+                    <div className="flex gap-2 flex-wrap">
+                      {s.videoRoomId ? (
+                        <Link
+                          href={`/dashboard/tutor/sessions/${s.id}/video`}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            s.status === "LIVE"
+                              ? "bg-purple-600 text-white hover:bg-purple-700 animate-pulse"
+                              : "bg-purple-600 text-white hover:bg-purple-700"
+                          }`}
+                        >
+                          {s.status === "LIVE" ? "📹 Live Video" : "📹 Video Session"}
+                        </Link>
+                      ) : (
+                        <Link
+                          href={`/dashboard/tutor/sessions/${s.id}/live`}
+                          className={`px-4 py-2 rounded-lg font-medium transition-colors ${
+                            s.status === "LIVE"
+                              ? "bg-green-600 text-white hover:bg-green-700 animate-pulse"
+                              : "bg-blue-600 text-white hover:bg-blue-700"
+                          }`}
+                        >
+                          {s.status === "LIVE" ? "🎯 Dashboard" : "▶ Go Live"}
+                        </Link>
+                      )}
                       {s.sessionMode === "ONLINE" && s.meetingLink && (
                         <a
                           href={s.meetingLink}
@@ -252,8 +269,26 @@ export default async function TutorSessionsPage() {
                           <span>📊 {Math.round(attendanceRate)}% attendance</span>
                         </div>
                       </div>
-                      <div className="flex gap-2">
-                        {s.recordingUrl && (
+                      <div className="flex gap-2 flex-wrap">
+                        {s.videoRoomId && (
+                          <Link
+                            href={`/dashboard/tutor/sessions/${s.id}/video`}
+                            className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                          >
+                            📹 Video
+                          </Link>
+                        )}
+                        {s.videoRecordings && s.videoRecordings[0]?.status === "READY" && s.videoRecordings[0]?.streamUrl && (
+                          <a
+                            href={s.videoRecordings[0].streamUrl!}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors"
+                          >
+                            📼 Recording
+                          </a>
+                        )}
+                        {s.recordingUrl && !s.videoRoomId && (
                           <a
                             href={s.recordingUrl}
                             target="_blank"

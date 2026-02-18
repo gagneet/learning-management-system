@@ -195,7 +195,22 @@ export default async function SessionDetailsPage({ params }: SessionDetailsPageP
             </div>
           </div>
 
-          {sessionData.sessionMode === "ONLINE" && sessionData.meetingLink && (
+          {sessionData.videoRoomId && (
+            <div className="mt-6">
+              <Link
+                href={`/dashboard/tutor/sessions/${sessionData.id}/video`}
+                className={`inline-block px-8 py-3 rounded-lg transition-colors mr-3 ${
+                  sessionData.status === "LIVE"
+                    ? "bg-purple-600 text-white hover:bg-purple-700"
+                    : "bg-purple-600 text-white hover:bg-purple-700"
+                }`}
+              >
+                {sessionData.status === "LIVE" ? "📹 Live Video Session" : "📹 Start Video Session"}
+              </Link>
+            </div>
+          )}
+
+          {!sessionData.videoRoomId && sessionData.sessionMode === "ONLINE" && sessionData.meetingLink && (
             <div className="mt-6">
               <a
                 href={sessionData.meetingLink}

@@ -49,7 +49,7 @@ export default function MultiStudentSessionPage({
     session.students.forEach((student) => {
       initialModes[student.id] = "TEACH";
     });
-    setMode(initialModes);
+    setMode(initialModes); // eslint-disable-line react-hooks/set-state-in-effect
   }, [session.students]);
 
   const handleParticipantUpdate = (participants: any[]) => {

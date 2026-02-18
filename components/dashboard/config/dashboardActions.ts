@@ -22,6 +22,7 @@ import {
   ClipboardCheck,
   PackageOpen,
   LayoutList,
+  Video,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -176,6 +177,12 @@ export function getActionCardsForRole(
           description: "Manage student catch-up materials",
           icon: createElement(PackageOpen, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/catchups",
+        },
+        {
+          title: "Video Sessions",
+          description: "Launch in-built video conferencing",
+          icon: createElement(Video, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/sessions",
         },
       ];
 
