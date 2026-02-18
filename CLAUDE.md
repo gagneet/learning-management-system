@@ -503,6 +503,9 @@ Use demo credentials from database seed (3-month history):
 - Prisma client must be imported from `@/lib/prisma` (singleton pattern)
 - **Tailwind CSS v3 only** - v4 causes incomplete CSS generation (known issue)
 - After deployment, purge CloudFlare cache if CSS doesn't load
+- **Navigation redirects**: Some action card links redirect to main dashboards (supervisor sub-pages → `/dashboard/supervisor`, parent sub-pages → `/dashboard/parent`, `/admin/centers` → `/admin/users`). Configured in `next.config.ts` redirects array.
+- **Student help page**: `/dashboard/student/help` is a fully implemented help request form using `/api/v1/help-requests`
+- **Unimplemented admin pages**: `/admin/centers`, `/admin/settings`, `/admin/awards` are in navigation but redirect elsewhere until implemented
 
 ## Testing
 
@@ -526,6 +529,8 @@ Test files are located in `tests/` directory:
 - `tests/tutor-pages.spec.ts` - Tutor dashboard feature pages tests
 - `tests/student-features.spec.ts` - Student feature pages tests
 - `tests/api-health.spec.ts` - API health and availability tests
+- `tests/navigation-redirects.spec.ts` - Role navigation link redirect verification
+- See `tests/README.md` for full setup and execution guide
 
 ## API Documentation
 

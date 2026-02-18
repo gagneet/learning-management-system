@@ -151,6 +151,54 @@ test.describe("Student Dashboard Quick Actions", () => {
   });
 });
 
+test.describe("Student Help Request Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsStudent(page);
+  });
+
+  test("should navigate to help request page", async ({ page }) => {
+    await page.goto("/dashboard/student/help");
+    await expect(page).toHaveURL(/.*student\/help.*/);
+  });
+
+  test("should display help request form", async ({ page }) => {
+    await page.goto("/dashboard/student/help");
+    await expect(page.getByText("Request Help")).toBeVisible();
+    await expect(page.getByText("New Help Request")).toBeVisible();
+  });
+
+  test("should display priority selector", async ({ page }) => {
+    await page.goto("/dashboard/student/help");
+    await expect(page.locator("select")).toBeVisible();
+  });
+
+  test("should display submit button", async ({ page }) => {
+    await page.goto("/dashboard/student/help");
+    await expect(page.getByRole("button", { name: /Submit Help Request/i })).toBeVisible();
+  });
+
+  test("should be accessible from Request Help action card", async ({ page }) => {
+    await page.goto("/dashboard/student");
+    const helpLink = page.getByRole("link", { name: /Request Help/i }).first();
+    if (await helpLink.isVisible()) {
+      await expect(helpLink).toHaveAttribute("href", "/dashboard/student/help");
+    }
+  });
+});
+
+test.describe("Student Chat Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsStudent(page);
+  });
+
+  test("should navigate to chat page", async ({ page }) => {
+    await page.goto("/dashboard/student/chat");
+    await expect(page).toHaveURL(/.*chat.*/);
+    await expect(page.locator("body")).not.toContainText("500");
+    await expect(page.locator("body")).not.toContainText("404");
+  });
+});
+
 test.describe("User Profile and Settings", () => {
   test.beforeEach(async ({ page }) => {
     await loginAsStudent(page);
