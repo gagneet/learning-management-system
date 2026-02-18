@@ -232,10 +232,22 @@ fi
 if [ "$SKIP_DEPS" = false ]; then
     print_step "Step 4/9: Installing dependencies"
 
-    npm ci --production=false || {
-        print_error "Failed to install dependencies"
-        exit 1
-    }
+    # If package.json is newer than package-lock.json, packages were added/updated.
+    # Run npm install to regenerate the lock file, then verify with npm ci.
+    if [ "package.json" -nt "package-lock.json" ] || [ ! -f "package-lock.json" ]; then
+        print_warning "Lock file is out of sync — running npm install to update it"
+        npm install --include=dev || {
+            print_error "Failed to run npm install"
+            exit 1
+        }
+        print_success "Lock file updated"
+    else
+        # Lock file is in sync — use npm ci for reproducible install
+        npm ci --include=dev || {
+            print_error "Failed to install dependencies"
+            exit 1
+        }
+    fi
 
     print_success "Dependencies installed"
 else
@@ -252,33 +264,28 @@ npm run db:generate || {
 
 print_success "Prisma client generated"
 
-# Step 6: Database Migrations
+# Step 6: Database Schema Sync
+# This project uses "db push" (schema-first, no migration files) for rapid development.
 if [ "$SKIP_MIGRATIONS" = false ]; then
-    print_step "Step 6/9: Checking database migrations"
+    print_step "Step 6/9: Syncing database schema"
 
     # Load production environment
     export $(grep -v '^#' .env.production | xargs)
 
-    # Check for pending migrations
-    if npx prisma migrate status 2>&1 | grep -q "pending"; then
-        print_warning "Pending migrations detected"
+    # Push schema changes (safe for additive changes; will prompt on destructive changes)
+    # --accept-data-loss is NOT used — fail loudly if schema change would destroy data
+    npx prisma db push --skip-generate || {
+        print_error "Failed to sync database schema"
+        print_error "If schema has destructive changes, run: npx prisma db push manually"
+        exit 1
+    }
 
-        # Run migrations
-        print_step "Running database migrations"
-        npx prisma migrate deploy || {
-            print_error "Failed to run migrations"
-            exit 1
-        }
-
-        print_success "Migrations applied"
-    else
-        print_success "Database is up to date"
-    fi
+    print_success "Database schema synced"
 
     # Unset environment variables
     unset $(grep -v '^#' .env.production | sed -E 's/(.*)=.*/\1/' | xargs)
 else
-    print_warning "Step 6/9: Skipping migrations (--skip-migrations)"
+    print_warning "Step 6/9: Skipping database sync (--skip-migrations)"
 fi
 
 # Step 7: Build Application
