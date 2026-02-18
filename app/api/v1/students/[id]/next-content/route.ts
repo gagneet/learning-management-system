@@ -43,18 +43,45 @@ export async function GET(
   }
 
   try {
-    // Get student's subject assessment for this course
-    const assessment = await prisma.subjectAssessment.findUnique({
-      where: {
-        studentId_courseId: {
-          studentId,
-          courseId,
+    // ⚡ Bolt Optimization: Parallelize assessment and attempt fetching
+    // ⚡ Bolt Optimization: Consolidate multiple ExerciseAttempt queries into one to reduce RTT
+    const [assessment, allAttempts] = await Promise.all([
+      prisma.subjectAssessment.findUnique({
+        where: {
+          studentId_courseId: {
+            studentId,
+            courseId,
+          },
         },
-      },
-      select: {
-        assessedGradeLevel: true,
-      },
-    });
+        select: {
+          assessedGradeLevel: true,
+        },
+      }),
+      prisma.exerciseAttempt.findMany({
+        where: {
+          studentId,
+          status: {
+            in: ["AUTO_GRADED", "GRADED", "IN_PROGRESS"],
+          },
+        },
+        select: {
+          id: true,
+          exerciseId: true,
+          status: true,
+          score: true,
+          startedAt: true,
+          submittedAt: true,
+          exercise: {
+            select: {
+              maxScore: true,
+            },
+          },
+        },
+        orderBy: {
+          submittedAt: "desc",
+        },
+      }),
+    ]);
 
     if (!assessment) {
       return NextResponse.json(
@@ -69,17 +96,13 @@ export async function GET(
 
     const assessedLevel = assessment.assessedGradeLevel;
 
-    // Get all content units at the student's assessed level
+    // ⚡ Bolt Optimization: Use nested relation filter instead of sequential sub-query
+    // This reduces database round-trips and allows the database to optimize the join.
     const contentUnits = await prisma.contentUnit.findMany({
       where: {
         courseId,
-        gradeLevelId: {
-          in: await prisma.gradeLevel
-            .findMany({
-              where: { level: assessedLevel },
-              select: { id: true },
-            })
-            .then((levels) => levels.map((l) => l.id)),
+        gradeLevel: {
+          level: assessedLevel,
         },
         isActive: true,
       },
@@ -120,34 +143,22 @@ export async function GET(
       );
     }
 
-    // Get student's completed exercises
-    const completedAttempts = await prisma.exerciseAttempt.findMany({
-      where: {
-        studentId,
-        status: {
-          in: ["AUTO_GRADED", "GRADED"],
-        },
-      },
-      select: {
-        exerciseId: true,
-        score: true,
-      },
-    });
+    // ⚡ Bolt Optimization: Process attempts in-memory from the consolidated query
+    const completedExerciseIds = new Set<string>();
+    const inProgressAttempts: any[] = [];
+    const recentGradedAttempts: any[] = [];
 
-    const completedExerciseIds = new Set(
-      completedAttempts.map((a) => a.exerciseId)
-    );
-
-    // Get in-progress exercises
-    const inProgressAttempts = await prisma.exerciseAttempt.findMany({
-      where: {
-        studentId,
-        status: "IN_PROGRESS",
-      },
-      select: {
-        exerciseId: true,
-        startedAt: true,
-      },
+    allAttempts.forEach((attempt) => {
+      if (attempt.status === "IN_PROGRESS") {
+        inProgressAttempts.push(attempt);
+      } else {
+        // COMPLETED (AUTO_GRADED or GRADED)
+        completedExerciseIds.add(attempt.exerciseId);
+        // Take the 5 most recent graded attempts for performance metrics
+        if (recentGradedAttempts.length < 5) {
+          recentGradedAttempts.push(attempt);
+        }
+      }
     });
 
     // Find next content to work on
@@ -216,35 +227,17 @@ export async function GET(
       (a) => a.exerciseId === nextExercise.id
     );
 
-    // Get recent performance metrics
-    const recentAttempts = await prisma.exerciseAttempt.findMany({
-      where: {
-        studentId,
-        status: {
-          in: ["AUTO_GRADED", "GRADED"],
-        },
-      },
-      orderBy: {
-        submittedAt: "desc",
-      },
-      take: 5,
-      select: {
-        score: true,
-        exercise: {
-          select: {
-            maxScore: true,
-          },
-        },
-      },
-    });
-
+    // ⚡ Bolt Optimization: Calculate recent performance from in-memory data
     const recentPerformance =
-      recentAttempts.length > 0
-        ? recentAttempts.reduce(
+      recentGradedAttempts.length > 0
+        ? recentGradedAttempts.reduce(
             (sum, a) =>
-              sum + (a.exercise.maxScore > 0 && a.score !== null ? a.score / a.exercise.maxScore : 0),
+              sum +
+              (a.exercise.maxScore > 0 && a.score !== null
+                ? a.score / a.exercise.maxScore
+                : 0),
             0
-          ) / recentAttempts.length
+          ) / recentGradedAttempts.length
         : null;
 
     return NextResponse.json({
@@ -257,7 +250,8 @@ export async function GET(
         nextExercise,
         resumeAttempt: resumeAttempt
           ? {
-              attemptId: resumeAttempt.exerciseId,
+              // ⚡ Bolt Optimization: Return the actual attempt ID for correct resumption
+              attemptId: resumeAttempt.id,
               startedAt: resumeAttempt.startedAt,
             }
           : null,
