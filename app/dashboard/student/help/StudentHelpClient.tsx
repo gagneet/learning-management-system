@@ -7,7 +7,7 @@ import { useSession } from "next-auth/react";
 
 type HelpRequest = {
   id: string;
-  message: string;
+  message: string | null;
   status: string;
   priority: string;
   responseText: string | null;
@@ -177,7 +177,7 @@ export default function StudentHelpClient({ studentId, helpRequests }: StudentHe
                   className="bg-white dark:bg-gray-800 rounded-xl shadow-sm border border-gray-200 dark:border-gray-700 p-5"
                 >
                   <div className="flex items-start justify-between gap-3 mb-3">
-                    <p className="text-gray-900 dark:text-white flex-1">{req.message}</p>
+                    <p className="text-gray-900 dark:text-white flex-1">{req.message ?? ""}</p>
                     <div className="flex gap-2 flex-shrink-0">
                       <span className={`text-xs px-2 py-1 rounded-full font-medium ${PRIORITY_COLORS[req.priority] ?? ""}`}>
                         {req.priority}
@@ -216,7 +216,7 @@ export default function StudentHelpClient({ studentId, helpRequests }: StudentHe
                   key={req.id}
                   className="bg-gray-50 dark:bg-gray-800/50 rounded-lg border border-gray-200 dark:border-gray-700 p-4 opacity-75"
                 >
-                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-1">{req.message}</p>
+                  <p className="text-gray-700 dark:text-gray-300 text-sm mb-1">{req.message ?? ""}</p>
                   {req.responseText && (
                     <p className="text-xs text-gray-500 dark:text-gray-400 italic">
                       Response: {req.responseText}

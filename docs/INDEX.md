@@ -1,7 +1,7 @@
 # 📚 LMS Documentation Index
 
-**Last Updated**: February 12, 2026
-**LMS Version**: 1.0.0 (Phase 1 Complete)
+**Last Updated**: February 18, 2026
+**LMS Version**: 1.2.1 (Phase 1.2 — Maintenance)
 **Production URL**: https://lms.gagneet.com
 
 ---
@@ -12,9 +12,10 @@
 |----------|----------|-------------|
 | 🚀 **Getting Started** | [README](../README.md) | Project overview and quick start |
 | 📖 **User Guide** | [Quick Reference](user-guides/quickstart.md) | Common operations cheat sheet |
-| 🔧 **Setup** | [Production Deployment](deployment/deployment-production.md) | Full production setup guide |
-| 🏗️ **Architecture** | [Technical Implementation](features-ux-design/technical-implementation.md) | System architecture and design |
-| 📊 **Implementation** | [Implementation README](implementation/README.md) | Phase 1 implementation overview |
+| 🔧 **Setup** | [Production Deployment](deployment-operations/deployment-production.md) | Full production setup guide |
+| 🏗️ **Architecture** | [Technical Implementation](architecture/technical-implementation.md) | System architecture and design |
+| 📊 **Latest Changes** | [Changelog](implementation-records/CHANGELOG.md) | Implementation history |
+| 🆕 **Latest Deployment** | [Feb 18 Maintenance](deployment-operations/DEPLOYMENT-2026-02-18-MAINTENANCE.md) | Most recent deployment record |
 
 ---
 
@@ -22,20 +23,22 @@
 
 ### 1. 🚀 Deployment & Operations
 
-#### Production Deployment
-| Document | Purpose | For |
-|----------|---------|-----|
-| [Deployment Production](deployment/deployment-production.md) | Complete production deployment guide | DevOps, Admins |
-| [Deployment Quick Start](deployment/deployment-quickstart.md) | Quick setup reference | Developers |
-| [Deployment Status](deployment/deployment-status.md) | Current production status | All |
-| [Implementation Summary](deployment/implementation-summary.md) | Deployment implementation details | DevOps |
+#### Deployment Records (Newest First)
+| Document | Date | Description |
+|----------|------|-------------|
+| [Feb 18 Maintenance](deployment-operations/DEPLOYMENT-2026-02-18-MAINTENANCE.md) | 2026-02-18 | ESLint v9, nav fixes, student help page (v1.2.1) |
+| [Phase 1.1 Deployment](deployment-operations/DEPLOYMENT-2026-02-13-PHASE-1.1.md) | 2026-02-13 | Parent dashboard, tutor portal pages (v1.1.0) |
+| [Deployment Status](deployment-operations/deployment-status.md) | Live | Current production status |
+| [Implementation Summary](deployment-operations/implementation-summary.md) | 2026-02-13 | Phase 1 deployment details |
 
-#### Deployment Options
+#### Deployment Guides
 | Document | Purpose | For |
 |----------|---------|-----|
-| [Deployment Guide](deployment/deployment.md) | Local, Vercel, Docker options | Developers |
-| [Deployment Notes](deployment/deployment-notes.md) | Tailwind CSS and build notes | Developers |
-| [Rate Limits](deployment/deployment-notes-rate-limits.md) | Nginx rate limiting config | DevOps |
+| [Production Deployment](deployment-operations/deployment-production.md) | Complete production deployment guide | DevOps, Admins |
+| [Deployment Quick Start](deployment-operations/deployment-quickstart.md) | Quick setup reference | Developers |
+| [Deployment Guide](deployment-operations/deployment.md) | Local, Vercel, Docker options | Developers |
+| [Deployment Notes](deployment-operations/deployment-notes.md) | Tailwind CSS and build notes | Developers |
+| [Rate Limits](deployment-operations/deployment-notes-rate-limits.md) | Nginx rate limiting config | DevOps |
 
 #### Infrastructure
 | Document | Purpose | For |
@@ -47,27 +50,23 @@
 
 ### 2. 🏗️ Implementation & Planning
 
-#### Phase 1 Implementation (35% Complete)
-| Document | Purpose | Status |
-|----------|---------|--------|
-| [Implementation README](implementation/README.md) | Phase 1 overview | ✅ Complete |
-| [Phase 1 Status](phase1-status.md) | Current implementation progress | 📊 35% Complete |
-| [Database Plan](implementation/DB-PLAN.md) | Database schema & seed data plan | ✅ Complete |
-| [Product Requirements](implementation/PO-PRD.md) | Product Owner requirements | ✅ Complete |
-| [API Specification](implementation/TPM-API-SPEC.md) | Technical API specs | 🚧 44 endpoints defined |
-| [Test Plan](implementation/TEST-PLAN.md) | Testing strategy | 📝 Planned |
-| [UX Wireframes](implementation/UX-WIREFRAMES.md) | UI/UX designs | 📝 12 pages designed |
-| [Architecture Decisions](implementation/ADR.md) | Architectural decisions | ✅ Complete |
-| [Changelog](implementation/CHANGELOG.md) | Implementation history | ✅ Complete |
+#### Implementation Summaries (Newest First)
+| Document | Date | Description |
+|----------|------|-------------|
+| [Feb 18 Maintenance Summary](implementation-records/IMPLEMENTATION-SUMMARY-2026-02-18.md) | 2026-02-18 | ESLint migration, nav fixes, student help page analysis |
+| [Feb 2026 Comprehensive Summary](implementation-records/IMPLEMENTATION-SUMMARY-FEB-2026.md) | 2026-02-13 | Phase 1.1 full implementation |
+| [Feb 12 Summary](implementation-records/IMPLEMENTATION-SUMMARY-2026-02-12.md) | 2026-02-12 | Initial Phase 1 design system |
+| [Changelog](implementation-records/CHANGELOG.md) | Live | Full version history (v1.0.0–v1.2.1) |
 
-#### Phase 1 Design System (✅ Complete - Feb 12, 2026)
+#### Planning & Specification
 | Document | Purpose | Status |
 |----------|---------|--------|
-| [Implementation Summary](phase1-implementation-summary.md) | Complete design system implementation | ✅ Complete |
-| [Multi-Tenancy Architecture](multi-tenancy-architecture.md) | Center transfer system & Phase 2 roadmap | ✅ Complete |
-| [Manual Transfer Guide](manual-transfer-guide.md) | Step-by-step user transfer procedures | ✅ Complete |
-| [API Implementation Guide](api-implementation-guide.md) | API development templates | ✅ Complete |
-| [UI Implementation Guide](ui-implementation-guide.md) | UI development patterns | ✅ Complete |
+| [Database Plan](implementation-records/DB-PLAN.md) | Database schema & seed data plan | ✅ Complete |
+| [Product Requirements](implementation-records/PO-PRD.md) | Product Owner requirements | ✅ Complete |
+| [API Specification](implementation-records/TPM-API-SPEC.md) | Technical API specs | 🚧 44 endpoints defined |
+| [Test Plan](implementation-records/TEST-PLAN.md) | Testing strategy | ✅ Expanded Feb 2026 |
+| [UX Wireframes](implementation-records/UX-WIREFRAMES.md) | UI/UX designs | ✅ Complete |
+| [Architecture Decisions](implementation-records/ADR.md) | Architectural decisions | ✅ Complete |
 
 #### Domain Specifications
 | Document | Domain | Models |
@@ -169,43 +168,57 @@
 
 ## 📊 Implementation Status
 
-### ✅ Phase 1 (Complete)
+### ✅ Phase 1.2 (Current — Feb 18, 2026)
+
+**Tooling**
+- ✅ ESLint v9 flat config (`eslint.config.mjs`)
+- ✅ `npm run lint` restored (0 errors, 13 warnings)
+- ✅ `npm run lint:fix` script added
+
+**Pages (87 routes)**
+- ✅ All role dashboards (Admin, Supervisor, Teacher, Student, Parent)
+- ✅ Student portal: Homework, Goals, Awards, Achievements, Gamification, Chat, **Help** (new)
+- ✅ Tutor portal: My Day, Planner, History, Content Library, Assessments, Students, Sessions, Marking, Resources
+- ✅ Admin: Users, Courses, Analytics
+- ✅ 19 nav links redirect to working pages (no 404s)
+
+**Tests (8 spec files)**
+- ✅ `home.spec.ts` — Home page and login portals
+- ✅ `login.spec.ts` — Authentication flow
+- ✅ `dashboard.spec.ts` — Role-based dashboards
+- ✅ `theme-and-navigation.spec.ts` — Theme and navigation
+- ✅ `tutor-pages.spec.ts` — Tutor portal pages
+- ✅ `student-features.spec.ts` — Student feature pages
+- ✅ `api-health.spec.ts` — API health and auth
+- ✅ `navigation-redirects.spec.ts` — Nav link validity
+- ✅ `tests/README.md` — Full test documentation
 
 **Schema & Database**
-- ✅ 30+ models across 5 domains
-- ✅ 25+ indexes for performance
-- ✅ Comprehensive seed data (3-month history)
+- ✅ 60+ models across 5 domains
+- ✅ Comprehensive seed data (3-month history, 13 demo accounts)
 - ✅ Multi-tenancy enforcement
 
-**Governance Helpers**
-- ✅ Audit logging (`lib/audit.ts`)
-- ✅ RBAC permissions (`lib/rbac.ts`)
-- ✅ Multi-tenancy (`lib/tenancy.ts`)
+**Infrastructure**
+- ✅ PM2 cluster (4 instances, port 3001)
+- ✅ Nginx reverse proxy with rate limiting
+- ✅ CloudFlare tunnel + SSL
+- ✅ Health check: `{"status":"healthy","database":"connected"}`
 
-**Test Data**
-- ✅ 14 users across 7 roles
-- ✅ 3 active class cohorts
-- ✅ 8 tickets (all types/statuses)
-- ✅ 8 invoices (PAID/PARTIAL/OVERDUE)
-- ✅ 2 approval requests
-- ✅ 12 audit events
+### 🚧 Pending (Future Sessions)
 
-### 🚧 In Progress
+**Supervisor Sub-pages** (currently redirect to main dashboard)
+- `/dashboard/supervisor/financial`, `/attendance`, `/tutors`, `/transactions`
+- `/dashboard/supervisor/reports`, `/fees`, `/tutor-payments`, `/budget`
 
-**API Implementation**
-- 📝 44 endpoints defined
-- ⏳ 0 endpoints implemented
-- 🎯 Priority: Academic → Finance → Operations → Governance
+**Parent Sub-pages** (currently redirect to parent dashboard)
+- `/dashboard/parent/progress`, `/sessions`, `/homework`, `/achievements`, `/payments`, `/messages`
 
-**UI Pages**
-- 📝 12 pages designed
-- ⏳ 0 pages built
-- 🎯 Priority: Dashboards → Management → Admin
+**Admin Sub-pages** (currently redirect)
+- `/admin/centers` → needs center management UI
+- `/admin/awards` → needs award configuration UI
 
-**Testing**
-- 📝 Test plan complete
-- ⏳ 0 tests written
-- 🎯 Focus: E2E scenarios, API tests, Unit tests
+**Lint Warnings (13)**
+- All `<img>` vs `<Image>` advisories — image optimization improvements
 
 ---
 

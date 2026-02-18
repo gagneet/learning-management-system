@@ -1,5 +1,98 @@
 # Phase 1 Implementation Changelog
 
+---
+
+## Version 1.2.1 - 2026-02-18 (Session 2)
+
+### 🔧 Navigation & Feature Completeness
+
+#### Broken Navigation Fixes (19 Links)
+- **`next.config.ts` redirects**: Added `async redirects()` with 19 permanent-false rules
+- All supervisor sub-pages (`/financial`, `/attendance`, `/tutors`, `/transactions`, `/reports`, `/fees`, `/tutor-payments`, `/budget`) → `/dashboard/supervisor`
+- `/dashboard/supervisor/analytics` → `/admin/analytics` (page already exists)
+- All parent sub-pages (`/progress`, `/sessions`, `/homework`, `/achievements`, `/payments`, `/messages`) → `/dashboard/parent`
+- `/admin/centers` → `/admin/users`
+- `/admin/settings` → `/dashboard/settings`
+- `/admin/awards` → `/admin/analytics`
+
+#### Student Help Request Page — NEW
+- **Route:** `/dashboard/student/help`
+- Help request submission form with priority selector (LOW / MEDIUM / HIGH / URGENT)
+- Integrates with existing `/api/v1/help-requests` POST endpoint
+- Displays open and resolved requests with tutor response text and status/priority badges
+- Dark mode, responsive, empty state, error/success feedback
+
+#### TypeScript Fix
+- `HelpRequest.message` type corrected to `string | null` to match Prisma `String?` schema field
+
+### 🧪 Testing
+- **`tests/README.md`**: Full test suite documentation with setup, run commands, credentials, CI/CD
+- **`tests/navigation-redirects.spec.ts`**: Verifies all nav action card links resolve without 404 (Supervisor, Finance Admin, Parent, Super Admin roles)
+- **`tests/student-features.spec.ts`**: Extended with Help Request page and Chat page tests
+
+### 📝 Files Changed
+- `next.config.ts` — 19 redirect rules added
+- `app/dashboard/student/help/page.tsx` — Created (server component)
+- `app/dashboard/student/help/StudentHelpClient.tsx` — Created (client component)
+- `tests/README.md` — Created
+- `tests/navigation-redirects.spec.ts` — Created
+- `tests/student-features.spec.ts` — Extended
+
+### 📦 Commit
+- `0d4d2f9` — feat: Fix broken nav links, add student help page, tests README
+
+---
+
+## Version 1.2.0 - 2026-02-18 (Session 1)
+
+### 🛠️ Tooling & Code Quality
+
+#### ESLint v9 Migration
+- **Deleted** `.eslintrc.json` (legacy format, incompatible with ESLint v9)
+- **Created** `eslint.config.mjs` (ESLint v9 flat config using `eslint-config-next` spread)
+- **Updated** `package.json`: `next lint` (removed in Next.js 16) → `eslint app/ components/ contexts/ lib/ types/`
+- **Added** `lint:fix` script
+- **Result**: 0 errors, 13 warnings (acceptable `<img>` advisories)
+
+#### Lint Fixes (0 Errors Baseline)
+- `react/no-unescaped-entities` — 20+ files: escaped `'` → `&apos;`, `"` → `&quot;` in JSX text
+- `react-hooks/purity` — `Math.random()` in `planner/page.tsx` → replaced with `false`
+- `react-hooks/purity` — `Date.now()` in `NotificationBell.tsx` → wrapped in `useCallback`
+- `react-hooks/set-state-in-effect` — `NotificationProvider.tsx`: derived `unreadCount` from array (eliminated extra state)
+- `react-hooks/set-state-in-effect` — `CollapsibleSection.tsx`, `ThemeContext.tsx`: `eslint-disable` for legitimate hydration/init patterns
+
+#### Health Check Middleware Fix
+- `middleware.ts` matcher now excludes `api/health`
+- Health check scripts (`scripts/health-check.sh`) no longer receive 307 redirect
+
+### 🔗 Navigation
+- **TEACHER role**: Added 4 missing action cards (My Day, Session History, Content Library, Create Assessment) in `dashboardActions.ts`
+
+### 🧪 Testing
+- **`tests/tutor-pages.spec.ts`**: Tests for all tutor portal pages (My Day, Planner, History, Content Library, Assessments, Students, Sessions, Marking, Resources)
+- **`tests/api-health.spec.ts`**: Health endpoint 200 check, auth requirements on protected routes, public page accessibility
+
+### 📝 Files Changed
+- `eslint.config.mjs` — Created
+- `.eslintrc.json` — Deleted
+- `package.json` — Updated lint scripts
+- `middleware.ts` — Health check exclusion
+- `components/NotificationProvider.tsx` — Derived unreadCount
+- `components/NotificationBell.tsx` — useCallback for formatTimeAgo
+- `components/dashboard/CollapsibleSection.tsx` — eslint-disable
+- `contexts/ThemeContext.tsx` — eslint-disable
+- `components/dashboard/config/dashboardActions.ts` — 4 TEACHER action cards
+- 20+ app pages — Escaped JSX entities
+- `app/dashboard/tutor/planner/page.tsx` — Removed Math.random()
+- `tests/tutor-pages.spec.ts` — Created
+- `tests/api-health.spec.ts` — Created
+
+### 📦 Commits
+- `1db5da5` — fix: Resolve all ESLint errors and upgrade to flat config
+- `633dde2` — fix: Exclude health endpoint from HTTPS redirect middleware
+
+---
+
 ## Version 1.1.0 - 2026-02-13
 
 ### 🎉 Major Features Added
