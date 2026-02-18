@@ -20,6 +20,8 @@ import {
   History,
   Library,
   ClipboardCheck,
+  PackageOpen,
+  LayoutList,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -93,6 +95,12 @@ export function getActionCardsForRole(
           icon: createElement(Target, { className: "w-6 h-6" }),
           href: "/dashboard/student/goals",
         },
+        {
+          title: "Catch-ups",
+          description: "Review missed session materials",
+          icon: createElement(PackageOpen, { className: "w-6 h-6" }),
+          href: "/dashboard/student/catchups",
+        },
       ];
 
     case "TEACHER":
@@ -163,6 +171,12 @@ export function getActionCardsForRole(
           icon: createElement(ClipboardCheck, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/assessments/create",
         },
+        {
+          title: "Catch-up Packages",
+          description: "Manage student catch-up materials",
+          icon: createElement(PackageOpen, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/catchups",
+        },
       ];
 
     case "CENTER_SUPERVISOR":
@@ -206,6 +220,12 @@ export function getActionCardsForRole(
           badge: context.pendingTransactionsCount
             ? `${context.pendingTransactionsCount} pending`
             : undefined,
+        },
+        {
+          title: "Classes",
+          description: "Manage class cohorts and schedules",
+          icon: createElement(LayoutList, { className: "w-6 h-6" }),
+          href: "/admin/classes",
         },
       ];
 
@@ -289,6 +309,12 @@ export function getActionCardsForRole(
           description: "Manage gamification rewards",
           icon: createElement(Award, { className: "w-6 h-6" }),
           href: "/admin/awards",
+        },
+        {
+          title: "Classes",
+          description: "Manage class cohorts across centers",
+          icon: createElement(LayoutList, { className: "w-6 h-6" }),
+          href: "/admin/classes",
         },
       ];
 

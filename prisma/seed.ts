@@ -6,6 +6,7 @@ const prisma = new PrismaClient();
 // Constants for time calculations
 const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 const TWO_DAYS_MS = 2 * ONE_DAY_MS;
+const THREE_DAYS_MS = 3 * ONE_DAY_MS;
 const FIVE_DAYS_MS = 5 * ONE_DAY_MS;
 const TEN_DAYS_MS = 10 * ONE_DAY_MS;
 const FIFTEEN_DAYS_MS = 15 * ONE_DAY_MS;
@@ -1016,6 +1017,7 @@ async function main() {
       endTime: todaySession1EndTime,
       status: 'SCHEDULED',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1034,6 +1036,7 @@ async function main() {
       endTime: todaySession2EndTime,
       status: 'SCHEDULED',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1052,6 +1055,7 @@ async function main() {
       endTime: todaySession3EndTime,
       status: 'SCHEDULED',
       tutorId: teacher2.id,
+      centreId: center1.id,
     },
   });
 
@@ -1071,6 +1075,7 @@ async function main() {
       endTime: tomorrowSession1EndTime,
       status: 'SCHEDULED',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1089,6 +1094,7 @@ async function main() {
       endTime: tomorrowSession2EndTime,
       status: 'SCHEDULED',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1109,6 +1115,7 @@ async function main() {
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session1.mp4',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1128,6 +1135,7 @@ async function main() {
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session2.mp4',
       tutorId: teacher1.id,
+      centreId: center1.id,
     },
   });
 
@@ -1147,6 +1155,7 @@ async function main() {
       status: 'COMPLETED',
       recordingUrl: 'https://example.com/recordings/session3.mp4',
       tutorId: teacher2.id,
+      centreId: center1.id,
     },
   });
 
@@ -1164,6 +1173,7 @@ async function main() {
         lessonId: lesson1_1_1.id,
         completed: false,
         notes: 'Working on Introduction to Programming',
+        centreId: center1.id,
       },
       {
         sessionId: todaySession1.id,
@@ -1172,6 +1182,7 @@ async function main() {
         lessonId: lesson1_1_1.id,
         completed: false,
         notes: 'Reviewing programming basics',
+        centreId: center1.id,
       },
       {
         sessionId: todaySession1.id,
@@ -1180,6 +1191,7 @@ async function main() {
         lessonId: lesson1_1_1.id,
         completed: false,
         notes: 'Catching up on fundamentals',
+        centreId: center1.id,
       },
 
       // Today's Session 2 - HTML Workshop (3 students)
@@ -1190,6 +1202,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: false,
         notes: 'HTML structure and tags',
+        centreId: center1.id,
       },
       {
         sessionId: todaySession2.id,
@@ -1198,6 +1211,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: false,
         notes: 'Building first webpage',
+        centreId: center1.id,
       },
       {
         sessionId: todaySession2.id,
@@ -1206,6 +1220,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: false,
         notes: 'Introduction to HTML',
+        centreId: center1.id,
       },
 
       // Today's Session 3 - Algebra Study Group (2 students, different levels)
@@ -1216,6 +1231,7 @@ async function main() {
         lessonId: lesson3_1_1.id,
         completed: false,
         notes: 'Advanced algebraic expressions',
+        centreId: center1.id,
       },
       {
         sessionId: todaySession3.id,
@@ -1224,6 +1240,7 @@ async function main() {
         lessonId: lesson3_1_1.id,
         completed: false,
         notes: 'Basic algebra review',
+        centreId: center1.id,
       },
 
       // Tomorrow's Session 1 - Variables Deep Dive
@@ -1234,6 +1251,7 @@ async function main() {
         lessonId: lesson1_2_1.id,
         completed: false,
         notes: 'Advanced variable concepts',
+        centreId: center1.id,
       },
       {
         sessionId: tomorrowSession1.id,
@@ -1242,6 +1260,7 @@ async function main() {
         lessonId: lesson1_2_1.id,
         completed: false,
         notes: 'Variable practice exercises',
+        centreId: center1.id,
       },
 
       // Tomorrow's Session 2 - CSS Styling
@@ -1252,6 +1271,7 @@ async function main() {
         lessonId: lesson2_1_2.id,
         completed: false,
         notes: 'CSS layout techniques',
+        centreId: center1.id,
       },
       {
         sessionId: tomorrowSession2.id,
@@ -1260,6 +1280,7 @@ async function main() {
         lessonId: lesson2_1_2.id,
         completed: false,
         notes: 'Styling basics',
+        centreId: center1.id,
       },
       {
         sessionId: tomorrowSession2.id,
@@ -1268,6 +1289,7 @@ async function main() {
         lessonId: lesson2_1_2.id,
         completed: false,
         notes: 'First CSS styles',
+        centreId: center1.id,
       },
 
       // Completed Session 1 (with completion status)
@@ -1278,6 +1300,7 @@ async function main() {
         lessonId: lesson1_1_1.id,
         completed: true,
         notes: 'Successfully completed introduction',
+        centreId: center1.id,
       },
       {
         sessionId: completedSession1.id,
@@ -1286,6 +1309,7 @@ async function main() {
         lessonId: lesson1_1_1.id,
         completed: true,
         notes: 'Good understanding of basics',
+        centreId: center1.id,
       },
 
       // Completed Session 2
@@ -1296,6 +1320,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: true,
         notes: 'Excellent progress on HTML',
+        centreId: center1.id,
       },
       {
         sessionId: completedSession2.id,
@@ -1304,6 +1329,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: false,
         notes: 'Needs more practice',
+        centreId: center1.id,
       },
       {
         sessionId: completedSession2.id,
@@ -1312,6 +1338,7 @@ async function main() {
         lessonId: lesson2_1_1.id,
         completed: true,
         notes: 'Quick learner',
+        centreId: center1.id,
       },
 
       // Completed Session 3
@@ -1322,6 +1349,7 @@ async function main() {
         lessonId: lesson3_1_1.id,
         completed: true,
         notes: 'Mastered algebraic expressions',
+        centreId: center1.id,
       },
       {
         sessionId: completedSession3.id,
@@ -1330,6 +1358,7 @@ async function main() {
         lessonId: lesson3_1_1.id,
         completed: false,
         notes: 'Struggled with concepts, needs follow-up',
+        centreId: center1.id,
       },
     ],
   });
@@ -3868,13 +3897,14 @@ async function main() {
       endTime: new Date(today.getTime() + (12 * 60) * 60 * 1000),      // 12:00 PM
       status: 'SCHEDULED',
       tutorId: teacher1.id,
-      centerId: center1.id,
+      centreId: center1.id,
     }
   });
 
   // 2. Multiple overdue catch-ups for Student 3
   if (student3 && mathCourse) {
     await prisma.catchUpPackage.createMany({
+      skipDuplicates: true,
       data: [
         {
           studentId: student3.id,
@@ -3914,16 +3944,16 @@ async function main() {
           status: 'PENDING',
           createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
           slaDueAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // SLA was 1 hour ago
-          centerId: center1.id,
+          centreId: center1.id,
         },
         {
           studentId: student1.id,
           sessionId: todaySession1.id,
           message: 'ESCALATED: Technical issue prevents me from submitting',
           priority: 'HIGH',
-          status: 'ESCALATED',
+          status: 'ACKNOWLEDGED',
           createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 mins ago
-          centerId: center1.id,
+          centreId: center1.id,
         }
       ]
     });

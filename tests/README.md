@@ -24,6 +24,7 @@ End-to-end tests using [Playwright](https://playwright.dev/) for the AetherLearn
 
 ## Running Tests
 
+### Playwright E2E Tests
 ```bash
 # Run all tests (headless)
 npm test
@@ -47,6 +48,18 @@ npx playwright test --grep "Tutor"
 npx playwright show-report
 ```
 
+### Jest API Tests
+```bash
+# Run Jest API tests
+npx jest tests/api/
+
+# Run a specific API test
+npx jest tests/api/classes.test.ts
+
+# Run with coverage
+npx jest --coverage tests/api/
+```
+
 ## Test Files
 
 | File | Coverage |
@@ -59,6 +72,17 @@ npx playwright show-report
 | `student-features.spec.ts` | Student features: Goals, Homework, Awards, Gamification, Help |
 | `api-health.spec.ts` | API health endpoint, auth requirements, public pages |
 | `navigation-redirects.spec.ts` | All role navigation links resolve without 404 |
+| `live-session-tracking.spec.ts` | Live session control center and real-time student tracking |
+| `catchup-pages.spec.ts` | Student catch-up packages, tutor catch-up management |
+| `admin-classes.spec.ts` | Admin class cohort management, RBAC access control |
+| `v1-api.spec.ts` | Phase 1 v1 API: help requests, goals, awards, homework, tutor notes |
+
+### API Tests (Jest - `tests/api/`)
+
+| File | Coverage |
+|------|----------|
+| `api/classes.test.ts` | Classes API CRUD operations |
+| `api/presence.test.ts` | Session presence tracking (join/leave events) |
 
 ## Demo Credentials
 
