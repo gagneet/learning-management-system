@@ -160,6 +160,7 @@ export async function POST(request: NextRequest) {
                 attendanceId: attendanceRecord.id,
                 status: 'PENDING',
                 dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days from now
+                slaDueAt: new Date(sessionData.startTime.getTime() + 48 * 60 * 60 * 1000), // 48 hours after session
                 resources: [], // Empty array - tutor can add resources later
                 notes: `Auto-generated catch-up for missed session: ${sessionData.title}`,
                 centreId: session.user.centerId!,

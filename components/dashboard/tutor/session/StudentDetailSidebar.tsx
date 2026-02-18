@@ -37,6 +37,10 @@ interface StudentDetail {
     completedAt: Date;
     score: number;
     timeSpent: number;
+    questionTimes?: Array<{
+      questionIndex: number;
+      timeSpentSeconds: number;
+    }>;
   }>;
   // Content Tab
   nextContent?: Array<{
@@ -308,34 +312,50 @@ export default function StudentDetailSidebar({
               </div>
             )}
 
-            {/* Exercise History */}
+            {/* Exercise History & Time Analysis */}
             {student.exerciseHistory && student.exerciseHistory.length > 0 && (
-              <div>
-                <h3 className="font-semibold text-gray-900 dark:text-white mb-3">
-                  Exercise History (Today)
+              <div className="space-y-4">
+                <h3 className="font-semibold text-gray-900 dark:text-white">
+                  Activity Time Analysis
                 </h3>
-                <div className="space-y-2">
+                <div className="space-y-4">
                   {student.exerciseHistory.map((exercise) => (
                     <div
                       key={exercise.id}
-                      className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+                      className="p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
                     >
-                      <div className="flex items-start justify-between mb-1">
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
+                      <div className="flex items-start justify-between mb-2">
+                        <span className="text-sm font-bold text-gray-900 dark:text-white">
                           {exercise.title}
                         </span>
                         <span className="text-sm font-bold text-green-600 dark:text-green-400">
                           {exercise.score}%
                         </span>
                       </div>
-                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400">
-                        <span>
-                          ⏱️ {Math.round(exercise.timeSpent / 60)} min
-                        </span>
-                        <span>
-                          {new Date(exercise.completedAt).toLocaleTimeString()}
-                        </span>
+
+                      <div className="flex items-center gap-4 text-xs text-gray-500 dark:text-gray-400 mb-3">
+                        <span>⏱️ Total: {Math.round(exercise.timeSpent / 60)}m {exercise.timeSpent % 60}s</span>
+                        <span>📅 {new Date(exercise.completedAt).toLocaleTimeString()}</span>
                       </div>
+
+                      {/* Granular Question Times */}
+                      {exercise.questionTimes && exercise.questionTimes.length > 0 && (
+                        <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-600">
+                          <p className="text-[10px] font-bold text-gray-400 uppercase mb-2">Time Per Question</p>
+                          <div className="grid grid-cols-5 gap-1">
+                            {exercise.questionTimes.map((qt, idx) => (
+                              <div key={idx} className="text-center">
+                                <div className="text-[9px] text-gray-500 mb-0.5">Q{qt.questionIndex + 1}</div>
+                                <div className={`text-[10px] font-mono p-1 rounded ${
+                                  qt.timeSpentSeconds > 120 ? "bg-red-100 text-red-700" : "bg-blue-100 text-blue-700"
+                                }`}>
+                                  {qt.timeSpentSeconds}s
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>
