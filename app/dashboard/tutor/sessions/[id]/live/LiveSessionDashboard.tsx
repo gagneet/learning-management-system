@@ -36,6 +36,8 @@ interface StudentStatusState {
   currentExercise?: string;
   status: "WORKING" | "WAITING_HELP" | "COMPLETED" | "IDLE" | "NOT_STARTED";
   progress: number;
+  activeMs: number;
+  lastActiveAt?: Date;
 }
 
 interface LiveSessionDashboardProps {
@@ -47,6 +49,7 @@ interface LiveSessionDashboardProps {
     duration: number;
     students: Student[];
   };
+  exerciseAttempts: any[];
   helpRequests: HelpRequest[];
   studentGoals: any[];
   assessments: any[];
@@ -57,6 +60,7 @@ interface LiveSessionDashboardProps {
 
 export default function LiveSessionDashboard({
   session,
+  exerciseAttempts,
   helpRequests: initialHelpRequests,
   studentGoals,
   assessments,
@@ -76,6 +80,8 @@ export default function LiveSessionDashboard({
       currentExercise: undefined,
       status: "NOT_STARTED" as const,
       progress: 0,
+      activeMs: student.academicProfile?.activeMs || 0, // Fallback or from session
+      lastActiveAt: undefined,
     }))
   );
 
@@ -94,17 +100,27 @@ export default function LiveSessionDashboard({
           }
 
           // Random status simulation for demo (remove in production)
-          if (sessionStatus === "LIVE" && Math.random() < 0.1) {
-            const statuses = ["WORKING", "IDLE", "COMPLETED"] as const;
-            const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
-            const newProgress = Math.min(100, student.progress + Math.floor(Math.random() * 10));
+          if (sessionStatus === "LIVE") {
+            let updatedStudent = { ...student };
 
-            return {
-              ...student,
-              status: randomStatus,
-              progress: newProgress,
-              currentExercise: student.currentExercise || "Fraction Problems",
-            };
+            // Increment active time if student is working
+            if (student.status === "WORKING") {
+              updatedStudent.activeMs += 5000;
+            }
+
+            if (Math.random() < 0.1) {
+              const statuses = ["WORKING", "IDLE", "COMPLETED"] as const;
+              const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+              const newProgress = Math.min(100, student.progress + Math.floor(Math.random() * 10));
+
+              updatedStudent = {
+                ...updatedStudent,
+                status: randomStatus,
+                progress: newProgress,
+                currentExercise: student.currentExercise || "Fraction Problems",
+              };
+            }
+            return updatedStudent;
           }
 
           return student;
@@ -280,6 +296,7 @@ export default function LiveSessionDashboard({
         currentGoals: studentGoals.filter((g) => g.studentId === selectedStudent.id),
         assessments: assessments.filter((a) => a.studentId === selectedStudent.id),
         notes: tutorNotes,
+        exerciseHistory: exerciseAttempts.filter((a) => a.studentId === selectedStudent.id),
         // Mock data for timeline and content (replace with real data in production)
         sessionTimeline: [
           {
@@ -288,7 +305,6 @@ export default function LiveSessionDashboard({
             type: "info" as const,
           },
         ],
-        exerciseHistory: [],
         nextContent: [
           {
             id: "demo-1",
@@ -306,7 +322,7 @@ export default function LiveSessionDashboard({
   ).length;
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col h-screen overflow-hidden">
       <SessionHeader
         sessionId={session.id}
         title={session.title}
@@ -318,20 +334,152 @@ export default function LiveSessionDashboard({
         onStatusChange={handleStatusChange}
       />
 
-      <main className="flex-1 pb-20 overflow-y-auto">
-        <HelpRequestPanel
-          requests={helpRequests}
-          onAcknowledge={handleAcknowledgeRequest}
-          onResolve={handleResolveRequest}
-          onViewStudent={handleViewStudent}
-        />
+      <div className="flex-1 flex overflow-hidden">
+        {/* Main Center Area: Video Grid & Student Columns */}
+        <main className="flex-1 flex flex-col overflow-hidden border-r border-gray-200 dark:border-gray-700">
+          {/* Top: Video Grid Placeholder (Phase 2A) */}
+          <div className="h-48 bg-gray-200 dark:bg-gray-800 border-b border-gray-300 dark:border-gray-700 p-4">
+            <div className="flex gap-4 h-full overflow-x-auto">
+              {session.students.map((student) => (
+                <div key={student.id} className="aspect-video h-full bg-gray-900 rounded-lg flex items-center justify-center border-2 border-gray-700 relative overflow-hidden group">
+                  <span className="text-white text-xs font-bold bg-black/50 px-2 py-1 rounded absolute bottom-2 left-2">
+                    {student.name}
+                  </span>
+                  <div className="w-12 h-12 rounded-full bg-blue-500/20 flex items-center justify-center text-blue-500 text-xl font-bold">
+                    {student.name[0]}
+                  </div>
+                  <div className="absolute top-2 right-2 flex gap-1">
+                    <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse"></div>
+                  </div>
+                  {/* Timer placeholder */}
+                  <div className="absolute bottom-2 right-2 text-[10px] text-gray-400">
+                    00:45:12
+                  </div>
+                </div>
+              ))}
+              <button className="aspect-video h-full border-2 border-dashed border-gray-400 rounded-lg flex items-center justify-center text-gray-500 hover:bg-gray-100 dark:hover:bg-gray-700">
+                + Add Student
+              </button>
+            </div>
+          </div>
 
-        <StudentGridView
-          students={studentStatuses}
-          onSelectStudent={handleViewStudent}
-          selectedStudentId={selectedStudentId}
-        />
-      </main>
+          {/* Bottom: Student Work Columns */}
+          <div className="flex-1 overflow-x-auto bg-gray-100 dark:bg-gray-900">
+            <div className="h-full inline-flex min-w-full p-4 gap-4">
+              {studentStatuses.map((student) => (
+                <div key={student.id}
+                  className={`w-80 flex-shrink-0 bg-white dark:bg-gray-800 rounded-xl shadow-sm border-2 flex flex-col transition-all ${
+                    selectedStudentId === student.id ? "border-blue-500 ring-2 ring-blue-500/20" : "border-transparent"
+                  }`}
+                >
+                  <div className="p-4 border-b border-gray-100 dark:border-gray-700 flex justify-between items-center">
+                    <div>
+                      <h3 className="font-bold text-gray-900 dark:text-white">{student.name}</h3>
+                      <p className="text-xs text-gray-500">{student.gradeLevel}</p>
+                    </div>
+                    <span className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase ${
+                      student.status === "WORKING" ? "bg-blue-100 text-blue-700" :
+                      student.status === "WAITING_HELP" ? "bg-red-100 text-red-700" :
+                      student.status === "COMPLETED" ? "bg-green-100 text-green-700" :
+                      "bg-gray-100 text-gray-700"
+                    }`}>
+                      {student.status}
+                    </span>
+                  </div>
+
+                  <div className="flex-1 p-4 overflow-y-auto space-y-4">
+                    {/* Progress Bar */}
+                    <div>
+                      <div className="flex justify-between text-[10px] mb-1">
+                        <span className="text-gray-500 uppercase font-bold tracking-wider">Progress</span>
+                        <span className="text-blue-600 font-bold">{student.progress}%</span>
+                      </div>
+                      <div className="w-full h-1.5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden">
+                        <div className="h-full bg-blue-500 transition-all duration-500" style={{ width: `${student.progress}%` }}></div>
+                      </div>
+                    </div>
+
+                    {/* Time Tracking */}
+                    <div className="flex gap-2">
+                      <div className="flex-1 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-2 border border-blue-100 dark:border-blue-800">
+                        <div className="text-[9px] text-blue-600 dark:text-blue-400 uppercase font-bold">Time Online</div>
+                        <div className="text-sm font-mono font-bold dark:text-gray-200">
+                          {Math.floor(student.activeMs / 60000)}m {Math.floor((student.activeMs % 60000) / 1000)}s
+                        </div>
+                      </div>
+                      <div className="flex-1 bg-gray-50 dark:bg-gray-900/50 rounded-lg p-2 border border-gray-100 dark:border-gray-700">
+                        <div className="text-[9px] text-gray-400 uppercase font-bold">Last Active</div>
+                        <div className="text-xs font-medium dark:text-gray-200">
+                          {student.status === "IDLE" ? "Inactive" : "Just now"}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Current Activity */}
+                    <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-3 border border-gray-100 dark:border-gray-700">
+                      <div className="text-[10px] text-gray-400 uppercase font-bold mb-2">Currently Working On</div>
+                      <div className="text-sm font-medium dark:text-gray-200">
+                        {student.currentExercise || "No active exercise"}
+                      </div>
+                    </div>
+
+                    {/* Whiteboard / Canvas Mini-Preview Placeholder */}
+                    <div className="aspect-square bg-gray-50 dark:bg-gray-900/50 rounded-lg border-2 border-dashed border-gray-200 dark:border-gray-700 flex items-center justify-center flex-col gap-2 group cursor-pointer hover:bg-gray-100">
+                      <div className="text-2xl opacity-20 group-hover:opacity-100 transition-opacity">🎨</div>
+                      <button
+                        onClick={() => handleViewStudent(student.id)}
+                        className="text-[10px] text-blue-600 font-bold hover:underline"
+                      >
+                        VIEW WHITEBOARD
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="p-3 border-t border-gray-100 dark:border-gray-700 bg-gray-50/50 dark:bg-gray-800/50 rounded-b-xl flex gap-2">
+                    <button className="flex-1 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-[10px] font-bold hover:bg-gray-50">TEACH</button>
+                    <button className="flex-1 py-1.5 bg-white dark:bg-gray-700 border border-gray-200 dark:border-gray-600 rounded text-[10px] font-bold hover:bg-gray-50">OBSERVE</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </main>
+
+        {/* Right Sidebar: Help Requests & Activities */}
+        <aside className="w-80 bg-white dark:bg-gray-800 flex flex-col shadow-xl">
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <HelpRequestPanel
+              requests={helpRequests}
+              onAcknowledge={handleAcknowledgeRequest}
+              onResolve={handleResolveRequest}
+              onViewStudent={handleViewStudent}
+            />
+
+            {/* Activity Feed */}
+            <div className="flex-1 flex flex-col overflow-hidden border-t border-gray-200 dark:border-gray-700">
+              <div className="p-4 border-b border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-900/50">
+                <h2 className="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wider">Session Activity</h2>
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 space-y-4">
+                {session.students.map((student, idx) => (
+                  <div key={student.id} className="flex gap-3 text-xs">
+                    <div className="w-6 h-6 rounded-full bg-gray-100 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                      {student.name[0]}
+                    </div>
+                    <div>
+                      <span className="font-bold dark:text-gray-200">{student.name}</span>
+                      <span className="text-gray-500 ml-1">
+                        {idx === 0 ? "joined the session" : idx === 1 ? "started Reading Exercise 4" : "completed quiz"}
+                      </span>
+                      <div className="text-[10px] text-gray-400 mt-0.5">2m ago</div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        </aside>
+      </div>
 
       {selectedStudentDetail && (
         <StudentDetailSidebar

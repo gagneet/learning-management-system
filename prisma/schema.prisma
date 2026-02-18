@@ -39,6 +39,11 @@ model Center {
   // Phase 1: Individualized Tutoring Platform
   awards          Award[]            @relation("CentreAwards")
   sessionTemplates SessionTemplate[]  @relation("CentreTemplates")
+  sessions        Session[]
+  presenceLogs    SessionPresenceLog[]
+  activityLogs    ActivityLog[]
+  whiteboards     WhiteboardState[]
+  studentSessionEnrollments StudentSessionEnrollment[]
 }
 
 // User model with role-based access
@@ -170,6 +175,9 @@ model User {
   receivedMessages        ChatMessage[]         @relation("ReceivedMessages")
   studentRedemptions      AwardRedemption[]     @relation("StudentRedemptions")
   tutorTemplates          SessionTemplate[]     @relation("TutorTemplates")
+  studentWhiteboards      WhiteboardState[]     @relation("StudentWhiteboards")
+  sessionPresenceLogs     SessionPresenceLog[]
+  activityLogs            ActivityLog[]
 
   @@index([centerId])
   @@index([email])
@@ -416,6 +424,7 @@ model Session {
   joinUrl         String?        // Join URL for the session
   startTime       DateTime
   endTime         DateTime?
+  timezone        String         @default("Australia/Sydney")
   duration        Int?           // Duration in minutes (calculated from endTime-startTime or set manually)
   status          SessionStatus  @default(SCHEDULED)
   recordingUrl    String?        // Recording URL after session
@@ -434,6 +443,8 @@ model Session {
 
   tutorId         String         // Required - every session has a tutor
   tutor           User           @relation("TutorSessions", fields: [tutorId], references: [id])
+  centreId        String
+  centre          Center         @relation(fields: [centreId], references: [id], onDelete: Cascade)
 
   // Phase 1: Link to ClassCohort (optional, for group management)
   classId         String?
@@ -441,6 +452,7 @@ model Session {
   
   // NEW: Student enrollments with individual course/lesson assignments
   studentEnrollments StudentSessionEnrollment[]
+  presenceLogs    SessionPresenceLog[]
   
   attendance      SessionAttendance[]
   attendanceRecords AttendanceRecord[] @relation("AttendanceRecords")
@@ -449,6 +461,7 @@ model Session {
   // Phase 1: Real-time session interaction
   helpRequests    HelpRequest[]
   chatMessages    ChatMessage[]
+  whiteboards     WhiteboardState[]
 
   @@index([tutorId])
   @@index([startTime])
@@ -481,6 +494,14 @@ model StudentSessionEnrollment {
   // Student's progress in this session
   completed       Boolean  @default(false)
   notes           String?  // Tutor notes specific to this student's session
+  centreId        String
+  centre          Center   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+
+  // time tracking granularity
+  joinedAt     DateTime?
+  leftAt       DateTime?
+  activeMs     Int @default(0)   // accumulated active time
+  lastActiveAt DateTime?
 
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -493,6 +514,8 @@ model StudentSessionEnrollment {
   activities          StudentSessionActivity[]
   tutorNotes          TutorNote[]
   contentAssignments  ContentAssignment[]
+  presenceLogs        SessionPresenceLog[]
+  activityLogs        ActivityLog[]
 
   @@unique([sessionId, studentId])
   @@index([sessionId])
@@ -808,14 +831,27 @@ enum ClassStatus {
   CANCELLED
 }
 
+enum Subject {
+  ENGLISH
+  MATHEMATICS
+  STEM
+  SCIENCE
+  OTHER
+}
+
 model ClassCohort {
   id                String            @id @default(cuid())
   name              String            // "Math Grade 5 - Spring 2026"
   subject           String            // "Mathematics"
+  subjectEnum       Subject?          // New structured subject
   description       String?
 
   startDate         DateTime
   endDate           DateTime?  // Optional - class might be ongoing
+
+  gradeMin          Int?
+  gradeMax          Int?
+  isActive          Boolean           @default(true)
 
   maxCapacity       Int               @default(20)
   currentEnrollment Int               @default(0)
@@ -830,6 +866,7 @@ model ClassCohort {
   
   members           ClassMembership[]
   sessions          Session[]         @relation("ClassSessions")
+  scheduleRules     ClassScheduleRule[]
   
   createdAt         DateTime          @default(now())
   updatedAt         DateTime          @updatedAt
@@ -932,6 +969,7 @@ model CatchUpPackage {
   status      CatchUpStatus @default(PENDING)
   
   dueDate     DateTime      // Auto-calculated: missedDate + 7 days
+  slaDueAt    DateTime?     // Precomputed for escalation jobs
   completedAt DateTime?
   
   resources   Json          // Array of { type, url, title, duration }
@@ -1463,6 +1501,7 @@ model ExerciseAttempt {
   submittedAt         DateTime?
   autoGraded          Boolean      @default(false)
   timeSpent           Int?         // seconds
+  questionTimes       Json?        // [{questionIndex, timeSpentSeconds}]
   createdAt           DateTime     @default(now())
   updatedAt           DateTime     @updatedAt
 
@@ -1693,6 +1732,7 @@ model HelpRequest {
   resolvedAt      DateTime?
   resolvedById    String?
   responseText    String?           @db.Text
+  slaDueAt        DateTime?         // SLA tracking
 
   student         User              @relation("StudentHelpRequests", fields: [studentId], references: [id], onDelete: Cascade)
   session         Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)
@@ -1925,4 +1965,93 @@ model SessionTemplate {
   @@index([centreId])
   @@index([dayOfWeek])
   @@index([isActive])
+}
+
+enum RecurrenceType {
+  NONE
+  WEEKLY
+}
+
+model ClassScheduleRule {
+  id          String         @id @default(cuid())
+  centreId    String
+  classId     String
+
+  recurrence  RecurrenceType @default(WEEKLY)
+  startDate   DateTime
+  endDate     DateTime?
+  // 0=Sun..6=Sat
+  daysOfWeek  Int[]          // e.g. [1,3] for Mon/Wed
+  startTime   String         // "16:30" local time
+  durationMin Int            @default(60)
+  timezone    String         @default("Australia/Sydney")
+
+  isActive    Boolean        @default(true)
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+
+  class  ClassCohort @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@index([classId, isActive])
+  @@index([centreId])
+}
+
+model WhiteboardState {
+  id         String   @id @default(cuid())
+  centreId   String
+  centre     Center   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+  sessionId  String
+  studentId  String
+  exerciseId String
+  stateJson  Json
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  session Session @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student User    @relation("StudentWhiteboards", fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@unique([sessionId, studentId, exerciseId])
+  @@index([sessionId])
+  @@index([studentId, exerciseId])
+  @@index([centreId])
+}
+
+model ActivityLog {
+  id              String   @id @default(cuid())
+  centreId        String
+  centre          Center   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+  enrollmentId    String
+  studentId       String
+  activityType    String   // EXERCISE_START, EXERCISE_COMPLETE, QUESTION_ANSWER, WHITEBOARD_SAVE, PAGE_VIEW
+  activityId      String?  // ID of exercise, question etc
+  details         Json?
+  timestamp       DateTime @default(now())
+
+  enrollment      StudentSessionEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+  student         User                     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+
+  @@index([enrollmentId])
+  @@index([timestamp])
+  @@index([centreId])
+}
+
+model SessionPresenceLog {
+  id              String   @id @default(cuid())
+  centreId        String
+  centre          Center   @relation(fields: [centreId], references: [id], onDelete: Cascade)
+  sessionId       String
+  studentId       String
+  enrollmentId    String
+  event           String   // JOIN, LEAVE, HEARTBEAT, DISCONNECT, RECONNECT
+  timestamp       DateTime @default(now())
+
+  session         Session                  @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  student         User                     @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  enrollment      StudentSessionEnrollment @relation(fields: [enrollmentId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId, studentId])
+  @@index([enrollmentId])
+  @@index([timestamp])
+  @@index([centreId])
 }

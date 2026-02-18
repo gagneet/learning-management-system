@@ -110,6 +110,22 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
     take: 5,
   });
 
+  // Fetch recent exercise attempts with timing data
+  const exerciseAttempts = await prisma.exerciseAttempt.findMany({
+    where: {
+      studentId: { in: studentIds },
+      sessionEnrollmentId: { in: sessionData.studentEnrollments.map(e => e.id) }
+    },
+    include: {
+      exercise: {
+        select: { title: true }
+      }
+    },
+    orderBy: {
+      submittedAt: "desc"
+    }
+  });
+
   // Fetch session notes
   const tutorNotes = await prisma.tutorNote.findMany({
     where: {
@@ -136,6 +152,15 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
 
   return (
     <LiveSessionDashboard
+      exerciseAttempts={exerciseAttempts.map(a => ({
+        id: a.id,
+        studentId: a.studentId,
+        title: a.exercise.title,
+        completedAt: a.submittedAt || a.updatedAt,
+        score: a.score || 0,
+        timeSpent: a.timeSpent || 0,
+        questionTimes: a.questionTimes as any
+      }))}
       session={{
         id: sessionData.id,
         title: sessionData.title,
@@ -149,7 +174,10 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
           gradeLevel: "Student",
           enrollmentId: enrollment.id,
           courseTitle: enrollment.course?.title || "Unknown Course",
-          academicProfile: enrollment.student.academicProfile,
+          academicProfile: {
+            ...enrollment.student.academicProfile,
+            activeMs: enrollment.activeMs,
+          },
         })),
       }}
       helpRequests={helpRequests.map((req) => ({

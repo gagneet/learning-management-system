@@ -3847,6 +3847,142 @@ async function main() {
   }
 
   console.log(`✅ Seeded ${BADGE_DEFINITIONS.length} badge definitions`);
+
+  // =============================================================================
+  // COMPLEX EDGE CASES (Phase 3)
+  // =============================================================================
+  console.log('\n🏗️  Seeding Complex Edge Cases...');
+
+  // 1. Overlapping sessions for Tutor 1
+  const overlapStartTime = new Date(today);
+  overlapStartTime.setHours(11, 30, 0, 0); // Overlaps with nothing yet, let's make it overlap with todaySession1 (10-11) - wait no.
+  // todaySession1: 10:00 - 11:00
+  // todaySession2: 14:00 - 15:30
+
+  await prisma.session.create({
+    data: {
+      title: 'OVERLAP: Programming Workshop',
+      description: 'Session that overlaps with another one for testing alerts',
+      provider: 'ZOOM',
+      startTime: new Date(today.getTime() + (10 * 60 + 30) * 60 * 1000), // 10:30 AM
+      endTime: new Date(today.getTime() + (12 * 60) * 60 * 1000),      // 12:00 PM
+      status: 'SCHEDULED',
+      tutorId: teacher1.id,
+      centerId: center1.id,
+    }
+  });
+
+  // 2. Multiple overdue catch-ups for Student 3
+  if (student3 && mathCourse) {
+    await prisma.catchUpPackage.createMany({
+      data: [
+        {
+          studentId: student3.id,
+          sessionId: todaySession1.id,
+          attendanceId: attendance3.id, // Reusing but usually it would be new
+          status: 'PENDING',
+          dueDate: new Date(Date.now() - TWO_DAYS_MS),
+          slaDueAt: new Date(Date.now() - FIVE_DAYS_MS),
+          resources: [],
+          notes: 'Math Overdue Catchup 1',
+          centreId: center1.id,
+        },
+        {
+          studentId: student3.id,
+          sessionId: todaySession3.id,
+          attendanceId: attendance8.id,
+          status: 'PENDING',
+          dueDate: new Date(Date.now() - ONE_DAY_MS),
+          slaDueAt: new Date(Date.now() - THREE_DAYS_MS),
+          resources: [],
+          notes: 'Math Overdue Catchup 2',
+          centreId: center1.id,
+        }
+      ]
+    });
+  }
+
+  // 3. Escalated and SLA breached help requests
+  if (student2 && todaySession1) {
+    await prisma.helpRequest.createMany({
+      data: [
+        {
+          studentId: student2.id,
+          sessionId: todaySession1.id,
+          message: 'SLA BREACHED: I have been waiting for 2 hours!',
+          priority: 'URGENT',
+          status: 'PENDING',
+          createdAt: new Date(Date.now() - 3 * 60 * 60 * 1000), // 3 hours ago
+          slaDueAt: new Date(Date.now() - 1 * 60 * 60 * 1000), // SLA was 1 hour ago
+          centerId: center1.id,
+        },
+        {
+          studentId: student1.id,
+          sessionId: todaySession1.id,
+          message: 'ESCALATED: Technical issue prevents me from submitting',
+          priority: 'HIGH',
+          status: 'ESCALATED',
+          createdAt: new Date(Date.now() - 30 * 60 * 1000), // 30 mins ago
+          centerId: center1.id,
+        }
+      ]
+    });
+  }
+
+  console.log('✅ Complex edge cases seeded');
+
+  // 4. Irregular Presence (Network Issues)
+  const sessionForPresence = await prisma.session.findFirst({
+    where: { title: { contains: 'Introduction to Programming' } }
+  });
+
+  if (sessionForPresence && student1) {
+    const enrollment = await prisma.studentSessionEnrollment.findUnique({
+      where: { sessionId_studentId: { sessionId: sessionForPresence.id, studentId: student1.id } }
+    });
+
+    if (enrollment) {
+      await prisma.sessionPresenceLog.createMany({
+        data: [
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'JOIN', timestamp: new Date(Date.now() - 60 * 60 * 1000) },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'DISCONNECT', timestamp: new Date(Date.now() - 55 * 60 * 1000) },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'RECONNECT', timestamp: new Date(Date.now() - 50 * 60 * 1000) },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'HEARTBEAT', timestamp: new Date(Date.now() - 40 * 60 * 1000) },
+          { sessionId: sessionForPresence.id, studentId: student1.id, enrollmentId: enrollment.id, event: 'LEAVE', timestamp: new Date(Date.now() - 10 * 60 * 1000) },
+        ]
+      });
+
+      await prisma.studentSessionEnrollment.update({
+        where: { id: enrollment.id },
+        data: { activeMs: 45 * 60 * 1000 } // 45 mins total active
+      });
+    }
+  }
+
+  // 5. Exercise attempts with granular timing
+  if (student1 && exercises.length > 0) {
+    await prisma.exerciseAttempt.create({
+      data: {
+        studentId: student1.id,
+        exerciseId: exercises[0].id,
+        answers: [],
+        score: 15,
+        maxScore: 20,
+        status: 'GRADED',
+        timeSpent: 600, // 10 mins
+        questionTimes: [
+          { questionIndex: 0, timeSpentSeconds: 45 },
+          { questionIndex: 1, timeSpentSeconds: 150 }, // Took too long on Q2
+          { questionIndex: 2, timeSpentSeconds: 30 },
+          { questionIndex: 3, timeSpentSeconds: 120 },
+        ],
+        submittedAt: new Date(),
+        sessionEnrollmentId: sessionEnrollments[0].id
+      }
+    });
+  }
+
+  console.log('✅ Advanced time tracking seed data complete');
 }
 
 main()

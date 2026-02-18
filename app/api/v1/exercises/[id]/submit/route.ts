@@ -23,7 +23,7 @@ export async function POST(
 
   try {
     const body = await request.json();
-    const { attemptId, answers, timeSpent } = body;
+    const { attemptId, answers, timeSpent, questionTimes } = body;
 
     // Validation
     if (!attemptId || !answers || !Array.isArray(answers)) {
@@ -145,6 +145,7 @@ export async function POST(
         status,
         autoGraded: isAutoGradable,
         timeSpent: timeSpent || 0,
+        questionTimes: questionTimes || null,
         submittedAt: new Date(),
       },
       include: {
