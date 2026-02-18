@@ -1,76 +1,81 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import {
+  requireAuth,
+  checkCenterAccess,
+} from "@/lib/api-middleware";
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  withErrorHandling,
+} from "@/lib/api-utils";
 
 // GET /api/v1/awards/:id - Get specific award
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { session } = authResult;
   const { user } = session;
   const { id: awardId } = await params;
 
   try {
-    const award = await prisma.award.findUnique({
-      where: { id: awardId },
-      include: {
-        centre: {
-          select: {
-            id: true,
-            name: true,
-          },
-        },
-        redemptions: {
+    const award = await withErrorHandling(
+      async () =>
+        await prisma.award.findUnique({
+          where: { id: awardId },
           include: {
-            student: {
+            centre: {
               select: {
                 id: true,
                 name: true,
-                email: true,
+              },
+            },
+            redemptions: {
+              include: {
+                student: {
+                  select: {
+                    id: true,
+                    name: true,
+                    email: true,
+                  },
+                },
+              },
+              orderBy: {
+                redeemedAt: "desc",
+              },
+              take: 10,
+            },
+            _count: {
+              select: {
+                redemptions: true,
               },
             },
           },
-          orderBy: {
-            redeemedAt: "desc",
-          },
-          take: 10,
-        },
-        _count: {
-          select: {
-            redemptions: true,
-          },
-        },
-      },
-    });
+        }),
+      "fetching award"
+    );
 
     if (!award) {
-      return NextResponse.json(
-        { success: false, error: "Award not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Award");
     }
 
     // Check centre access
-    if (user.role !== "SUPER_ADMIN" && award.centreId !== user.centerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const accessError = checkCenterAccess(
+      user.role,
+      user.centerId,
+      award.centreId
+    );
+    if (accessError) return accessError;
 
-    return NextResponse.json({
-      success: true,
-      data: award,
-    });
+    return successResponse(award);
   } catch (error) {
     console.error("Error fetching award:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch award" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to fetch award");
   }
 }
 
@@ -79,12 +84,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { session } = authResult;
   const { user } = session;
   const { id: awardId } = await params;
 
@@ -106,83 +109,72 @@ export async function PATCH(
       body;
 
     // Get existing award
-    const existing = await prisma.award.findUnique({
+    const existingAward = await prisma.award.findUnique({
       where: { id: awardId },
     });
 
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: "Award not found" },
-        { status: 404 }
-      );
+    if (!existingAward) {
+      return notFoundResponse("Award");
     }
 
     // Verify centre access
-    if (user.role !== "SUPER_ADMIN" && existing.centreId !== user.centerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const accessError = checkCenterAccess(
+      user.role,
+      user.centerId,
+      existingAward.centreId
+    );
+    if (accessError) return accessError;
 
-    // Build update data
-    const updateData: any = {};
+    // Build award update payload
+    const awardUpdatePayload: Record<string, unknown> = {};
 
-    if (name !== undefined) updateData.name = name;
-    if (description !== undefined) updateData.description = description;
+    if (name !== undefined) awardUpdatePayload.name = name;
+    if (description !== undefined) awardUpdatePayload.description = description;
 
     if (xpCost !== undefined) {
       if (xpCost < 0) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: "xpCost must be non-negative",
-          },
-          { status: 400 }
-        );
+        return errorResponse("xpCost must be non-negative", 400);
       }
-      updateData.xpCost = xpCost;
+      awardUpdatePayload.xpCost = xpCost;
     }
 
     if (awardType !== undefined) {
       const validAwardTypes = ["GIFT", "STICKER", "COURSE_UNLOCK", "CUSTOM"];
       if (!validAwardTypes.includes(awardType)) {
-        return NextResponse.json(
-          {
-            success: false,
-            error: `Invalid awardType. Must be one of: ${validAwardTypes.join(", ")}`,
-          },
-          { status: 400 }
+        return errorResponse(
+          `Invalid awardType. Must be one of: ${validAwardTypes.join(", ")}`,
+          400
         );
       }
-      updateData.awardType = awardType;
+      awardUpdatePayload.awardType = awardType;
     }
 
-    if (imageUrl !== undefined) updateData.imageUrl = imageUrl;
-    if (stockQuantity !== undefined) updateData.stockQuantity = stockQuantity;
-    if (isActive !== undefined) updateData.isActive = isActive;
+    if (imageUrl !== undefined) awardUpdatePayload.imageUrl = imageUrl;
+    if (stockQuantity !== undefined) awardUpdatePayload.stockQuantity = stockQuantity;
+    if (isActive !== undefined) awardUpdatePayload.isActive = isActive;
 
     // Update award
-    const award = await prisma.award.update({
-      where: { id: awardId },
-      data: updateData,
-      include: {
-        centre: {
-          select: {
-            id: true,
-            name: true,
+    const updatedAward = await withErrorHandling(
+      async () =>
+        await prisma.award.update({
+          where: { id: awardId },
+          data: awardUpdatePayload,
+          include: {
+            centre: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
           },
-        },
-      },
-    });
+        }),
+      "updating award"
+    );
 
-    return NextResponse.json({
-      success: true,
-      data: award,
-    });
+    return successResponse(updatedAward);
   } catch (error) {
     console.error("Error updating award:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update award" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to update award");
   }
 }
 
@@ -191,12 +183,10 @@ export async function DELETE(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { session } = authResult;
   const { user } = session;
   const { id: awardId } = await params;
 
@@ -207,36 +197,34 @@ export async function DELETE(
 
   try {
     // Get existing award
-    const existing = await prisma.award.findUnique({
+    const existingAward = await prisma.award.findUnique({
       where: { id: awardId },
     });
 
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: "Award not found" },
-        { status: 404 }
-      );
+    if (!existingAward) {
+      return notFoundResponse("Award");
     }
 
     // Verify centre access
-    if (user.role !== "SUPER_ADMIN" && existing.centreId !== user.centerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-    }
+    const accessError = checkCenterAccess(
+      user.role,
+      user.centerId,
+      existingAward.centreId
+    );
+    if (accessError) return accessError;
 
     // Delete award (will cascade delete redemptions)
-    await prisma.award.delete({
-      where: { id: awardId },
-    });
+    await withErrorHandling(
+      async () =>
+        await prisma.award.delete({
+          where: { id: awardId },
+        }),
+      "deleting award"
+    );
 
-    return NextResponse.json({
-      success: true,
-      message: "Award deleted successfully",
-    });
+    return successResponse(null, "Award deleted successfully");
   } catch (error) {
     console.error("Error deleting award:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to delete award" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to delete award");
   }
 }
