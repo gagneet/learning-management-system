@@ -95,6 +95,24 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Verify teacher exists and belongs to the same center
+    const teacher = await prisma.user.findUnique({
+      where: { id: teacherId },
+      select: { centerId: true, role: true }
+    });
+
+    if (!teacher) {
+      return NextResponse.json({ error: "Teacher not found" }, { status: 404 });
+    }
+
+    if (teacher.role !== "TEACHER") {
+      return NextResponse.json({ error: "User is not a teacher" }, { status: 400 });
+    }
+
+    if (user.role !== "SUPER_ADMIN" && teacher.centerId !== user.centerId) {
+      return NextResponse.json({ error: "Teacher must belong to your center" }, { status: 403 });
+    }
+
     const newClass = await prisma.classCohort.create({
       data: {
         name,

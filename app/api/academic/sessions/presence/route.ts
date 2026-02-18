@@ -33,6 +33,8 @@ export async function POST(request: NextRequest) {
       select: {
         id: true,
         studentId: true,
+        sessionId: true,
+        centreId: true,
         lastActiveAt: true,
         activeMs: true,
       }
@@ -42,8 +44,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Enrollment not found" }, { status: 404 });
     }
 
+    // Security: Verify enrollment belongs to the claimed sessionId
+    if (enrollment.sessionId !== sessionId) {
+      return NextResponse.json({ error: "Invalid session context" }, { status: 400 });
+    }
+
     // Ensure user is authorized
     if (user.role === "STUDENT" && enrollment.studentId !== user.id) {
+      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    }
+
+    // Multi-tenancy check for non-SUPER_ADMIN
+    if (user.role !== "SUPER_ADMIN" && enrollment.centreId !== user.centerId) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 

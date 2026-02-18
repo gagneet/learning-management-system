@@ -69,12 +69,12 @@ export async function GET(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Check permissions using class centreId or first enrollment's course centreId
-    const sessionCentreId = liveSession.class?.centreId ||
-                            liveSession.studentEnrollments?.[0]?.course?.centerId;
-
-    if (user.role !== "SUPER_ADMIN" && sessionCentreId && sessionCentreId !== user.centerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Check permissions using the session's own centreId as the authoritative tenant
+    const sessionCentreId = liveSession.centreId;
+    if (user.role !== "SUPER_ADMIN") {
+      if (!sessionCentreId || sessionCentreId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     return NextResponse.json(liveSession);
@@ -143,12 +143,12 @@ export async function PUT(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Check permissions using class centreId or first enrollment's course centreId
-    const sessionCentreId = existingSession.class?.centreId ||
-                            existingSession.studentEnrollments?.[0]?.course?.centerId;
-
-    if (user.role !== "SUPER_ADMIN" && sessionCentreId && sessionCentreId !== user.centerId) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+    // Check permissions using the session's own centreId as the authoritative tenant
+    const sessionCentreId = existingSession.centreId;
+    if (user.role !== "SUPER_ADMIN") {
+      if (!sessionCentreId || sessionCentreId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     // Update session

@@ -36,16 +36,21 @@ export async function GET(request: NextRequest) {
         in: children.map((child) => child.id),
       };
     } else if (user.role !== "SUPER_ADMIN") {
-      // Teachers, supervisors, admins - filter by center
-      const student = studentId
-        ? await prisma.user.findUnique({
-            where: { id: studentId },
-            select: { centerId: true },
-          })
-        : null;
+      // Teachers, supervisors, admins - must filter by their center
+      where.student = {
+        centerId: user.centerId
+      };
 
-      if (student && student.centerId !== user.centerId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      // Validate studentId if provided
+      if (studentId) {
+        const student = await prisma.user.findUnique({
+          where: { id: studentId },
+          select: { centerId: true },
+        });
+
+        if (!student || student.centerId !== user.centerId) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
       }
     }
 

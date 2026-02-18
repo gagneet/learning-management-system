@@ -75,13 +75,15 @@ export async function PATCH(
       return NextResponse.json({ error: "Session not found" }, { status: 404 });
     }
 
-    // Validate centre access using class centreId or first enrollment's course centreId
-    const sessionCentreId = existingSession.class?.centreId ||
-                            existingSession.studentEnrollments?.[0]?.course?.centerId;
-
-    if (sessionCentreId) {
-      validateCentreAccess(session, sessionCentreId);
+    // Validate centre access using session.centreId directly and fail closed if missing
+    const sessionCentreId = existingSession.centreId;
+    if (!sessionCentreId) {
+      return NextResponse.json(
+        { error: "Session centre is not configured" },
+        { status: 403 }
+      );
     }
+    validateCentreAccess(session, sessionCentreId);
 
     // Prepare update data based on mode
     const updateData: any = {

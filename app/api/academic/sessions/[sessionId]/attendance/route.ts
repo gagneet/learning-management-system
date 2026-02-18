@@ -151,6 +151,7 @@ export async function POST(
               studentId: record.studentId,
               status: "PENDING",
               dueDate: dueDate,
+              slaDueAt: new Date(liveSession.startTime.getTime() + 48 * 60 * 60 * 1000), // 48 hours after session
               resources: [],
               notes: `Missed session on ${liveSession.startTime.toLocaleDateString()}. Please review the materials and complete the catch-up activities.`,
               centreId: session.user.centerId || '',

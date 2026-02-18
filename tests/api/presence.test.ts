@@ -26,13 +26,15 @@ describe("/api/academic/sessions/presence", () => {
 
   it("should update activeMs on heartbeat", async () => {
     (auth as jest.Mock).mockResolvedValue({
-      user: { id: "student-1", role: "STUDENT" },
+      user: { id: "student-1", role: "STUDENT", centerId: "center-1" },
     });
 
     const lastActive = new Date(Date.now() - 30000); // 30s ago
     const mockEnrollment = {
       id: "enr-1",
       studentId: "student-1",
+      sessionId: "sess-1",
+      centreId: "center-1",
       lastActiveAt: lastActive,
       activeMs: 1000,
     };

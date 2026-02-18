@@ -44,6 +44,7 @@ model Center {
   activityLogs    ActivityLog[]
   whiteboards     WhiteboardState[]
   studentSessionEnrollments StudentSessionEnrollment[]
+  helpRequests    HelpRequest[]      @relation("CentreHelpRequests")
 }
 
 // User model with role-based access
@@ -1733,6 +1734,8 @@ model HelpRequest {
   resolvedById    String?
   responseText    String?           @db.Text
   slaDueAt        DateTime?         // SLA tracking
+  centreId        String
+  centre          Center            @relation("CentreHelpRequests", fields: [centreId], references: [id], onDelete: Cascade)
 
   student         User              @relation("StudentHelpRequests", fields: [studentId], references: [id], onDelete: Cascade)
   session         Session           @relation(fields: [sessionId], references: [id], onDelete: Cascade)

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { validateCentreAccess } from "@/lib/tenancy";
 
 export async function PATCH(
   request: NextRequest,
@@ -20,6 +21,18 @@ export async function PATCH(
   }
 
   try {
+    // Load class first to check center access
+    const classCohort = await prisma.classCohort.findUnique({
+      where: { id },
+      select: { centreId: true }
+    });
+
+    if (!classCohort) {
+      return NextResponse.json({ error: "Class not found" }, { status: 404 });
+    }
+
+    validateCentreAccess(session, classCohort.centreId);
+
     const body = await request.json();
     const { name, subject, teacherId, startDate, endDate, maxCapacity, gradeMin, gradeMax } = body;
 

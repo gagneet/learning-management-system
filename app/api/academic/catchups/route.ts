@@ -18,7 +18,11 @@ export async function GET(request: NextRequest) {
 
   const studentId = searchParams.get("studentId");
   const status = searchParams.get("status");
-  const centreId = searchParams.get("centreId") || user.centerId;
+
+  // Enforce centreId from session for non-super-admins
+  const centreId = user.role === "SUPER_ADMIN"
+    ? (searchParams.get("centreId") || user.centerId)
+    : user.centerId;
 
   try {
     const where: any = {
@@ -103,6 +107,27 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate existence and ownership
+    const [student, sessionData, attendance] = await Promise.all([
+      prisma.user.findUnique({ where: { id: studentId }, select: { centerId: true } }),
+      prisma.session.findUnique({ where: { id: sessionId }, select: { centreId: true } }),
+      prisma.attendanceRecord.findUnique({ where: { id: attendanceId }, select: { centreId: true, studentId: true, sessionId: true } })
+    ]);
+
+    if (!student || !sessionData || !attendance) {
+      return NextResponse.json({ error: "Referenced records not found" }, { status: 404 });
+    }
+
+    if (user.role !== "SUPER_ADMIN") {
+      if (student.centerId !== user.centerId || sessionData.centreId !== user.centerId || attendance.centreId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden: Cross-center reference detected" }, { status: 403 });
+      }
+    }
+
+    if (attendance.studentId !== studentId || attendance.sessionId !== sessionId) {
+      return NextResponse.json({ error: "Invalid attendance reference" }, { status: 400 });
+    }
+
     const catchup = await prisma.catchUpPackage.create({
       data: {
         studentId,
@@ -111,7 +136,7 @@ export async function POST(request: NextRequest) {
         dueDate: new Date(dueDate),
         resources: resources || [],
         notes,
-        centreId: user.centerId!,
+        centreId: student.centerId,
         status: "PENDING",
       },
     });

@@ -9,6 +9,9 @@ jest.mock("@/lib/prisma", () => ({
       findMany: jest.fn(),
       create: jest.fn(),
     },
+    user: {
+      findUnique: jest.fn(),
+    },
   },
 }));
 
@@ -73,6 +76,7 @@ describe("/api/academic/classes", () => {
     });
     const newClass = { id: "class-2", name: "Science" };
     (prisma.classCohort.create as jest.Mock).mockResolvedValue(newClass);
+    (prisma.user.findUnique as jest.Mock).mockResolvedValue({ id: "teacher-1", centerId: "center-1", role: "TEACHER" });
 
     const { req } = createMocks({
       method: "POST",
