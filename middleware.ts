@@ -15,7 +15,7 @@ export function middleware(request: NextRequest) {
   return NextResponse.next();
 }
 
-// Apply to all routes except static files and API routes that don't need redirect
+// Apply to all routes except static files, images, favicon, and health endpoint
 export const config = {
   matcher: [
     /*
@@ -23,7 +23,8 @@ export const config = {
      * - _next/static (static files)
      * - _next/image (image optimization files)
      * - favicon.ico (favicon file)
+     * - api/health (internal health check endpoint)
      */
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api/health).*)',
   ],
 };
