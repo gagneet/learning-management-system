@@ -53,7 +53,7 @@ export function generateContentRecommendations(
   // 1. Address struggling areas (HIGH priority)
   for (const area of performanceData.strugglingAreas) {
     const relevantExercises = availableExercises.filter(
-      (ex) => ex.exerciseType === area && ex.difficulty === 'EASY'
+      (exercise) => exercise.exerciseType === area && exercise.difficulty === 'EASY'
     );
 
     for (const exercise of relevantExercises.slice(0, 2)) {
@@ -71,7 +71,7 @@ export function generateContentRecommendations(
   // 2. Reinforce strengths (MEDIUM priority)
   for (const strength of performanceData.strengths) {
     const relevantExercises = availableExercises.filter(
-      (ex) => ex.exerciseType === strength && ex.difficulty === 'MEDIUM'
+      (exercise) => exercise.exerciseType === strength && exercise.difficulty === 'MEDIUM'
     );
 
     for (const exercise of relevantExercises.slice(0, 1)) {
@@ -90,8 +90,8 @@ export function generateContentRecommendations(
   for (const goal of performanceData.goalProgress) {
     if (goal.progress < 80) {
       // Focus on incomplete goals
-      const relevantExercises = availableExercises.filter((ex) =>
-        ex.title.toLowerCase().includes(goal.goalText.toLowerCase().split(' ')[0])
+      const relevantExercises = availableExercises.filter((exercise) =>
+        exercise.title.toLowerCase().includes(goal.goalText.toLowerCase().split(' ')[0])
       );
 
       for (const exercise of relevantExercises.slice(0, 1)) {
@@ -147,7 +147,7 @@ export function generateSessionRecommendation(
 
   // Find common goals
   const allGoals = studentsData.flatMap((s) => s.goalProgress);
-  const commonGoalTypes = Array.from(new Set(allGoals.map((g) => g.goalText.split(' ')[0])));
+  const commonGoalTypes = Array.from(new Set(allGoals.map((goal) => goal.goalText.split(' ')[0])));
 
   // Generate recommendations focusing on common areas
   let focus = 'Mixed Skills';
@@ -168,15 +168,15 @@ export function generateSessionRecommendation(
 
   // Count exercise frequency
   const exerciseCounts = new Map<string, number>();
-  allRecommendations.forEach((rec) => {
-    exerciseCounts.set(rec.exerciseId, (exerciseCounts.get(rec.exerciseId) || 0) + 1);
+  allRecommendations.forEach((recommendation) => {
+    exerciseCounts.set(recommendation.exerciseId, (exerciseCounts.get(recommendation.exerciseId) || 0) + 1);
   });
 
   // Select exercises that benefit multiple students
   const selectedExercises = Array.from(exerciseCounts.entries())
     .sort((a, b) => b[1] - a[1])
     .slice(0, 4)
-    .map(([exerciseId]) => allRecommendations.find((r) => r.exerciseId === exerciseId)!)
+    .map(([exerciseId]) => allRecommendations.find((recommendation) => recommendation.exerciseId === exerciseId)!)
     .filter(Boolean);
 
   const estimatedDuration = selectedExercises.reduce((sum, ex) => sum + ex.estimatedTime, 0) + 15; // +15 for intro/outro

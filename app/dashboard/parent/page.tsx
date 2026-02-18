@@ -21,7 +21,7 @@ export default async function ParentDashboardPage() {
   const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
-  // Fetch parent's children
+  // Fetch parent's children with all related data in a single optimized query
   const children = await prisma.user.findMany({
     where: {
       parentId: user.id,
@@ -32,6 +32,109 @@ export default async function ParentDashboardPage() {
       name: true,
       email: true,
       avatar: true,
+      academicProfile: true,
+      gamificationProfile: {
+        include: {
+          badges: {
+            orderBy: { earnedAt: "desc" },
+            take: 5,
+          },
+          achievements: {
+            orderBy: { earnedAt: "desc" },
+            take: 5,
+          },
+        },
+      },
+      enrollments: {
+        include: {
+          course: {
+            select: {
+              id: true,
+              title: true,
+              slug: true,
+              teacher: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+        },
+      },
+      studentSessionEnrollments: {
+        where: {
+          session: {
+            startTime: {
+              gte: now,
+            },
+            status: {
+              in: ["SCHEDULED", "LIVE"],
+            },
+          },
+        },
+        include: {
+          session: {
+            select: {
+              id: true,
+              title: true,
+              startTime: true,
+              endTime: true,
+              duration: true,
+              sessionMode: true,
+              physicalLocation: true,
+              status: true,
+              tutor: {
+                select: {
+                  name: true,
+                  email: true,
+                },
+              },
+            },
+          },
+          course: {
+            select: {
+              title: true,
+            },
+          },
+          lesson: {
+            select: {
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          session: {
+            startTime: "asc",
+          },
+        },
+        take: 10,
+      },
+      homeworkAssignments: {
+        where: {
+          dueDate: {
+            gte: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000),
+          },
+        },
+        include: {
+          exercise: {
+            select: {
+              id: true,
+              title: true,
+              exerciseType: true,
+            },
+          },
+          course: {
+            select: {
+              title: true,
+            },
+          },
+        },
+        orderBy: {
+          dueDate: "asc",
+        },
+        take: 10,
+      },
     },
   });
 
@@ -54,213 +157,35 @@ export default async function ParentDashboardPage() {
     );
   }
 
-  // Fetch data for all children
-  const childrenData = await Promise.all(
-    children.map(async (child) => {
-      const [
-        academicProfile,
-        gamificationProfile,
-        enrollments,
-        upcomingSessions,
-        todaySessions,
-        homeworkAssignments,
-        recentActivity,
-      ] = await Promise.all([
-        // Academic Profile
-        prisma.academicProfile.findUnique({
-          where: { userId: child.id },
-        }),
+  // Process children data to match expected format
+  const childrenData = children.map((child) => {
+    // Split sessions into upcoming (next 7 days) and today's sessions
+    const upcomingSessions = child.studentSessionEnrollments.filter(
+      (enrollment) =>
+        enrollment.session.startTime >= now &&
+        enrollment.session.startTime <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)
+    );
 
-        // Gamification Profile
-        prisma.gamificationProfile.findUnique({
-          where: { userId: child.id },
-          include: {
-            badges: {
-              orderBy: { earnedAt: "desc" },
-              take: 5,
-            },
-            achievements: {
-              orderBy: { earnedAt: "desc" },
-              take: 5,
-            },
-          },
-        }),
+    const todaySessions = child.studentSessionEnrollments.filter(
+      (enrollment) =>
+        enrollment.session.startTime >= todayStart &&
+        enrollment.session.startTime < todayEnd
+    );
 
-        // Enrollments with progress
-        prisma.enrollment.findMany({
-          where: { userId: child.id },
-          include: {
-            course: {
-              select: {
-                id: true,
-                title: true,
-                slug: true,
-                teacher: {
-                  select: {
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-          },
-        }),
-
-        // Upcoming Sessions (next 7 days)
-        prisma.studentSessionEnrollment.findMany({
-          where: {
-            studentId: child.id,
-            session: {
-              startTime: {
-                gte: now,
-                lte: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000),
-              },
-              status: {
-                in: ["SCHEDULED", "LIVE"],
-              },
-            },
-          },
-          include: {
-            session: {
-              select: {
-                id: true,
-                title: true,
-                startTime: true,
-                endTime: true,
-                duration: true,
-                sessionMode: true,
-                physicalLocation: true,
-                status: true,
-                tutor: {
-                  select: {
-                    name: true,
-                    email: true,
-                  },
-                },
-              },
-            },
-            course: {
-              select: {
-                title: true,
-              },
-            },
-            lesson: {
-              select: {
-                title: true,
-              },
-            },
-          },
-          orderBy: {
-            session: {
-              startTime: "asc",
-            },
-          },
-          take: 10,
-        }),
-
-        // Today's Sessions
-        prisma.studentSessionEnrollment.findMany({
-          where: {
-            studentId: child.id,
-            session: {
-              startTime: {
-                gte: todayStart,
-                lt: todayEnd,
-              },
-            },
-          },
-          include: {
-            session: {
-              select: {
-                id: true,
-                title: true,
-                startTime: true,
-                endTime: true,
-                duration: true,
-                status: true,
-                sessionMode: true,
-                physicalLocation: true,
-                tutor: {
-                  select: {
-                    name: true,
-                  },
-                },
-              },
-            },
-            course: {
-              select: {
-                title: true,
-              },
-            },
-          },
-          orderBy: {
-            session: {
-              startTime: "asc",
-            },
-          },
-        }),
-
-        // Homework Assignments (pending and recent)
-        prisma.homeworkAssignment.findMany({
-          where: {
-            studentId: child.id,
-            status: {
-              in: ["NOT_STARTED", "IN_PROGRESS", "SUBMITTED"],
-            },
-          },
-          include: {
-            course: {
-              select: {
-                title: true,
-              },
-            },
-            exercise: {
-              select: {
-                title: true,
-              },
-            },
-          },
-          orderBy: {
-            dueDate: "asc",
-          },
-          take: 10,
-        }),
-
-        // Recent Activity (last 30 days)
-        prisma.exerciseAttempt.findMany({
-          where: {
-            studentId: child.id,
-            submittedAt: {
-              gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000),
-            },
-          },
-          include: {
-            exercise: {
-              select: {
-                title: true,
-                exerciseType: true,
-              },
-            },
-          },
-          orderBy: {
-            submittedAt: "desc",
-          },
-          take: 20,
-        }),
-      ]);
-
-      return {
-        ...child,
-        academicProfile,
-        gamificationProfile,
-        enrollments,
-        upcomingSessions,
-        todaySessions,
-        homeworkAssignments,
-        recentActivity,
-      };
-    })
-  );
+    return {
+      id: child.id,
+      name: child.name,
+      email: child.email,
+      avatar: child.avatar,
+      academicProfile: child.academicProfile,
+      gamificationProfile: child.gamificationProfile,
+      enrollments: child.enrollments,
+      upcomingSessions,
+      todaySessions,
+      homeworkAssignments: child.homeworkAssignments,
+      recentActivity: [], // Can be populated separately if needed
+    };
+  });
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">

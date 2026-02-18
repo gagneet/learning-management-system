@@ -1,41 +1,50 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import {
+  requireAuth,
+  checkRole,
+} from "@/lib/api-middleware";
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+  badRequestResponse,
+} from "@/lib/api-utils";
+import {
+  deductXP,
+  getStudentWithGamification,
+} from "@/lib/gamification-utils";
 
 // POST /api/v1/awards/:id/redeem - Redeem an award
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { session } = authResult;
   const { user } = session;
   const { id: awardId } = await params;
 
   // Only students can redeem awards (or admins for testing)
-  if (!["STUDENT", "SUPER_ADMIN", "CENTER_ADMIN"].includes(user.role)) {
-    return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-  }
+  const roleError = checkRole(user.role, [
+    "STUDENT",
+    "SUPER_ADMIN",
+    "CENTER_ADMIN",
+  ]);
+  if (roleError) return roleError;
 
   try {
     const body = await request.json();
     const { studentId } = body;
 
     // Determine the actual student ID
-    const actualStudentId =
-      user.role === "STUDENT" ? user.id : studentId;
+    const actualStudentId = user.role === "STUDENT" ? user.id : studentId;
 
     if (!actualStudentId) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: "studentId is required for admin redemptions",
-        },
-        { status: 400 }
+      return badRequestResponse(
+        "studentId is required for admin redemptions"
       );
     }
 
@@ -54,93 +63,49 @@ export async function POST(
     });
 
     if (!award) {
-      return NextResponse.json(
-        { success: false, error: "Award not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Award");
     }
 
     // Verify award is active
     if (!award.isActive) {
-      return NextResponse.json(
-        { success: false, error: "Award is not currently available" },
-        { status: 400 }
-      );
+      return badRequestResponse("Award is not currently available");
     }
 
     // Check stock availability
     if (award.stockQuantity !== null && award.stockQuantity <= 0) {
-      return NextResponse.json(
-        { success: false, error: "Award is out of stock" },
-        { status: 400 }
-      );
+      return badRequestResponse("Award is out of stock");
     }
 
-    // Get student details
-    const student = await prisma.user.findUnique({
-      where: { id: actualStudentId },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        centerId: true,
-        gamificationProfile: {
-          select: {
-            totalXP: true,
-          },
-        },
-      },
-    });
+    // Get student details with gamification profile
+    const student = await getStudentWithGamification(actualStudentId);
 
     if (!student) {
-      return NextResponse.json(
-        { success: false, error: "Student not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Student");
     }
 
     const studentTotalXP = student.gamificationProfile?.totalXP || 0;
 
     // Verify centre match
     if (award.centreId !== student.centerId) {
-      return NextResponse.json(
-        { success: false, error: "Award not available in student's centre" },
-        { status: 400 }
-      );
+      return badRequestResponse("Award not available in student's centre");
     }
 
     // Check if student has enough XP
     if (studentTotalXP < award.xpCost) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Insufficient XP. Required: ${award.xpCost}, Available: ${studentTotalXP}`,
-        },
-        { status: 400 }
+      return badRequestResponse(
+        `Insufficient XP. Required: ${award.xpCost}, Available: ${studentTotalXP}`
       );
     }
 
     // Use a transaction to ensure atomicity
-    const result = await prisma.$transaction(async (tx) => {
-      // Deduct XP from student's gamification profile
-      await tx.gamificationProfile.update({
-        where: { userId: actualStudentId },
-        data: {
-          totalXP: {
-            decrement: award.xpCost,
-          },
-        },
-      });
-
-      // Create XP transaction record
-      await tx.xPTransaction.create({
-        data: {
-          userId: actualStudentId,
-          amount: -award.xpCost,
-          description: `Redeemed award: ${award.name}`,
-          source: "AWARD_REDEMPTION",
-        },
-      });
+    const redemption = await prisma.$transaction(async (tx) => {
+      // Deduct XP using utility function (handles both XP transaction and profile update)
+      await deductXP(
+        actualStudentId,
+        award.xpCost,
+        `Redeemed award: ${award.name}`,
+        "AWARD_REDEEM"
+      );
 
       // Decrement stock if applicable
       if (award.stockQuantity !== null) {
@@ -155,7 +120,7 @@ export async function POST(
       }
 
       // Create redemption record
-      const redemption = await tx.awardRedemption.create({
+      return await tx.awardRedemption.create({
         data: {
           studentId: actualStudentId,
           awardId,
@@ -185,23 +150,18 @@ export async function POST(
           },
         },
       });
-
-      return redemption;
     });
 
     return NextResponse.json(
       {
         success: true,
-        data: result,
+        data: redemption,
         message: `Successfully redeemed ${award.name}!`,
       },
       { status: 201 }
     );
   } catch (error) {
     console.error("Error redeeming award:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to redeem award" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to redeem award");
   }
 }

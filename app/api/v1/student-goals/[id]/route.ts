@@ -1,18 +1,25 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
-import { auth } from "@/lib/auth";
+import {
+  requireAuth,
+  checkCenterAccess,
+} from "@/lib/api-middleware";
+import {
+  successResponse,
+  errorResponse,
+  notFoundResponse,
+} from "@/lib/api-utils";
+import { awardXP } from "@/lib/gamification-utils";
 
 // GET /api/v1/student-goals/:id - Get specific student goal
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
+  const { session } = authResult;
   const { user } = session;
   const { id: goalId } = await params;
 
@@ -33,10 +40,7 @@ export async function GET(
     });
 
     if (!goal) {
-      return NextResponse.json(
-        { success: false, error: "Goal not found" },
-        { status: 404 }
-      );
+      return notFoundResponse("Goal");
     }
 
     // Authorization
@@ -54,21 +58,18 @@ export async function GET(
       user.role !== "SUPER_ADMIN" &&
       !["STUDENT", "PARENT"].includes(user.role)
     ) {
-      if (goal.student.centerId !== user.centerId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
-      }
+      const accessError = checkCenterAccess(
+        user.role,
+        user.centerId,
+        goal.student.centerId
+      );
+      if (accessError) return accessError;
     }
 
-    return NextResponse.json({
-      success: true,
-      data: goal,
-    });
+    return successResponse(goal);
   } catch (error) {
     console.error("Error fetching student goal:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to fetch student goal" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to fetch student goal");
   }
 }
 
@@ -77,11 +78,10 @@ export async function PATCH(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth();
+  const authResult = await requireAuth();
+  if ("error" in authResult) return authResult.error;
 
-  if (!session) {
-    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
-  }
+  const { session } = authResult;
 
   const { user } = session;
   const { id: goalId } = await params;
@@ -109,7 +109,7 @@ export async function PATCH(
     } = body;
 
     // Get existing goal
-    const existing = await prisma.studentGoal.findUnique({
+    const existingGoal = await prisma.studentGoal.findUnique({
       where: { id: goalId },
       include: {
         student: {
@@ -120,52 +120,59 @@ export async function PATCH(
       },
     });
 
-    if (!existing) {
-      return NextResponse.json(
-        { success: false, error: "Goal not found" },
-        { status: 404 }
-      );
+    if (!existingGoal) {
+      return notFoundResponse("Goal");
     }
 
     // Authorization
-    if (user.role === "STUDENT" && existing.studentId !== user.id) {
+    if (user.role === "STUDENT" && existingGoal.studentId !== user.id) {
       return NextResponse.json({ error: "Forbidden" }, { status: 403 });
     }
 
     if (
       user.role !== "SUPER_ADMIN" &&
-      user.role !== "STUDENT" &&
-      existing.student.centerId !== user.centerId
+      user.role !== "STUDENT"
     ) {
-      return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      const accessError = checkCenterAccess(
+        user.role,
+        user.centerId,
+        existingGoal.student.centerId
+      );
+      if (accessError) return accessError;
     }
 
-    // Build update data
-    const updateData: any = {};
+    // Build goal update payload with proper typing
+    const goalUpdatePayload: {
+      goalText?: string;
+      category?: string;
+      targetDate?: Date | null;
+      isAchieved?: boolean;
+      achievedAt?: Date | null;
+    } = {};
 
-    if (goalText !== undefined) updateData.goalText = goalText;
-    if (category !== undefined) updateData.category = category;
+    if (goalText !== undefined) goalUpdatePayload.goalText = goalText;
+    if (category !== undefined) goalUpdatePayload.category = category;
     if (targetDate !== undefined)
-      updateData.targetDate = targetDate ? new Date(targetDate) : null;
+      goalUpdatePayload.targetDate = targetDate ? new Date(targetDate) : null;
 
     if (isAchieved !== undefined) {
-      updateData.isAchieved = isAchieved;
+      goalUpdatePayload.isAchieved = isAchieved;
 
       // Set achievedAt when goal is achieved
-      if (isAchieved && !existing.achievedAt) {
-        updateData.achievedAt = new Date();
+      if (isAchieved && !existingGoal.achievedAt) {
+        goalUpdatePayload.achievedAt = new Date();
       }
 
       // Clear achievedAt when goal is unachieved
-      if (!isAchieved && existing.achievedAt) {
-        updateData.achievedAt = null;
+      if (!isAchieved && existingGoal.achievedAt) {
+        goalUpdatePayload.achievedAt = null;
       }
     }
 
     // Update goal
-    const goal = await prisma.studentGoal.update({
+    const updatedGoal = await prisma.studentGoal.update({
       where: { id: goalId },
-      data: updateData,
+      data: goalUpdatePayload,
       include: {
         student: {
           select: {
@@ -178,55 +185,39 @@ export async function PATCH(
     });
 
     // Award XP when goal is achieved
-    if (isAchieved && !existing.isAchieved) {
+    if (isAchieved && !existingGoal.isAchieved) {
       // Award XP based on goal category
-      let xpToAward = 100; // Base XP for achieving a goal
+      let xpAmount = 100; // Base XP for achieving a goal
 
-      if (goal.category) {
-        switch (goal.category.toUpperCase()) {
+      if (updatedGoal.category) {
+        switch (updatedGoal.category.toUpperCase()) {
           case "ACADEMIC":
-            xpToAward = 150;
+            xpAmount = 150;
             break;
           case "SKILL":
-            xpToAward = 100;
+            xpAmount = 100;
             break;
           case "PERSONAL":
-            xpToAward = 75;
+            xpAmount = 75;
             break;
           default:
-            xpToAward = 50;
+            xpAmount = 50;
         }
       }
 
-      await prisma.xPTransaction.create({
-        data: {
-          userId: existing.studentId,
-          amount: xpToAward,
-          description: `Goal achieved: ${goal.goalText}`,
-          source: "GOAL_COMPLETE",
-        },
-      });
-
-      await prisma.gamificationProfile.update({
-        where: { userId: existing.studentId },
-        data: {
-          totalXP: {
-            increment: xpToAward,
-          },
-        },
-      });
+      // Use utility function for XP awarding
+      await awardXP(
+        existingGoal.studentId,
+        xpAmount,
+        `Goal achieved: ${updatedGoal.goalText}`,
+        "GOAL_COMPLETE"
+      );
     }
 
-    return NextResponse.json({
-      success: true,
-      data: goal,
-    });
+    return successResponse(updatedGoal);
   } catch (error) {
     console.error("Error updating student goal:", error);
-    return NextResponse.json(
-      { success: false, error: "Failed to update student goal" },
-      { status: 500 }
-    );
+    return errorResponse("Failed to update student goal");
   }
 }
 

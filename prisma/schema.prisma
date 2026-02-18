@@ -325,6 +325,7 @@ model Enrollment {
   @@index([userId])
   @@index([courseId])
   @@index([tutorId])
+  @@index([userId, enrolledAt]) // Compound index for enrollment history queries
 }
 
 // Progress tracking model
@@ -468,6 +469,8 @@ model Session {
   @@index([startTime])
   @@index([status])
   @@index([classId])
+  @@index([tutorId, startTime]) // Compound index for tutor's schedule queries
+  @@index([centreId, startTime]) // Compound index for center-wide scheduling
 }
 
 // NEW: Student Session Enrollment
@@ -1517,6 +1520,8 @@ model ExerciseAttempt {
   @@index([homeworkAssignmentId])
   @@index([status])
   @@index([submittedAt])
+  @@index([studentId, submittedAt]) // Compound index for student activity history
+  @@index([studentId, createdAt]) // Compound index for recent attempts
 }
 
 // -----------------------------------------------------------------------------
