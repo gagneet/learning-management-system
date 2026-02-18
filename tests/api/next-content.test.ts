@@ -11,9 +11,6 @@ jest.mock("@/lib/prisma", () => ({
     subjectAssessment: {
       findUnique: jest.fn(),
     },
-    gradeLevel: {
-      findMany: jest.fn(),
-    },
     contentUnit: {
       findMany: jest.fn(),
     },
