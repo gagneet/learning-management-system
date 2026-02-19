@@ -1,4 +1,4 @@
-## 2025-05-14 - [Privilege Escalation in User Creation]
-**Vulnerability:** A `CENTER_ADMIN` was able to create a `SUPER_ADMIN` user by passing `role: "SUPER_ADMIN"` in the `POST /api/users` request body.
-**Learning:** While the API correctly restricted `CENTER_ADMIN` to creating users within their own center, it failed to validate the `role` field against the requester's own privileges.
-**Prevention:** Implement explicit server-side checks in user management APIs to ensure that role assignment doesn't exceed the requester's own authority. Always validate sensitive fields like `role` or `permissions` independently of multi-tenancy filters.
+## 2026-02-19 - [Privilege Escalation & Input Validation in User Creation]
+**Vulnerability:** A `CENTER_ADMIN` was able to create a `SUPER_ADMIN` user. Additionally, the API lacked validation for the `role` enum and the existence of the target `centerId`, leading to potential authorization bypasses and database constraint violations.
+**Learning:** Security fixes must be holistic. While preventing privilege escalation was the primary goal, the absence of basic input validation for enums and foreign keys created secondary vulnerabilities that could be exploited to bypass logic or crash the service.
+**Prevention:** Implement strict schema validation (using enums) and referential integrity checks at the API layer. Always validate that the requester has sufficient state (e.g., a valid `centerId`) before allowing them to delegate that state to others.
