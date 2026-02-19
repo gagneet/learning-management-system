@@ -23,38 +23,52 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
     redirect("/dashboard");
   }
 
-  // Fetch session with all related data
-  const sessionData = await prisma.session.findUnique({
-    where: { id },
-    include: {
-      studentEnrollments: {
-        include: {
-          student: {
-            select: {
-              id: true,
-              name: true,
-              email: true,
-              academicProfile: true,
-              gamificationProfile: true,
+  // ⚡ Bolt Optimization: Parallelize session data and help requests as they only depend on id
+  // This reduces the number of sequential database round-trips.
+  const [sessionData, helpRequests] = await Promise.all([
+    prisma.session.findUnique({
+      where: { id },
+      include: {
+        studentEnrollments: {
+          include: {
+            student: {
+              select: {
+                id: true,
+                name: true,
+                email: true,
+                academicProfile: true,
+                gamificationProfile: true,
+              },
             },
-          },
-          course: {
-            select: {
-              id: true,
-              title: true,
+            course: {
+              select: {
+                id: true,
+                title: true,
+              },
             },
           },
         },
-      },
-      tutor: {
-        select: {
-          id: true,
-          name: true,
-          email: true,
+        tutor: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.helpRequest.findMany({
+      where: {
+        sessionId: id,
+        status: { in: ["PENDING", "ACKNOWLEDGED", "IN_PROGRESS"] },
+      },
+      include: {
+        student: { select: { id: true, name: true } },
+        exercise: { select: { title: true } },
+      },
+      orderBy: { createdAt: "desc" },
+    }),
+  ]);
 
   if (!sessionData) {
     notFound();
@@ -65,84 +79,46 @@ export default async function LiveSessionPage({ params }: LiveSessionPageProps) 
     redirect("/dashboard");
   }
 
-  // Fetch help requests for this session
-  const helpRequests = await prisma.helpRequest.findMany({
-    where: {
-      sessionId: id,
-      status: { in: ["PENDING", "ACKNOWLEDGED", "IN_PROGRESS"] },
-    },
-    include: {
-      student: {
-        select: {
-          id: true,
-          name: true,
-        },
-      },
-      exercise: {
-        select: {
-          title: true,
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
-
-  // Fetch student goals for enrolled students
   const studentIds = sessionData.studentEnrollments.map((e) => e.studentId);
-  const studentGoals = await prisma.studentGoal.findMany({
-    where: {
-      studentId: { in: studentIds },
-      isAchieved: false,
-    },
-    take: 3,
-  });
+  const enrollmentIds = sessionData.studentEnrollments.map((e) => e.id);
 
-  // Fetch recent assessments for enrolled students
-  const assessments = await prisma.subjectAssessment.findMany({
-    where: {
-      studentId: { in: studentIds },
-    },
-    orderBy: {
-      lastAssessedAt: "desc",
-    },
-    take: 5,
-  });
-
-  // Fetch recent exercise attempts with timing data
-  const exerciseAttempts = await prisma.exerciseAttempt.findMany({
-    where: {
-      studentId: { in: studentIds },
-      sessionEnrollmentId: { in: sessionData.studentEnrollments.map(e => e.id) }
-    },
-    include: {
-      exercise: {
-        select: { title: true }
-      }
-    },
-    orderBy: {
-      submittedAt: "desc"
-    }
-  });
-
-  // Fetch session notes
-  const tutorNotes = await prisma.tutorNote.findMany({
-    where: {
-      enrollmentId: { in: sessionData.studentEnrollments.map((e) => e.id) },
-    },
-    include: {
-      tutor: {
-        select: {
-          name: true,
-        },
+  // ⚡ Bolt Optimization: Parallelize remaining related data fetching.
+  // These queries depend on studentIds or enrollmentIds which we now have.
+  const [studentGoals, assessments, exerciseAttempts, tutorNotes] = await Promise.all([
+    // 1. Fetch student goals for enrolled students
+    prisma.studentGoal.findMany({
+      where: {
+        studentId: { in: studentIds },
+        isAchieved: false,
       },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-    take: 10,
-  });
+      take: 3,
+    }),
+
+    // 2. Fetch recent assessments for enrolled students
+    prisma.subjectAssessment.findMany({
+      where: { studentId: { in: studentIds } },
+      orderBy: { lastAssessedAt: "desc" },
+      take: 5,
+    }),
+
+    // 3. Fetch recent exercise attempts with timing data
+    prisma.exerciseAttempt.findMany({
+      where: {
+        studentId: { in: studentIds },
+        sessionEnrollmentId: { in: enrollmentIds },
+      },
+      include: { exercise: { select: { title: true } } },
+      orderBy: { submittedAt: "desc" },
+    }),
+
+    // 4. Fetch session notes
+    prisma.tutorNote.findMany({
+      where: { enrollmentId: { in: enrollmentIds } },
+      include: { tutor: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+      take: 10,
+    }),
+  ]);
 
   // Calculate duration
   const duration = sessionData.duration ||
