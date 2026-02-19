@@ -13,3 +13,7 @@
 ## 2026-03-05 - [Optimize Tutor Dashboard and Avoid Self-Referencing Fetch]
 **Learning:** Initial page loads can be significantly delayed by server-to-server `fetch` calls in Next.js Server Components. Additionally, dashboard queries often aggregate over a tutor's entire history, leading to $O(N)$ performance degradation. By filtering for active enrollments (`completedAt: null`), applying `take` limits, and calling database utilities directly, latency was reduced from >1 minute to sub-second.
 **Action:** Always filter by `completedAt: null` for active dashboard analysis. Never use `fetch` to call internal API routes from Server Components; extract logic to shared functions instead.
+
+## 2026-03-06 - [Parallelize Independent Queries in SSR Pages]
+**Learning:** Found that the tutor's live session dashboard was fetching 6 sequential database queries, leading to a "waterfall" effect where each RTT added to the total TTFB (Time To First Byte). By grouping these into two parallel stages using `Promise.all`, we reduced the sequential bottleneck from 6 queries to 2.
+**Action:** Always identify independent database calls in Server Components and group them into `Promise.all` stages based on their data dependencies.
