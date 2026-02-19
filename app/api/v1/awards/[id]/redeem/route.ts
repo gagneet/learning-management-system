@@ -104,7 +104,7 @@ export async function POST(
         actualStudentId,
         award.xpCost,
         `Redeemed award: ${award.name}`,
-        "AWARD_REDEEM"
+        "AWARD_REDEMPTION"
       );
 
       // Decrement stock if applicable

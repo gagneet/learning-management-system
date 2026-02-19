@@ -28,7 +28,7 @@ export function errorResponse(
     {
       success: false,
       error: message,
-      ...(details && { details }),
+      ...(details !== undefined && details !== null ? { details } : {}),
     },
     { status }
   );

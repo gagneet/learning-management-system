@@ -4,15 +4,9 @@
  */
 
 import { prisma } from "@/lib/prisma";
+import { XPSource } from "@prisma/client";
 
-export type XPSource =
-  | "GOAL_COMPLETE"
-  | "EXERCISE_COMPLETE"
-  | "AWARD_REDEEM"
-  | "LESSON_COMPLETE"
-  | "ACHIEVEMENT_UNLOCK"
-  | "STREAK_BONUS"
-  | "MANUAL";
+export type { XPSource };
 
 /**
  * Awards XP to a user and updates their gamification profile

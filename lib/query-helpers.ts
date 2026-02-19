@@ -28,7 +28,7 @@ export async function fetchWithCenterAccess<T extends { centerId?: string }>(
 ): Promise<T | null> {
   const record = await model.findUnique({
     where: { id },
-    ...(include && { include }),
+    ...(include !== undefined && include !== null ? { include } : {}),
   });
 
   if (!record) {
