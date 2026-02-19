@@ -162,7 +162,8 @@ export default function CalendarView({
       <div className="flex items-center justify-between mb-6">
         <button
           onClick={() => navigateWeek("prev")}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          aria-label="Previous week"
         >
           ◀
         </button>
@@ -172,7 +173,8 @@ export default function CalendarView({
         </h3>
         <button
           onClick={() => navigateWeek("next")}
-          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500"
+          aria-label="Next week"
         >
           ▶
         </button>

@@ -142,7 +142,7 @@ export default async function ParentDashboardPage() {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
         <Header user={{ name: user.name!, email: user.email!, role: user.role }} title="Parent Dashboard" />
-        <main className="container mx-auto px-4 py-8 flex-1">
+        <main id="main-content" className="container mx-auto px-4 py-8 flex-1 scroll-mt-20">
           <div className="text-center py-12">
             <div className="text-6xl mb-4">👨‍👩‍👧‍👦</div>
             <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
@@ -191,7 +191,7 @@ export default async function ParentDashboardPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header user={{ name: user.name!, email: user.email!, role: user.role }} title="Parent Dashboard" />
 
-      <main className="container mx-auto px-4 py-8 flex-1">
+      <main id="main-content" className="container mx-auto px-4 py-8 flex-1 scroll-mt-20">
         <ParentDashboardClient
           parentName={user.name!}
           childrenData={childrenData}
