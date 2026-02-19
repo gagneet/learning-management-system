@@ -2,6 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Header from "@/components/Header";
 import { MyDayClient } from "./MyDayClient";
+import { getTutorMyDayData } from "@/lib/academic/tutor-actions";
 
 export default async function TutorMyDayPage() {
   const session = await auth();
@@ -16,18 +17,15 @@ export default async function TutorMyDayPage() {
     redirect("/dashboard");
   }
 
-  // Fetch initial data
-  const response = await fetch(
-    `${process.env.NEXTAUTH_URL}/api/academic/tutor/my-day`,
-    {
-      headers: {
-        Cookie: `next-auth.session-token=${session}`, // Pass session for SSR
-      },
-      cache: "no-store", // Always fetch fresh data
+  // Fetch initial data directly from the database utility
+  // ⚡ Bolt Optimization: Avoid internal fetch call to eliminate network overhead
+  // and potential server-to-server request delays.
+  const initialData = await getTutorMyDayData(user.id, user.centerId).catch(
+    (err) => {
+      console.error("Failed to fetch initial My Day data:", err);
+      return null;
     }
-  ).catch(() => null);
-
-  const initialData = response?.ok ? await response.json() : null;
+  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">

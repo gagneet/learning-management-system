@@ -9,3 +9,7 @@
 ## 2026-02-22 - [Parallelize and Consolidate Student Activity Queries]
 **Learning:** Sequential `await` calls for a single student's different activity types (completed, in-progress, recent) lead to unnecessary latency. Combining these into a single `findMany` and using `Promise.all` to fetch other dependent data (like assessments) can reduce RTT significantly.
 **Action:** Hunt for endpoints that fetch a student's state sequentially. Consolidate into a single fetch of `ExerciseAttempt` and use `Promise.all` for parallel execution of independent queries.
+
+## 2026-03-05 - [Optimize Tutor Dashboard and Avoid Self-Referencing Fetch]
+**Learning:** Initial page loads can be significantly delayed by server-to-server `fetch` calls in Next.js Server Components. Additionally, dashboard queries often aggregate over a tutor's entire history, leading to $O(N)$ performance degradation. By filtering for active enrollments (`completedAt: null`), applying `take` limits, and calling database utilities directly, latency was reduced from >1 minute to sub-second.
+**Action:** Always filter by `completedAt: null` for active dashboard analysis. Never use `fetch` to call internal API routes from Server Components; extract logic to shared functions instead.
