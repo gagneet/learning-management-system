@@ -206,8 +206,8 @@ export async function getTutorMyDayData(tutorId: string, centreId: string) {
 
   // Add attempt data
   recentActivity.forEach((attempt) => {
-    if (studentMap.has(attempt.studentId)) {
-      const student = studentMap.get(attempt.studentId);
+    const student = studentMap.get(attempt.studentId);
+    if (student) {
       student.attemptsCount++;
       student.attemptsTotal += attempt.maxScore > 0 && attempt.score !== null ? (attempt.score / attempt.maxScore) * 100 : 0;
     }
