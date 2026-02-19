@@ -34,7 +34,7 @@ export default function ThemeToggle() {
           <button
             key={theme.value}
             onClick={() => handleThemeChange(index)}
-            className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 ${
+            className={`relative z-10 flex items-center gap-2 px-4 py-2 rounded-full transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-gray-800 ${
               themeMode === theme.value
                 ? "text-white"
                 : "text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
