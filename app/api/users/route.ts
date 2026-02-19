@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import bcrypt from "bcryptjs";
+import { Role } from "@prisma/client";
 
 // GET /api/users - List users (with filtering by center for non-super-admins)
 export async function GET(request: NextRequest) {
@@ -84,9 +85,52 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate role is one of the allowed values
+    if (!Object.values(Role).includes(role as Role)) {
+      return NextResponse.json(
+        { error: `Invalid role specified. Must be one of: ${Object.values(Role).join(", ")}` },
+        { status: 400 }
+      );
+    }
+
+    // Center admins must have a center assignment
+    if (user.role === "CENTER_ADMIN" && !user.centerId) {
+      return NextResponse.json(
+        { error: "Center admin must have a valid center assignment" },
+        { status: 403 }
+      );
+    }
+
     // Center admins can only create users in their center
     const targetCenterId =
       user.role === "SUPER_ADMIN" && centerId ? centerId : user.centerId;
+
+    // Validate that the target center exists
+    if (targetCenterId) {
+      const centerExists = await prisma.center.findUnique({
+        where: { id: targetCenterId },
+      });
+      if (!centerExists) {
+        return NextResponse.json(
+          { error: "Invalid center ID specified" },
+          { status: 400 }
+        );
+      }
+    } else {
+      // All users must be assigned to a center
+      return NextResponse.json(
+        { error: "Center ID is required" },
+        { status: 400 }
+      );
+    }
+
+    // Validate role escalation: only SUPER_ADMIN can create other SUPER_ADMINs
+    if (role === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Forbidden: Only SUPER_ADMIN can create SUPER_ADMIN users" },
+        { status: 403 }
+      );
+    }
 
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({

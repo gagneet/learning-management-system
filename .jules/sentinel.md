@@ -1,0 +1,4 @@
+## 2026-02-19 - [Privilege Escalation & Input Validation in User Creation]
+**Vulnerability:** A `CENTER_ADMIN` was able to create a `SUPER_ADMIN` user. Additionally, the API lacked validation for the `role` enum and the existence of the target `centerId`, leading to potential authorization bypasses and database constraint violations.
+**Learning:** Security fixes must be holistic. While preventing privilege escalation was the primary goal, the absence of basic input validation for enums and foreign keys created secondary vulnerabilities that could be exploited to bypass logic or crash the service.
+**Prevention:** Implement strict schema validation (using enums) and referential integrity checks at the API layer. Always validate that the requester has sufficient state (e.g., a valid `centerId`) before allowing them to delegate that state to others.
