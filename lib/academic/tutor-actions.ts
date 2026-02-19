@@ -197,6 +197,7 @@ export async function getTutorMyDayData(tutorId: string, centreId: string) {
       });
     }
     const student = studentMap.get(studentId);
+    if (!student) continue;
     student.courses.push({
       title: enrollment.course.title,
       progress: enrollment.progress,
