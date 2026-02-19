@@ -20,27 +20,17 @@ export default async function TutorMyDayPage() {
   // Fetch initial data directly from the database utility
   // ⚡ Bolt Optimization: Avoid internal fetch call to eliminate network overhead
   // and potential server-to-server request delays.
-  if (!user.centerId) {
-    console.error("Missing centerId for tutor:", user.id);
-    return (
-      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-        <Header
-          user={{ name: user.name!, email: user.email!, role: user.role }}
-          title="My Day"
-        />
-        <main className="container mx-auto px-4 py-8 flex-1">
-          <p>Error: Missing centre information. Please contact support.</p>
-        </main>
-      </div>
+  let initialData = null;
+  if (user.centerId) {
+    initialData = await getTutorMyDayData(user.id, user.centerId).catch(
+      (err) => {
+        console.error("Failed to fetch initial My Day data:", err);
+        return null;
+      }
     );
+  } else {
+    console.warn("User has no centerId assigned");
   }
-  
-  const initialData = await getTutorMyDayData(user.id, user.centerId).catch(
-    (err) => {
-      console.error("Failed to fetch initial My Day data:", err);
-      return null;
-    }
-  );
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">

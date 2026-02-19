@@ -23,6 +23,10 @@ export async function GET(request: NextRequest) {
     const tutorId = session.user.id;
     const centreId = session.user.centerId;
 
+    if (!centreId) {
+      return NextResponse.json({ error: 'Centre ID is required' }, { status: 400 });
+    }
+
     const data = await getTutorMyDayData(tutorId, centreId);
 
     return NextResponse.json(data);
