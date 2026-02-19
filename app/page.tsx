@@ -58,12 +58,14 @@ export default function Home() {
             <div className="flex justify-center gap-4">
               <Link
                 href="/login"
+                prefetch={false}
                 className="px-8 py-4 bg-white text-blue-600 font-bold rounded-lg hover:bg-gray-100 transition-all transform hover:scale-105 shadow-lg"
               >
                 Get Started Free
               </Link>
               <Link
                 href="/features"
+                prefetch={false}
                 className="px-8 py-4 bg-transparent border-2 border-white text-white font-bold rounded-lg hover:bg-white hover:text-blue-600 transition-all transform hover:scale-105"
               >
                 Explore Features
@@ -79,6 +81,7 @@ export default function Home() {
             <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
               <Link
                 href="/features/multi-centre"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-500 cursor-pointer"
               >
                 <div className="text-5xl mb-4">🏢</div>
@@ -95,6 +98,7 @@ export default function Home() {
 
               <Link
                 href="/features/role-based-access"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-500 cursor-pointer"
               >
                 <div className="text-5xl mb-4">🔐</div>
@@ -111,6 +115,7 @@ export default function Home() {
 
               <Link
                 href="/features/academic-intelligence"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500 cursor-pointer"
               >
                 <div className="text-5xl mb-4">🧠</div>
@@ -135,6 +140,7 @@ export default function Home() {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 max-w-6xl mx-auto text-left">
               <Link
                 href="/features/course-management"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-400 cursor-pointer"
               >
                 <div className="text-4xl mb-3">📚</div>
@@ -151,6 +157,7 @@ export default function Home() {
 
               <Link
                 href="/features/gamification"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-400 cursor-pointer"
               >
                 <div className="text-4xl mb-3">🎮</div>
@@ -167,6 +174,7 @@ export default function Home() {
 
               <Link
                 href="/features/live-sessions"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-green-400 cursor-pointer"
               >
                 <div className="text-4xl mb-3">📹</div>
@@ -183,6 +191,7 @@ export default function Home() {
 
               <Link
                 href="/features/financial-tracking"
+                prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-orange-400 cursor-pointer"
               >
                 <div className="text-4xl mb-3">💰</div>

@@ -10,7 +10,7 @@ export function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           {/* Brand & About Section */}
           <div>
-            <Link href="/" className="block mb-4 hover:opacity-80 transition-opacity">
+            <Link href="/" prefetch={false} className="block mb-4 hover:opacity-80 transition-opacity">
               <Image
                 src="/aetherlearn-footer-logo.svg"
                 alt="Aether Learn"
@@ -24,6 +24,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/about"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   About Us
@@ -32,6 +33,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/features"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Features
@@ -40,6 +42,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/contact"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Contact Us
@@ -55,6 +58,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/docs"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Documentation
@@ -63,6 +67,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/support"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Help & Support
@@ -71,6 +76,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/docs"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   API Reference
@@ -86,6 +92,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/privacy"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Privacy Policy
@@ -94,6 +101,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/terms"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   Terms of Service
@@ -102,6 +110,7 @@ export function Footer() {
               <li>
                 <Link
                   href="/gdpr"
+                  prefetch={false}
                   className="hover:text-blue-400 transition-colors text-gray-300"
                 >
                   GDPR Compliance
@@ -156,7 +165,7 @@ export function Footer() {
             </p>
             <p className="text-sm">
               🔒 All actions are logged for security and compliance.{" "}
-              <Link href="/privacy" className="text-blue-400 hover:underline">
+              <Link href="/privacy" prefetch={false} className="text-blue-400 hover:underline">
                 Learn more about our audit trail and data protection
               </Link>
             </p>
