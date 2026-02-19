@@ -88,6 +88,14 @@ export async function POST(request: NextRequest) {
     const targetCenterId =
       user.role === "SUPER_ADMIN" && centerId ? centerId : user.centerId;
 
+    // Validate role escalation: only SUPER_ADMIN can create other SUPER_ADMINs
+    if (role === "SUPER_ADMIN" && user.role !== "SUPER_ADMIN") {
+      return NextResponse.json(
+        { error: "Forbidden: Only SUPER_ADMIN can create SUPER_ADMIN users" },
+        { status: 403 }
+      );
+    }
+
     // Check if user already exists
     const existingUser = await prisma.user.findUnique({
       where: { email },
