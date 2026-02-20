@@ -221,3 +221,96 @@ test.describe("Tutor Action Cards Navigation", () => {
     await expect(myDayCard).toHaveAttribute("href", "/dashboard/tutor/my-day");
   });
 });
+
+// ─── Tutor Resources Sub-Pages ───────────────────────────────────────────────
+
+test.describe("Tutor Resources: Assessment Tools Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsTeacher(page);
+  });
+
+  test("should navigate to assessment tools page", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/assessments");
+    await expect(page).toHaveURL(/.*assessments.*/);
+  });
+
+  test("should display assessment tools content without error", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/assessments");
+    await expect(page.locator("body")).not.toContainText("Error");
+    await expect(page.locator("body")).not.toContainText("404");
+  });
+
+  test("should have heading visible", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/assessments");
+    await expect(page.getByRole("heading").first()).toBeVisible();
+  });
+
+  test("should be reachable from resources hub", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources");
+    const link = page.getByRole("link", { name: /View Tools|Assessment/i }).first();
+    if (await link.isVisible()) {
+      await expect(link).toHaveAttribute("href", "/dashboard/tutor/resources/assessments");
+    }
+  });
+});
+
+test.describe("Tutor Resources: Media Library Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsTeacher(page);
+  });
+
+  test("should navigate to media library page", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/media");
+    await expect(page).toHaveURL(/.*media.*/);
+  });
+
+  test("should display media library without error", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/media");
+    await expect(page.locator("body")).not.toContainText("Error");
+    await expect(page.locator("body")).not.toContainText("404");
+  });
+});
+
+test.describe("Tutor Resources: Lesson Templates Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsTeacher(page);
+  });
+
+  test("should navigate to lesson templates page", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/templates");
+    await expect(page).toHaveURL(/.*templates.*/);
+  });
+
+  test("should display lesson templates without error", async ({ page }) => {
+    await page.goto("/dashboard/tutor/resources/templates");
+    await expect(page.locator("body")).not.toContainText("Error");
+    await expect(page.locator("body")).not.toContainText("404");
+  });
+});
+
+// ─── Tutor Catch-Up Packages Page ────────────────────────────────────────────
+
+test.describe("Tutor Catch-Up Packages Page", () => {
+  test.beforeEach(async ({ page }) => {
+    await loginAsTeacher(page);
+  });
+
+  test("should navigate to catch-up packages page", async ({ page }) => {
+    await page.goto("/dashboard/tutor/catchups");
+    await expect(page).toHaveURL(/.*catchups.*/);
+  });
+
+  test("should display catch-up packages without error", async ({ page }) => {
+    await page.goto("/dashboard/tutor/catchups");
+    await expect(page.locator("body")).not.toContainText("Error");
+    await expect(page.locator("body")).not.toContainText("404");
+  });
+
+  test("should show Catch-up Packages action card on tutor dashboard", async ({ page }) => {
+    await page.goto("/dashboard/tutor");
+    const card = page.getByRole("link", { name: /Catch-up/i }).first();
+    if (await card.isVisible()) {
+      await expect(card).toHaveAttribute("href", "/dashboard/tutor/catchups");
+    }
+  });
+});

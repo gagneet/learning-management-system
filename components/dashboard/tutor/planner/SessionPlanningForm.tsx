@@ -153,6 +153,42 @@ export default function SessionPlanningForm({
     );
   };
 
+  const getRecommendedExercises = () => {
+    if (formData.selectedStudentIds.length === 0) return [];
+
+    const selectedStudents = students.filter(s => formData.selectedStudentIds.includes(s.id));
+
+    // Rule-based recommendation
+    return exercises.filter(ex => {
+      // 1. Basic subject/course matching
+      // (In a real app, exercises would be filtered by courseId from props)
+
+      // 2. Performance based rules
+      const studentPerformances = selectedStudents.flatMap(s => s.recentPerformance || []);
+      const avgScore = studentPerformances.length > 0
+        ? studentPerformances.reduce((acc, p) => acc + p.score, 0) / studentPerformances.length
+        : 70;
+
+      if (avgScore < 50) return ex.difficulty <= 1; // Needs foundation
+      if (avgScore > 85) return ex.difficulty >= 3; // Needs challenge
+      return ex.difficulty >= 1 && ex.difficulty <= 3; // Standard
+    }).slice(0, 4);
+  };
+
+  const addActivityBlock = () => {
+    const newBlock: ActivityBlock = {
+      id: Math.random().toString(36).substr(2, 9),
+      startMinute: formData.activityBlocks.length * 15,
+      duration: 15,
+      type: "MAIN",
+      title: "New Activity",
+      description: "",
+      studentIds: [...formData.selectedStudentIds],
+      exerciseIds: [],
+    };
+    updateFormData("activityBlocks", [...formData.activityBlocks, newBlock]);
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-8">
       <div className="max-w-4xl mx-auto px-4">
@@ -462,16 +498,171 @@ export default function SessionPlanningForm({
             </div>
           )}
 
-          {/* Step 4-6: Simplified for now */}
-          {currentStep > 3 && (
-            <div className="text-center py-12">
-              <div className="text-6xl mb-4">🚧</div>
-              <p className="text-gray-600 dark:text-gray-400">
-                Step {currentStep} interface coming soon...
-              </p>
-              <p className="text-sm text-gray-500 dark:text-gray-500 mt-2">
-                For now, you can complete the session plan with basic details.
-              </p>
+          {/* Step 4: Session Structure */}
+          {currentStep === 4 && (
+            <div className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  🕒 Session Structure
+                </h2>
+                <button
+                  onClick={addActivityBlock}
+                  className="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700"
+                >
+                  + Add Block
+                </button>
+              </div>
+
+              <div className="space-y-4">
+                {formData.activityBlocks.map((block: ActivityBlock, idx: number) => (
+                  <div key={block.id} className="border border-gray-200 dark:border-gray-700 rounded-xl p-4 bg-gray-50 dark:bg-gray-900/50">
+                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Type</label>
+                        <select
+                          value={block.type}
+                          onChange={(e) => {
+                            const newBlocks = [...formData.activityBlocks];
+                            newBlocks[idx].type = e.target.value as any;
+                            updateFormData("activityBlocks", newBlocks);
+                          }}
+                          className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        >
+                          <option value="WARMUP">Warm-up</option>
+                          <option value="MAIN">Main Activity</option>
+                          <option value="PRACTICE">Independent Practice</option>
+                          <option value="WRAPUP">Wrap-up</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs font-bold text-gray-500 uppercase mb-1">Duration (min)</label>
+                        <input
+                          type="number"
+                          value={block.duration}
+                          onChange={(e) => {
+                            const newBlocks = [...formData.activityBlocks];
+                            newBlocks[idx].duration = parseInt(e.target.value);
+                            updateFormData("activityBlocks", newBlocks);
+                          }}
+                          className="w-full px-3 py-1.5 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm"
+                        />
+                      </div>
+                      <div className="flex items-end">
+                        <button
+                          onClick={() => {
+                            const newBlocks = formData.activityBlocks.filter((_: any, i: number) => i !== idx);
+                            updateFormData("activityBlocks", newBlocks);
+                          }}
+                          className="text-red-500 text-sm hover:underline"
+                        >
+                          Remove Block
+                        </button>
+                      </div>
+                    </div>
+                    <input
+                      type="text"
+                      placeholder="Activity Title"
+                      value={block.title}
+                      onChange={(e) => {
+                        const newBlocks = [...formData.activityBlocks];
+                        newBlocks[idx].title = e.target.value;
+                        updateFormData("activityBlocks", newBlocks);
+                      }}
+                      className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm mb-2 font-semibold"
+                    />
+                    <textarea
+                      placeholder="Instructions/Description"
+                      value={block.description}
+                      onChange={(e) => {
+                        const newBlocks = [...formData.activityBlocks];
+                        newBlocks[idx].description = e.target.value;
+                        updateFormData("activityBlocks", newBlocks);
+                      }}
+                      className="w-full px-3 py-2 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm h-20"
+                    />
+                  </div>
+                ))}
+
+                {formData.activityBlocks.length === 0 && (
+                  <div className="text-center py-12 border-2 border-dashed border-gray-200 dark:border-gray-700 rounded-xl">
+                    <p className="text-gray-500">No activity blocks defined yet. Add blocks to structure your session.</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Step 5: Resources */}
+          {currentStep === 5 && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                🛠️ Resources & Setup
+              </h2>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">Physical Resources</h3>
+                  <textarea
+                    value={formData.setupNotes}
+                    onChange={(e) => updateFormData("setupNotes", e.target.value)}
+                    placeholder="e.g., Print worksheet page 4, prepare math counters, bring world map..."
+                    className="w-full px-4 py-3 rounded-xl border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm h-40"
+                  />
+                </div>
+                <div className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-100 dark:border-gray-800">
+                  <h3 className="text-sm font-bold text-gray-500 uppercase mb-3">Included Exercises</h3>
+                  <div className="space-y-2">
+                    {formData.selectedExercises.map((ex: Exercise) => (
+                      <div key={ex.id} className="flex items-center gap-2 text-sm text-gray-700 dark:text-gray-300">
+                        <div className="h-2 w-2 rounded-full bg-blue-500"></div>
+                        {ex.title}
+                      </div>
+                    ))}
+                    {formData.selectedExercises.length === 0 && (
+                      <p className="text-xs text-gray-400 italic">No exercises selected in Step 3.</p>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Step 6: Objectives & Finalize */}
+          {currentStep === 6 && (
+            <div className="space-y-6">
+              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                🎯 Goals & Contingencies
+              </h2>
+
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Session Objectives</label>
+                  <textarea
+                    value={formData.objectives.main || ""}
+                    onChange={(e) => updateFormData("objectives", { ...formData.objectives, main: e.target.value })}
+                    placeholder="What should students achieve by the end of this session?"
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm h-24"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Internal Tutor Notes</label>
+                  <textarea
+                    value={formData.tutorNotes}
+                    onChange={(e) => updateFormData("tutorNotes", e.target.value)}
+                    placeholder="Private notes for yourself or other tutors..."
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm h-24"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Contingency Plans</label>
+                  <textarea
+                    value={formData.contingencyPlans}
+                    onChange={(e) => updateFormData("contingencyPlans", e.target.value)}
+                    placeholder="e.g., If Student A finishes early, give them challenge exercise X..."
+                    className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm h-24"
+                  />
+                </div>
+              </div>
             </div>
           )}
         </div>

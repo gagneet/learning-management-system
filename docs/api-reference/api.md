@@ -566,3 +566,148 @@ The system supports multiple centers (tenants) under one instance:
 - Role-based authorization on all API endpoints
 - SQL injection prevention via Prisma ORM
 - CSRF protection via NextAuth.js
+
+---
+
+## Phase 1 v1 API Endpoints
+
+### Assessments
+
+#### POST /api/v1/assessments
+Record or update a subject-level assessment for a student.
+
+**Authorization:** TEACHER, CENTER_ADMIN, CENTER_SUPERVISOR, SUPER_ADMIN
+
+**Request Body:**
+```json
+{
+  "studentId": "student_id",
+  "courseId": "course_id",
+  "assessedGradeLevel": 4,
+  "readingAge": 8.5,
+  "numeracyAge": 9.0,
+  "comprehensionLevel": 75.0,
+  "writingLevel": 70.0,
+  "notes": "Student progressing well at Grade 4 level"
+}
+```
+
+**Response (201):**
+```json
+{
+  "assessment": {
+    "id": "assessment_id",
+    "studentId": "student_id",
+    "courseId": "course_id",
+    "assessedGradeLevel": 4,
+    "readingAge": 8.5,
+    "lastAssessedAt": "2026-02-20T00:00:00.000Z"
+  }
+}
+```
+
+**Notes:**
+- Upserts based on `[studentId, courseId]` unique pair
+- Automatically creates an `AcademicProfileLog` entry on level changes
+- Multi-tenant: validates student belongs to caller's center
+
+---
+
+### Student Traits
+
+#### POST /api/v1/student-traits
+Create a strength or weakness record for a student.
+
+**Authorization:** TEACHER, CENTER_ADMIN, CENTER_SUPERVISOR, SUPER_ADMIN
+
+**Request Body:**
+```json
+{
+  "studentId": "student_id",
+  "courseId": "course_id",
+  "type": "STRENGTH",
+  "description": "Excellent reading comprehension"
+}
+```
+
+**Response (201):**
+```json
+{
+  "trait": {
+    "id": "trait_id",
+    "studentId": "student_id",
+    "type": "STRENGTH",
+    "description": "Excellent reading comprehension",
+    "createdAt": "2026-02-20T00:00:00.000Z"
+  }
+}
+```
+
+**Values for `type`:** `STRENGTH`, `WEAKNESS`
+
+#### GET /api/v1/student-traits
+List all student traits visible to the caller.
+
+**Authorization:** All authenticated roles
+
+**Query Parameters:**
+- `studentId` (optional): Filter by student
+- `type` (optional): Filter by `STRENGTH` or `WEAKNESS`
+
+**Response (200):**
+```json
+{
+  "traits": [...]
+}
+```
+
+---
+
+### Tickets
+
+#### GET /api/v1/tickets
+List support tickets. Students/Parents see only their own tickets. Staff see all tickets in their center.
+
+**Authorization:** All authenticated roles
+
+**Query Parameters:**
+- `status` (optional): Filter by ticket status (`OPEN`, `IN_PROGRESS`, `RESOLVED`, `CLOSED`, `ESCALATED`)
+
+**Response (200):** Array of ticket objects
+
+#### POST /api/v1/tickets
+Create a new support ticket.
+
+**Authorization:** All authenticated roles
+
+**Request Body:**
+```json
+{
+  "type": "IT",
+  "priority": "MEDIUM",
+  "subject": "Laptop not connecting to projector",
+  "description": "The laptop in Room 3 cannot connect to the projector. Tried restarting but same issue."
+}
+```
+
+**Values for `type`:** `IT`, `INVENTORY`, `COMPLAINT`, `MAINTENANCE`, `GENERAL`
+**Values for `priority`:** `LOW`, `MEDIUM`, `HIGH`, `URGENT`
+
+**Response (201):**
+```json
+{
+  "ticket": {
+    "id": "ticket_id",
+    "ticketNumber": "TICK-2026-0001",
+    "type": "IT",
+    "priority": "MEDIUM",
+    "status": "OPEN",
+    "subject": "Laptop not connecting to projector",
+    "slaDueAt": "2026-02-21T00:00:00.000Z"
+  }
+}
+```
+
+**Notes:**
+- `ticketNumber` is auto-generated as `TICK-{YEAR}-{SEQUENCE}`
+- `slaDueAt` is auto-calculated from `SLAConfig` for the center, or defaults to 24h for IT/GENERAL, 4h for HIGH, 1h for URGENT

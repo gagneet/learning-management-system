@@ -68,15 +68,16 @@ npx jest --coverage tests/api/
 | `login.spec.ts` | Authentication flow, validation, error handling |
 | `dashboard.spec.ts` | Role-based dashboards (Admin, Student, Tutor, Supervisor) |
 | `theme-and-navigation.spec.ts` | Theme toggle (Light/Gray/Dark), navigation across roles |
-| `tutor-pages.spec.ts` | Tutor feature pages: My Day, Planner, History, Content Library, Assessments |
+| `tutor-pages.spec.ts` | Tutor feature pages: My Day, Planner, History, Content Library, Assessments, Resource sub-pages (assessments/media/templates), Catch-up Packages |
 | `student-features.spec.ts` | Student features: Goals, Homework, Awards, Gamification, Help |
 | `api-health.spec.ts` | API health endpoint, auth requirements, public pages |
 | `navigation-redirects.spec.ts` | All role navigation links resolve without 404 |
 | `live-session-tracking.spec.ts` | Live session control center and real-time student tracking |
 | `catchup-pages.spec.ts` | Student catch-up packages, tutor catch-up management |
 | `admin-classes.spec.ts` | Admin class cohort management, RBAC access control |
-| `v1-api.spec.ts` | Phase 1 v1 API: help requests, goals, awards, homework, tutor notes |
+| `v1-api.spec.ts` | Phase 1 v1 API: help requests, goals, awards, homework, tutor notes, assessments, student-traits, tickets |
 | `video-sessions.spec.ts` | Multi-student video conferencing: Daily.co integration, RBAC, navigation, API auth, session details Start Video button (fixed to show for all ONLINE sessions) |
+| `supervisor-pages.spec.ts` | Supervisor dashboard, financial page, finance admin access, redirect behaviours, action cards |
 
 ### API Tests (Jest - `tests/api/`)
 

@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
-import ContentLibraryClient from "./ContentLibraryClient";
+import ContentLibraryClient from "@/components/dashboard/tutor/ContentLibraryClient";
 
 export default async function ContentLibraryPage() {
   const session = await auth();
@@ -13,103 +13,62 @@ export default async function ContentLibraryPage() {
 
   const { user } = session;
 
-  if (user.role !== "TEACHER") {
+  if (user.role !== "TEACHER" && user.role !== "CENTER_ADMIN" && user.role !== "CENTER_SUPERVISOR" && user.role !== "SUPER_ADMIN") {
     redirect("/dashboard");
   }
 
-  // Fetch courses taught by this tutor
-  const courses = await prisma.course.findMany({
-    where: {
-      teacherId: user.id,
-      status: "PUBLISHED",
-    },
-    select: {
-      id: true,
-      title: true,
-      slug: true,
-    },
-    orderBy: {
-      title: "asc",
-    },
-  });
-
-  // Fetch all exercises from lessons in tutor's courses
-  const exercises = await prisma.exercise.findMany({
-    where: {
-      lesson: {
-        module: {
-          course: {
-            teacherId: user.id,
-          },
-        },
-      },
-      isActive: true,
-    },
-    include: {
-      lesson: {
-        select: {
-          id: true,
-          title: true,
+  // Fetch all relevant content data
+  const [courses, gradeLevels, exercises] = await Promise.all([
+    prisma.course.findMany({
+      where: { centerId: user.centerId },
+      include: {
+        courseUnits: {
+          include: {
+            lessons: {
+              include: {
+                exercises: true,
+              }
+            }
+          }
+        }
+      }
+    }),
+    prisma.gradeLevel.findMany({
+      orderBy: { level: 'asc' }
+    }),
+    prisma.exercise.findMany({
+      where: {
+        lesson: {
           module: {
-            select: {
-              course: {
-                select: {
-                  id: true,
-                  title: true,
-                },
-              },
-            },
-          },
-        },
+            course: {
+              centerId: user.centerId
+            }
+          }
+        }
       },
-    },
-    orderBy: [
-      { lesson: { module: { course: { title: "asc" } } } },
-      { sequenceOrder: "asc" },
-    ],
-  });
-
-  // Get all students enrolled in tutor's courses
-  const students = await prisma.user.findMany({
-    where: {
-      role: "STUDENT",
-      enrollments: {
-        some: {
-          course: {
-            teacherId: user.id,
-          },
-        },
-      },
-    },
-    select: {
-      id: true,
-      name: true,
-      email: true,
-    },
-    orderBy: {
-      name: "asc",
-    },
-  });
+      include: {
+        lesson: {
+          include: {
+            module: {
+              include: {
+                course: true
+              }
+            }
+          }
+        }
+      }
+    })
+  ]);
 
   return (
-    <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <Header
-        user={{
-          name: user.name || "",
-          email: user.email || "",
-          role: user.role,
-        }}
-        breadcrumbs={[
-          { label: "Dashboard", href: "/dashboard/tutor" },
-          { label: "Content Library" },
-        ]}
-      />
+    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
+      <Header user={{ name: user.name!, email: user.email!, role: user.role }} title="Content Library" />
 
-      <main className="container mx-auto px-4 py-8">
+      <main id="main-content" className="container mx-auto px-4 py-8 flex-1 scroll-mt-20">
         <ContentLibraryClient
-          exercises={exercises}
-          courses={courses}
-          students={students}
+          initialCourses={courses}
+          gradeLevels={gradeLevels}
+          allExercises={exercises}
         />
       </main>
     </div>
