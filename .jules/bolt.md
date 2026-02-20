@@ -17,3 +17,7 @@
 ## 2026-03-06 - [Parallelize Independent Queries in SSR Pages]
 **Learning:** Found that the tutor's live session dashboard was fetching 6 sequential database queries, leading to a "waterfall" effect where each RTT added to the total TTFB (Time To First Byte). By grouping these into two parallel stages using `Promise.all`, we reduced the sequential bottleneck from 6 queries to 2.
 **Action:** Always identify independent database calls in Server Components and group them into `Promise.all` stages based on their data dependencies.
+
+## 2026-03-07 - [Join Elimination and Tenant Indexing]
+**Learning:** Found that several academic API routes were performing relational joins on the `User` table just to filter by `centerId`, despite the models already having a `centreId` field. Replacing these joins with direct column filters significantly simplifies the generated SQL. Additionally, many dashboard queries filter by `completedAt: null` or `status` within a center, making compound indexes like `(centreId, status)` and `(userId, completedAt)` highly effective.
+**Action:** Always prefer direct column filters for tenant isolation when the field is available. Use compound indexes for common filter combinations found in dashboard data-fetching logic.

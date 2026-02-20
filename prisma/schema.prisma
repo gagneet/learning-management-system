@@ -333,6 +333,7 @@ model Enrollment {
   @@index([courseId])
   @@index([tutorId])
   @@index([userId, enrolledAt]) // Compound index for enrollment history queries
+  @@index([userId, completedAt]) // ⚡ Bolt: Optimize active enrollment lookups
 }
 
 // Progress tracking model
@@ -1771,6 +1772,7 @@ model HelpRequest {
   @@index([createdAt])
   @@index([exerciseId])
   @@index([priority])
+  @@index([centreId, status]) // ⚡ Bolt: Optimize multi-tenant list/dashboard queries
 }
 
 // -----------------------------------------------------------------------------
