@@ -36,16 +36,20 @@ export async function GET(request: NextRequest) {
         in: children.map((child) => child.id),
       };
     } else if (user.role !== "SUPER_ADMIN") {
-      // Teachers, supervisors, admins - filter by center
-      const student = studentId
-        ? await prisma.user.findUnique({
-            where: { id: studentId },
-            select: { centerId: true },
-          })
-        : null;
+      // ⚡ Bolt Optimization: Use direct centreId filter for multi-tenancy.
+      // This ensures data isolation and avoids unnecessary joins or extra DB calls.
+      where.centreId = user.centerId;
 
-      if (student && student.centerId !== user.centerId) {
-        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      if (studentId) {
+        // Still ensure the requested student belongs to the same center
+        const student = await prisma.user.findUnique({
+          where: { id: studentId },
+          select: { centerId: true },
+        });
+
+        if (!student || student.centerId !== user.centerId) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
       }
     }
 

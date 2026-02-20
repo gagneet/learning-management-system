@@ -36,10 +36,9 @@ export async function GET(request: NextRequest) {
         in: children.map((child) => child.id),
       };
     } else if (user.role !== "SUPER_ADMIN") {
-      // Teachers, supervisors, admins - must filter by their center
-      where.student = {
-        centerId: user.centerId
-      };
+      // ⚡ Bolt Optimization: Use direct centreId filter instead of relation join
+      // This eliminates an expensive join on the User table.
+      where.centreId = user.centerId;
 
       // Validate studentId if provided
       if (studentId) {
