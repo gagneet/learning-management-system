@@ -22,6 +22,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Verify student belongs to same centre
+    const student = await prisma.user.findFirst({
+      where: { id: studentId, centerId: user.centerId },
+      select: { id: true }
+    });
+    
+    if (!student) {
+      return NextResponse.json({ error: "Student not found or access denied" }, { status: 404 });
+    }
+
     const trait = await prisma.studentStrengthWeakness.create({
       data: {
         studentId,
