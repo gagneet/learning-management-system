@@ -35,7 +35,7 @@ export function getCentreIdForQuery(
   session: Session | null,
   requestedCentreId?: string
 ): string {
-  if (!session?.user?.centreId) {
+  if (!session?.user?.centerId) {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -63,7 +63,7 @@ export function validateCentreAccess(
   session: Session | null,
   resourceCentreId: string
 ): void {
-  if (!session?.user?.centreId) {
+  if (!session?.user?.centerId) {
     throw new Error("UNAUTHORIZED");
   }
 
@@ -89,7 +89,7 @@ export function canAccessCentre(
   session: Session | null,
   resourceCentreId: string
 ): boolean {
-  if (!session?.user?.centreId) {
+  if (!session?.user?.centerId) {
     return false;
   }
 
@@ -136,7 +136,7 @@ export function buildCentreWhereClause<T extends Record<string, any>>(
  * @throws Error if no session or centreId
  */
 export function getCentreIdFromSession(session: Session | null): string {
-  if (!session?.user?.centreId) {
+  if (!session?.user?.centerId) {
     throw new Error("UNAUTHORIZED");
   }
   return session.user.centerId;
@@ -156,9 +156,13 @@ export function getCentreIdFromSession(session: Session | null): string {
  * preventCentreIdInjection(body);
  */
 export function preventCentreIdInjection(body: any): void {
-  if (body && typeof body === "object" && "centreId" in body) {
+  if (
+    body &&
+    typeof body === "object" &&
+    ("centreId" in body || "centerId" in body)
+  ) {
     throw new Error(
-      "SECURITY_VIOLATION: centreId cannot be provided in request body"
+      "SECURITY_VIOLATION: centreId/centerId cannot be provided in request body"
     );
   }
 }
