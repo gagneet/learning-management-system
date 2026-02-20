@@ -67,7 +67,12 @@ export async function GET(request: NextRequest) {
     }
 
     const traits = await prisma.studentStrengthWeakness.findMany({
-      where: { studentId },
+      where: { 
+        studentId,
+        student: {
+          centerId: session.user.centerId
+        }
+      },
       include: {
         course: {
           select: {
