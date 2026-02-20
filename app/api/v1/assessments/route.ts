@@ -64,12 +64,21 @@ export async function POST(request: NextRequest) {
 
     // Create a log entry for the assessment change
     // Need to fetch previous level first for accurate log, or just log current
+    // Create a log entry for the assessment change
+    // Fetch previous level for accurate audit trail
+    const existingAssessment = await prisma.subjectAssessment.findUnique({
+      where: {
+        studentId_courseId: { studentId, courseId }
+      },
+      select: { assessedGradeLevel: true }
+    });
+    
     await prisma.academicProfileLog.create({
       data: {
         studentId,
         courseId,
         subjectAssessmentId: assessment.id,
-        previousLevel: 0, // Simplified
+        previousLevel: existingAssessment?.assessedGradeLevel ?? 0,
         newLevel: parseInt(assessedGradeLevel),
         updateType: "ASSESSMENT_RESULT",
         reason: notes || "Regular assessment",
