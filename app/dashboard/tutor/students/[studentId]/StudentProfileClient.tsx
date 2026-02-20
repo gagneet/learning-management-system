@@ -221,6 +221,23 @@ type AttendanceRecord = {
   } | null;
 };
 
+type StudentStrengthWeakness = {
+  id: string;
+  studentId: string;
+  courseId: string | null;
+  type: string;
+  description: string;
+  identifiedBy: string;
+  createdAt: Date;
+  updatedAt: Date;
+  course: {
+    title: string;
+  } | null;
+  identifier: {
+    name: string;
+  };
+};
+
 type Stats = {
   totalSessions: number;
   attendanceRate: number;
@@ -241,6 +258,7 @@ interface StudentProfileClientProps {
   sessions: StudentSessionEnrollment[];
   homeworkAssignments: HomeworkAssignment[];
   attendance: AttendanceRecord[];
+  traits: StudentStrengthWeakness[];
   stats: Stats;
 }
 
@@ -258,6 +276,7 @@ export function StudentProfileClient({
   sessions,
   homeworkAssignments,
   attendance,
+  traits,
   stats,
 }: StudentProfileClientProps) {
   const router = useRouter();
@@ -268,6 +287,10 @@ export function StudentProfileClient({
   const [filterParentVisible, setFilterParentVisible] = useState<boolean | null>(null);
   const [assessmentSubjectFilter, setAssessmentSubjectFilter] = useState<string>("all");
   const [activityFilter, setActivityFilter] = useState<"all" | "sessions" | "homework" | "attendance">("all");
+  const [showTraitForm, setShowTraitForm] = useState(false);
+  const [traitType, setTraitType] = useState<"STRENGTH" | "WEAKNESS">("STRENGTH");
+  const [traitDescription, setTraitDescription] = useState("");
+  const [traitCourseId, setTraitCourseId] = useState("");
 
   const tabs = [
     { id: "overview" as TabType, label: "Overview", icon: "📊" },
@@ -278,6 +301,37 @@ export function StudentProfileClient({
     { id: "notes" as TabType, label: "Notes", icon: "📋" },
     { id: "activity" as TabType, label: "Activity", icon: "📈" },
   ];
+
+  const handleAddTrait = async () => {
+    if (!traitDescription.trim()) return;
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/v1/student-traits`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          studentId: student.id,
+          type: traitType,
+          description: traitDescription,
+          courseId: traitCourseId || null,
+        }),
+      });
+
+      if (response.ok) {
+        setTraitDescription("");
+        setTraitCourseId("");
+        setShowTraitForm(false);
+        router.refresh();
+      } else {
+        alert("Failed to add trait");
+      }
+    } catch (error) {
+      console.error("Error adding trait:", error);
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
   const handleAddNote = async () => {
     if (!noteContent.trim()) return;
@@ -721,11 +775,168 @@ export function StudentProfileClient({
 
           {/* Strengths & Weaknesses Tab */}
           {activeTab === "strengths" && (
-            <div className="space-y-6">
-              <h3 className="text-lg font-semibold text-gray-900 dark:text-white">Strengths & Weaknesses Analysis</h3>
-              <div className="text-center py-12 text-gray-500 dark:text-gray-400">
-                Assessment analysis will be updated in the next version
+            <div className="space-y-8">
+              <div className="flex justify-between items-center">
+                <h3 className="text-2xl font-bold text-gray-900 dark:text-white">Analysis & Observations</h3>
+                <button
+                  aria-label={showTraitForm ? "Cancel adding observation" : "Add new observation"}
+                  onClick={() => setShowTraitForm(!showTraitForm)}
+                  className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                >
+                  {showTraitForm ? "Cancel" : "Add Observation"}
+                </button>
               </div>
+
+              {showTraitForm && (
+                <div className="bg-blue-50 dark:bg-blue-900/20 p-6 rounded-xl border border-blue-100 dark:border-blue-800 animate-in fade-in slide-in-from-top-4 duration-300">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Observation Type</label>
+                      <select
+                        value={traitType}
+                        onChange={(e) => setTraitType(e.target.value as "STRENGTH" | "WEAKNESS")}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        <option value="STRENGTH">Key Strength 💪</option>
+                        <option value="WEAKNESS">Area for Improvement 🎯</option>
+                      </select>
+                    </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Subject (Optional)</label>
+                      <select
+                        value={traitCourseId}
+                        onChange={(e) => setTraitCourseId(e.target.value)}
+                        className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                      >
+                        <option value="">General / Multiple Subjects</option>
+                        {enrollments.map(e => (
+                          <option key={e.courseId} value={e.courseId}>{e.course.title}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className="mb-4">
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Description</label>
+                    <textarea
+                      value={traitDescription}
+                      onChange={(e) => setTraitDescription(e.target.value)}
+                      placeholder="e.g., Excellent grasp of quadratic equations, but struggles with word problems..."
+                      rows={3}
+                      className="w-full px-4 py-2 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-900 dark:text-white"
+                    />
+                  </div>
+                  <div className="flex justify-end">
+                    <button
+                      aria-label="Save observation"
+                      onClick={handleAddTrait}
+                      disabled={isSubmitting || !traitDescription.trim()}
+                      className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors"
+                    >
+                      {isSubmitting ? "Saving..." : "Save Observation"}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                {/* Strengths */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-green-600 dark:text-green-400">
+                    <span className="text-2xl">💪</span>
+                    <h3 className="text-xl font-bold">Key Strengths</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {traits.filter(t => t.type === "STRENGTH").length > 0 ? (
+                      traits.filter(t => t.type === "STRENGTH").map(trait => (
+                        <div key={trait.id} className="bg-green-50 dark:bg-green-900/20 border-l-4 border-green-500 p-4 rounded-r-lg shadow-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-xs font-semibold text-green-700 dark:text-green-300 uppercase tracking-wider">
+                              {trait.course?.title || "General"}
+                            </span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {formatDate(trait.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 dark:text-gray-200">{trait.description}</p>
+                          <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+                            Identified by {trait.identifier.name}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg text-center text-gray-500">
+                        No strengths identified yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* Weaknesses */}
+                <div className="space-y-4">
+                  <div className="flex items-center gap-2 text-orange-600 dark:text-orange-400">
+                    <span className="text-2xl">🎯</span>
+                    <h3 className="text-xl font-bold">Areas for Improvement</h3>
+                  </div>
+                  <div className="space-y-3">
+                    {traits.filter(t => t.type === "WEAKNESS").length > 0 ? (
+                      traits.filter(t => t.type === "WEAKNESS").map(trait => (
+                        <div key={trait.id} className="bg-orange-50 dark:bg-orange-900/20 border-l-4 border-orange-500 p-4 rounded-r-lg shadow-sm">
+                          <div className="flex justify-between items-start mb-1">
+                            <span className="text-xs font-semibold text-orange-700 dark:text-orange-300 uppercase tracking-wider">
+                              {trait.course?.title || "General"}
+                            </span>
+                            <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                              {formatDate(trait.createdAt)}
+                            </span>
+                          </div>
+                          <p className="text-gray-800 dark:text-gray-200">{trait.description}</p>
+                          <div className="mt-2 text-[10px] text-gray-500 dark:text-gray-400">
+                            Identified by {trait.identifier.name}
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-gray-50 dark:bg-gray-900 p-6 rounded-lg text-center text-gray-500">
+                        No improvement areas identified yet.
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Subject-based Analysis from Assessments */}
+              {assessments.length > 0 && (
+                <div className="mt-12 bg-white dark:bg-gray-800 rounded-lg shadow-inner p-6 border border-gray-100 dark:border-gray-700">
+                  <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-6 flex items-center gap-2">
+                    <span className="text-xl">📊</span> Subject Performance Analysis
+                  </h3>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {Array.from(new Set(assessments.map(a => a.course.title))).map(subject => {
+                      const subjectAssessments = assessments.filter(a => a.course.title === subject);
+                      const latest = subjectAssessments[0];
+                      return (
+                        <div key={subject} className="bg-gray-50 dark:bg-gray-900 p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                          <h4 className="font-bold text-blue-600 dark:text-blue-400 mb-3 border-b border-blue-100 dark:border-blue-900 pb-2">{subject}</h4>
+                          <div className="space-y-2 text-sm">
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">Current Level:</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">Grade {latest.assessedGradeLevel}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">Reading Age:</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{latest.readingAge || 'N/A'}</span>
+                            </div>
+                            <div className="flex justify-between">
+                              <span className="text-gray-600 dark:text-gray-400">Numeracy Age:</span>
+                              <span className="font-semibold text-gray-900 dark:text-white">{latest.numeracyAge || 'N/A'}</span>
+                            </div>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
