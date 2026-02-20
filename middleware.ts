@@ -12,7 +12,21 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  return NextResponse.next();
+  const response = NextResponse.next();
+
+  // Security headers for defense-in-depth
+  response.headers.set('X-Frame-Options', 'DENY');
+  response.headers.set('X-Content-Type-Options', 'nosniff');
+  response.headers.set('Referrer-Policy', 'strict-origin-when-cross-origin');
+
+  if (process.env.NODE_ENV === 'production') {
+    response.headers.set(
+      'Strict-Transport-Security',
+      'max-age=31536000; includeSubDomains'
+    );
+  }
+
+  return response;
 }
 
 // Apply to all routes except static files, images, favicon, and health endpoint

@@ -221,7 +221,7 @@ export async function POST(request: NextRequest) {
   } catch (error: any) {
     console.error('Error marking attendance:', error);
     return NextResponse.json(
-      { error: 'Failed to mark attendance', details: error.message },
+      { error: 'Failed to mark attendance' },
       { status: 500 }
     );
   }
