@@ -22,14 +22,16 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
-    // Verify student belongs to same centre
-    const student = await prisma.user.findFirst({
-      where: { id: studentId, centerId: user.centerId },
-      select: { id: true }
-    });
-    
-    if (!student) {
-      return NextResponse.json({ error: "Student not found or access denied" }, { status: 404 });
+    // Multi-tenant authorization check
+    if (user.role !== "SUPER_ADMIN") {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { centerId: true },
+      });
+
+      if (!student || student.centerId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
     }
 
     const trait = await prisma.studentStrengthWeakness.create({
@@ -69,6 +71,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { user } = session;
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
 
@@ -76,13 +79,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "studentId is required" }, { status: 400 });
     }
 
+    // Multi-tenant authorization check
+    if (user.role !== "SUPER_ADMIN") {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { centerId: true },
+      });
+
+      if (!student || student.centerId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const traits = await prisma.studentStrengthWeakness.findMany({
-      where: { 
-        studentId,
-        student: {
-          centerId: session.user.centerId
-        }
-      },
+      where: { studentId },
       include: {
         course: {
           select: {

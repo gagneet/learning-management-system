@@ -31,6 +31,30 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
     }
 
+    // Multi-tenant authorization check
+    if (user.role !== "SUPER_ADMIN") {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { centerId: true },
+      });
+
+      if (!student || student.centerId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden: Student not in your center" }, { status: 403 });
+      }
+    }
+
+    // Fetch existing assessment to get previousLevel
+    const existingAssessment = await prisma.subjectAssessment.findUnique({
+      where: {
+        studentId_courseId: {
+          studentId,
+          courseId,
+        },
+      },
+    });
+
+    const previousLevel = existingAssessment ? existingAssessment.assessedGradeLevel : 0;
+
     // Upsert assessment (one per student-course)
     const assessment = await prisma.subjectAssessment.upsert({
       where: {
@@ -63,22 +87,12 @@ export async function POST(request: NextRequest) {
     });
 
     // Create a log entry for the assessment change
-    // Need to fetch previous level first for accurate log, or just log current
-    // Create a log entry for the assessment change
-    // Fetch previous level for accurate audit trail
-    const existingAssessment = await prisma.subjectAssessment.findUnique({
-      where: {
-        studentId_courseId: { studentId, courseId }
-      },
-      select: { assessedGradeLevel: true }
-    });
-    
     await prisma.academicProfileLog.create({
       data: {
         studentId,
         courseId,
         subjectAssessmentId: assessment.id,
-        previousLevel: existingAssessment?.assessedGradeLevel ?? 0,
+        previousLevel,
         newLevel: parseInt(assessedGradeLevel),
         updateType: "ASSESSMENT_RESULT",
         reason: notes || "Regular assessment",
@@ -101,6 +115,7 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { user } = session;
     const { searchParams } = new URL(request.url);
     const studentId = searchParams.get("studentId");
 
@@ -108,13 +123,20 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: "studentId is required" }, { status: 400 });
     }
 
+    // Multi-tenant authorization check
+    if (user.role !== "SUPER_ADMIN") {
+      const student = await prisma.user.findUnique({
+        where: { id: studentId },
+        select: { centerId: true },
+      });
+
+      if (!student || student.centerId !== user.centerId) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
+    }
+
     const assessments = await prisma.subjectAssessment.findMany({
-      where: { 
-        studentId,
-        student: {
-          centerId: session.user.centerId
-        }
-      },
+      where: { studentId },
       include: {
         course: {
           select: { title: true }

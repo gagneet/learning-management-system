@@ -70,6 +70,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
+    const { user: authUser } = session;
     const body = await request.json();
     const { type, userId, title, message, link, priority, data } = body;
 
@@ -79,6 +80,46 @@ export async function POST(request: NextRequest) {
         { error: 'Missing required fields' },
         { status: 400 }
       );
+    }
+
+    // Authorization check: Only admin roles can notify anyone
+    const isAdmin = ["SUPER_ADMIN", "CENTER_ADMIN", "CENTER_SUPERVISOR"].includes(authUser.role);
+
+    if (!isAdmin) {
+      // Non-admins can only notify themselves
+      if (userId !== authUser.id) {
+        // Tutors can notify students in their courses
+        if (authUser.role === "TEACHER") {
+          const student = await prisma.enrollment.findFirst({
+            where: {
+              userId: userId,
+              course: {
+                teacherId: authUser.id
+              }
+            }
+          });
+
+          if (!student) {
+            return NextResponse.json({ error: 'Forbidden: You can only notify your own students' }, { status: 403 });
+          }
+        } else if (authUser.role === "STUDENT") {
+          // Students can notify tutors of their sessions
+          const sharedSession = await prisma.studentSessionEnrollment.findFirst({
+            where: {
+              studentId: authUser.id,
+              session: {
+                tutorId: userId
+              }
+            }
+          });
+
+          if (!sharedSession) {
+            return NextResponse.json({ error: 'Forbidden: You can only notify yourself or your tutors' }, { status: 403 });
+          }
+        } else {
+          return NextResponse.json({ error: 'Forbidden' }, { status: 403 });
+        }
+      }
     }
 
     const notification = await prisma.notification.create({
