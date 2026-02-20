@@ -23,6 +23,7 @@ import {
   PackageOpen,
   LayoutList,
   Video,
+  Ticket,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -179,10 +180,10 @@ export function getActionCardsForRole(
           href: "/dashboard/tutor/catchups",
         },
         {
-          title: "Video Sessions",
-          description: "Launch in-built video conferencing",
-          icon: createElement(Video, { className: "w-6 h-6" }),
-          href: "/dashboard/tutor/sessions",
+          title: "Support Tickets",
+          description: "Submit and track IT or maintenance requests",
+          icon: createElement(Ticket, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/tickets",
         },
       ];
 
@@ -233,6 +234,12 @@ export function getActionCardsForRole(
           description: "Manage class cohorts and schedules",
           icon: createElement(LayoutList, { className: "w-6 h-6" }),
           href: "/admin/classes",
+        },
+        {
+          title: "Support Tickets",
+          description: "View and manage support requests",
+          icon: createElement(Ticket, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/tickets",
         },
       ];
 
@@ -365,6 +372,12 @@ export function getActionCardsForRole(
           description: "Contact teachers",
           icon: createElement(MessageCircle, { className: "w-6 h-6" }),
           href: "/dashboard/parent/messages",
+        },
+        {
+          title: "Support Tickets",
+          description: "Submit and track support requests",
+          icon: createElement(Ticket, { className: "w-6 h-6" }),
+          href: "/dashboard/parent/tickets",
         },
       ];
 

@@ -83,6 +83,22 @@ const nextConfig: NextConfig = {
         destination: "/dashboard/parent",
         permanent: false,
       },
+      // ── Ticket sub-pages → supervisor dashboard (tickets not yet on own page) ─
+      {
+        source: "/dashboard/supervisor/tickets",
+        destination: "/dashboard/supervisor",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/tutor/tickets",
+        destination: "/dashboard/tutor",
+        permanent: false,
+      },
+      {
+        source: "/dashboard/parent/tickets",
+        destination: "/dashboard/parent",
+        permanent: false,
+      },
       // ── Admin sub-pages not yet implemented ───────────────────────────
       {
         source: "/admin/centers",
