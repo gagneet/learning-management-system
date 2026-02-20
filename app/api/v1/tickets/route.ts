@@ -56,8 +56,28 @@ export async function POST(request: NextRequest) {
     }
 
     // Generate ticket number (e.g., TICK-2026-0001)
-    const count = await prisma.ticket.count();
-    const ticketNumber = `TICK-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+    // Generate ticket number using transaction to prevent race conditions
+    const ticket = await prisma.$transaction(async (tx) => {
+      const count = await tx.ticket.count();
+      const ticketNumber = `TICK-${new Date().getFullYear()}-${(count + 1).toString().padStart(4, '0')}`;
+      
+      // Calculate SLA due date (mock logic: +48 hours)
+      const slaDueAt = new Date();
+      slaDueAt.setHours(slaDueAt.getHours() + 48);
+      
+      return await tx.ticket.create({
+        data: {
+          ticketNumber,
+          type,
+          priority,
+          subject,
+          description,
+          createdById: user.id,
+          centreId: user.centerId,
+          slaDueAt,
+        },
+      });
+    });
 
     // Calculate SLA due date (mock logic: +48 hours)
     const slaDueAt = new Date();
