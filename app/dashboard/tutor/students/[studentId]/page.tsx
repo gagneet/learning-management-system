@@ -38,6 +38,7 @@ export default async function StudentProfilePage({ params }: StudentProfilePageP
     sessions,
     homeworkAssignments,
     attendance,
+    traits,
   ] = await Promise.all([
     // Basic student info
     prisma.user.findUnique({
@@ -230,6 +231,26 @@ export default async function StudentProfilePage({ params }: StudentProfilePageP
       },
       take: 50,
     }),
+
+    // Student Strengths & Weaknesses
+    prisma.studentStrengthWeakness.findMany({
+      where: { studentId },
+      include: {
+        course: {
+          select: {
+            title: true,
+          },
+        },
+        identifier: {
+          select: {
+            name: true,
+          },
+        },
+      },
+      orderBy: {
+        createdAt: "desc",
+      },
+    }),
   ]);
 
   if (!student) {
@@ -282,6 +303,7 @@ export default async function StudentProfilePage({ params }: StudentProfilePageP
           sessions={sessions}
           homeworkAssignments={homeworkAssignments}
           attendance={attendance}
+          traits={traits}
           stats={{
             totalSessions,
             attendanceRate,

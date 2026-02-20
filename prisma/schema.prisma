@@ -177,6 +177,7 @@ model User {
   identifiedTraits        StudentStrengthWeakness[] @relation("IdentifiedTraits")
   sentMessages            ChatMessage[]         @relation("SentMessages")
   receivedMessages        ChatMessage[]         @relation("ReceivedMessages")
+  notifications           Notification[]        @relation("UserNotifications")
   studentRedemptions      AwardRedemption[]     @relation("StudentRedemptions")
   tutorTemplates          SessionTemplate[]     @relation("TutorTemplates")
   studentWhiteboards      WhiteboardState[]     @relation("StudentWhiteboards")
@@ -2059,6 +2060,34 @@ model ActivityLog {
   @@index([enrollmentId])
   @@index([timestamp])
   @@index([centreId])
+}
+
+enum NotificationPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+model Notification {
+  id          String               @id @default(cuid())
+  type        String               // e.g., "SYSTEM", "ACADEMIC", "FINANCIAL", "TICKET"
+  title       String
+  message     String               @db.Text
+  link        String?              // Optional link to action
+  priority    NotificationPriority @default(MEDIUM)
+  read        Boolean              @default(false)
+  data        Json?                // Additional context
+
+  userId      String
+  user        User                 @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  @@index([userId])
+  @@index([read])
+  @@index([createdAt])
 }
 
 model SessionPresenceLog {

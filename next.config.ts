@@ -11,11 +11,6 @@ const nextConfig: NextConfig = {
       // The supervisor dashboard contains all data as collapsible sections.
       // These redirects prevent 404s on linked-but-unimplemented sub-routes.
       {
-        source: "/dashboard/supervisor/financial",
-        destination: "/dashboard/supervisor",
-        permanent: false,
-      },
-      {
         source: "/dashboard/supervisor/attendance",
         destination: "/dashboard/supervisor",
         permanent: false,

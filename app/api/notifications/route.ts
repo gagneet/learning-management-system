@@ -10,25 +10,53 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // TODO: Once Notification model is added to Prisma schema, fetch from database
-    // For now, return empty array or mock data
-    // const notifications = await prisma.notification.findMany({
-    //   where: { userId: session.user.id },
-    //   orderBy: { createdAt: 'desc' },
-    //   take: 50,
-    // });
-
-    // Mock notifications for development
-    const mockNotifications: any[] = [];
+    const notifications = await prisma.notification.findMany({
+      where: { userId: session.user.id },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
 
     return NextResponse.json({
-      notifications: mockNotifications,
-      count: mockNotifications.length,
+      notifications,
+      count: notifications.length,
     });
   } catch (error) {
     console.error('Error fetching notifications:', error);
     return NextResponse.json(
       { error: 'Failed to fetch notifications' },
+      { status: 500 }
+    );
+  }
+}
+
+// PATCH /api/notifications - Mark notification as read
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await auth();
+    if (!session) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const body = await request.json();
+    const { notificationId, read } = body;
+
+    if (!notificationId) {
+      return NextResponse.json({ error: 'Missing notificationId' }, { status: 400 });
+    }
+
+    const notification = await prisma.notification.update({
+      where: {
+        id: notificationId,
+        userId: session.user.id // Ensure user owns the notification
+      },
+      data: { read: read !== undefined ? read : true },
+    });
+
+    return NextResponse.json({ success: true, data: notification });
+  } catch (error) {
+    console.error('Error updating notification:', error);
+    return NextResponse.json(
+      { error: 'Failed to update notification' },
       { status: 500 }
     );
   }
@@ -53,23 +81,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // TODO: Once Notification model is added to Prisma schema, create in database
-    // const notification = await prisma.notification.create({
-    //   data: {
-    //     type,
-    //     userId,
-    //     title,
-    //     message,
-    //     link,
-    //     priority: priority || 'MEDIUM',
-    //     read: false,
-    //     data: data || {},
-    //   },
-    // });
+    const notification = await prisma.notification.create({
+      data: {
+        type,
+        userId,
+        title,
+        message,
+        link,
+        priority: priority || 'MEDIUM',
+        read: false,
+        data: data || {},
+      },
+    });
 
     return NextResponse.json({
       success: true,
-      message: 'Notification created (mock mode)',
+      data: notification,
     });
   } catch (error) {
     console.error('Error creating notification:', error);
@@ -88,10 +115,9 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    // TODO: Once Notification model is added to Prisma schema, delete from database
-    // await prisma.notification.deleteMany({
-    //   where: { userId: session.user.id },
-    // });
+    await prisma.notification.deleteMany({
+      where: { userId: session.user.id },
+    });
 
     return NextResponse.json({ success: true });
   } catch (error) {
