@@ -2,7 +2,7 @@ import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import Header from "@/components/Header";
 
 export default async function TutorSessionsPage() {
   const session = await auth();
@@ -76,28 +76,14 @@ export default async function TutorSessionsPage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-2xl font-bold text-blue-600">
-                LMS
-              </Link>
-              <span className="text-gray-400">›</span>
-              <span className="text-gray-600 dark:text-gray-300">My Sessions</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <Link
-                href="/dashboard"
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600"
-              >
-                ← Back to Dashboard
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header
+        user={{ name: user.name!, email: user.email!, role: user.role }}
+        title="My Sessions"
+        breadcrumbs={[
+          { label: "Dashboard", href: "/dashboard" },
+          { label: "My Sessions" },
+        ]}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="mb-8">
