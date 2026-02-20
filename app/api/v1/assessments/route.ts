@@ -100,7 +100,12 @@ export async function GET(request: NextRequest) {
     }
 
     const assessments = await prisma.subjectAssessment.findMany({
-      where: { studentId },
+      where: { 
+        studentId,
+        student: {
+          centerId: session.user.centerId
+        }
+      },
       include: {
         course: {
           select: { title: true }
