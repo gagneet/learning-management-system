@@ -1,44 +1,11 @@
 import Link from "next/link";
-import Image from "next/image";
 import { Footer } from "@/components/Footer";
+import Header from "@/components/Header";
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
-      {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="flex items-center hover:opacity-80 transition-opacity">
-              <Image
-                src="/aetherlearn-header-logo.svg"
-                alt="Aether Learn"
-                width={180}
-                height={40}
-                className="h-10 w-auto"
-                priority
-              />
-            </Link>
-            <div className="flex items-center gap-6">
-              <Link href="/features" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Features
-              </Link>
-              <Link href="/about" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                About
-              </Link>
-              <Link href="/contact" className="text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 font-medium transition">
-                Contact
-              </Link>
-              <Link
-                href="/login"
-                className="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg transition duration-200"
-              >
-                Sign In
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       <main className="container mx-auto px-4 py-16 flex-1">
         <div className="text-center">
