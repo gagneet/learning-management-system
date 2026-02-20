@@ -36,7 +36,7 @@ export default async function TutorMyDayPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header
         user={{ name: user.name!, email: user.email!, role: user.role }}
-        title="My Day"
+        title="Today's Sessions"
       />
 
       <main className="container mx-auto px-4 py-8 flex-1">

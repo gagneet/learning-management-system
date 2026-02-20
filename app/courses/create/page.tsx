@@ -1,7 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import ThemeToggle from "@/components/ThemeToggle";
+import Header from "@/components/Header";
 
 export default async function CourseCreatePage() {
   const session = await auth();
@@ -19,28 +19,13 @@ export default async function CourseCreatePage() {
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link href="/dashboard" className="text-2xl font-bold text-blue-600">
-                LMS
-              </Link>
-              <span className="text-gray-400">›</span>
-              <span className="text-gray-600 dark:text-gray-300">Create Course</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <ThemeToggle />
-              <Link
-                href="/dashboard/tutor/courses"
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600"
-              >
-                ← Back to Courses
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header
+        user={{ name: user.name || "", email: user.email || "", role: user.role || "" }}
+        breadcrumbs={[
+          { label: "Courses", href: "/dashboard/tutor/courses" },
+          { label: "Create Course" },
+        ]}
+      />
 
       <main className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto">

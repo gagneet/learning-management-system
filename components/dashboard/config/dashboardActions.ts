@@ -108,7 +108,7 @@ export function getActionCardsForRole(
     case "TEACHER":
       return [
         {
-          title: "My Day",
+          title: "Today's Sessions",
           description: "Today's schedule and students",
           icon: createElement(CalendarDays, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/my-day",

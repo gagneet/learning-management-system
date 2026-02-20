@@ -1,6 +1,6 @@
-import Image from "next/image";
 import { Footer } from "@/components/Footer";
 import Link from "next/link";
+import Header from "@/components/Header";
 
 export const metadata = {
   title: "GDPR Compliance | Learning Management System",
@@ -10,23 +10,7 @@ export const metadata = {
 export default function GDPRPage() {
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <Link href="/" className="text-2xl font-bold text-blue-600">
-              LMS
-            </Link>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/login"
-                className="px-4 py-2 text-blue-600 hover:text-blue-700"
-              >
-                Login
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header />
 
       <main className="container mx-auto px-4 py-12 flex-1">
         <div className="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">

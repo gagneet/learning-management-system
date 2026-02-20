@@ -89,7 +89,7 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
       {/* Welcome - Always visible */}
       <div className="mb-8">
         <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">
-          My Day
+          Today&apos;s Sessions
         </h2>
       </div>
 
@@ -105,7 +105,7 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
 
       {/* My Day Stats - Always visible first */}
       <CollapsibleSection
-        title="My Day Stats"
+        title="Today's Session Stats"
         icon="📊"
         defaultExpanded={true}
         persistKey="tutor-stats"

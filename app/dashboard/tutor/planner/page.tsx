@@ -133,6 +133,7 @@ export default async function SessionPlannerPage() {
       exercises={exerciseData}
       tutorId={user.id}
       tutorName={user.name || "Unknown"}
+      user={{ name: user.name || "", email: user.email || "", role: user.role || "" }}
     />
   );
 }

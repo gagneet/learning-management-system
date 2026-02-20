@@ -118,7 +118,7 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
         <div className="flex justify-between items-center">
           {/* Left side - Logo and breadcrumbs */}
           <div className="flex items-center gap-4">
-            <Link href={getDashboardUrl(user.role)} className="flex items-center hover:opacity-80 transition-opacity">
+            <Link href={getDashboardUrl(user?.role)} className="flex items-center hover:opacity-80 transition-opacity">
               <Image
                 src="/aetherlearn-header-logo.svg"
                 alt="AetherLearn"

@@ -2,9 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import Link from "next/link";
 import CalendarView from "@/components/dashboard/tutor/planner/CalendarView";
 import SessionPlanningForm from "@/components/dashboard/tutor/planner/SessionPlanningForm";
+import Header from "@/components/Header";
 
 interface SessionPlannerClientProps {
   initialSessions: any[];
@@ -13,6 +13,12 @@ interface SessionPlannerClientProps {
   exercises: any[];
   tutorId: string;
   tutorName: string;
+  user: {
+    name: string;
+    email: string;
+    role: string;
+    avatar?: string | null;
+  };
 }
 
 export default function SessionPlannerClient({
@@ -22,6 +28,7 @@ export default function SessionPlannerClient({
   exercises,
   tutorId,
   tutorName,
+  user,
 }: SessionPlannerClientProps) {
   const router = useRouter();
   const [sessions, setSessions] = useState(initialSessions);
@@ -125,38 +132,13 @@ export default function SessionPlannerClient({
 
   return (
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900">
-      {/* Navigation */}
-      <nav className="bg-white dark:bg-gray-800 shadow-sm">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex justify-between items-center">
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard"
-                className="text-2xl font-bold text-blue-600"
-              >
-                LMS
-              </Link>
-              <span className="text-gray-400">›</span>
-              <Link
-                href="/dashboard/tutor/sessions"
-                className="text-gray-600 dark:text-gray-300 hover:text-blue-600"
-              >
-                Sessions
-              </Link>
-              <span className="text-gray-400">›</span>
-              <span className="text-gray-600 dark:text-gray-300">Planner</span>
-            </div>
-            <div className="flex items-center gap-4">
-              <Link
-                href="/dashboard/tutor/sessions"
-                className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600"
-              >
-                ← Back to Sessions
-              </Link>
-            </div>
-          </div>
-        </div>
-      </nav>
+      <Header
+        user={user}
+        breadcrumbs={[
+          { label: "Sessions", href: "/dashboard/tutor/sessions" },
+          { label: "Planner" },
+        ]}
+      />
 
       {/* Main Content */}
       <main className="container mx-auto px-4 py-8">
