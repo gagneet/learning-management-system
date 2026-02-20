@@ -62,14 +62,17 @@ export default function Header({ user, title = "LMS Dashboard", breadcrumbs }: H
 
     if (isDropdownOpen) {
       document.addEventListener("keydown", handleEscape);
+      return () => document.removeEventListener("keydown", handleEscape);
     }
-    return () => document.removeEventListener("keydown", handleEscape);
   }, [isDropdownOpen]);
 
   const handleSignOut = async () => {
     try {
       setIsSigningOut(true);
-      await fetch("/api/auth/signout", { method: "POST" });
+      const response = await fetch("/api/auth/signout", { method: "POST" });
+      if (!response.ok) {
+        throw new Error("Sign out failed");
+      }
       router.push("/login");
     } catch (error) {
       console.error("Sign out failed:", error);
