@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { preventCentreIdInjection } from "@/lib/tenancy";
+import { createAuditLog } from "@/lib/audit";
+import { Role } from "@prisma/client";
 
 /**
  * ⚡ Bolt Optimization: Batch Homework Creation
@@ -23,6 +26,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+
+    // Security check: Prevent centreId injection
+    preventCentreIdInjection(body);
+
     const { assignments } = body;
 
     if (!assignments || !Array.isArray(assignments) || assignments.length === 0) {
@@ -30,6 +37,39 @@ export async function POST(request: NextRequest) {
         { success: false, error: "Assignments array is required" },
         { status: 400 }
       );
+    }
+
+    // Security check: Verify all students and courses belong to the same center
+    if (user.role !== "SUPER_ADMIN") {
+      const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
+      const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
+
+      const [students, courses] = await Promise.all([
+        prisma.user.findMany({
+          where: {
+            id: { in: uniqueStudentIds as string[] },
+            role: "STUDENT"
+          },
+          select: { id: true, centerId: true }
+        }),
+        prisma.course.findMany({
+          where: { id: { in: uniqueCourseIds as string[] } },
+          select: { id: true, centerId: true }
+        })
+      ]);
+
+      if (students.length !== uniqueStudentIds.length) {
+        return NextResponse.json({ success: false, error: "One or more students not found or invalid" }, { status: 404 });
+      }
+
+      if (courses.length !== uniqueCourseIds.length) {
+        return NextResponse.json({ success: false, error: "One or more courses not found" }, { status: 404 });
+      }
+
+      if (students.some(s => s.centerId !== user.centerId) ||
+          courses.some(c => c.centerId !== user.centerId)) {
+        return NextResponse.json({ success: false, error: "Forbidden: Cross-center assignment detected" }, { status: 403 });
+      }
     }
 
     // Prepare data for batch creation
@@ -48,6 +88,20 @@ export async function POST(request: NextRequest) {
     // Perform batch creation
     const result = await prisma.homeworkAssignment.createMany({
       data: homeworkData,
+    });
+
+    // Create audit log for the batch operation
+    await createAuditLog({
+      userId: user.id,
+      userName: user.name || "Unknown",
+      userRole: user.role as Role,
+      action: "CREATE",
+      resourceType: "HomeworkAssignment",
+      resourceId: "batch",
+      afterState: { count: result.count, studentCount: assignments.length },
+      centreId: user.centerId!,
+      ipAddress: request.headers.get("x-forwarded-for") || undefined,
+      metadata: { isBatch: true }
     });
 
     return NextResponse.json({
