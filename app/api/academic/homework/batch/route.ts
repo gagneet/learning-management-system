@@ -39,6 +39,21 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Validate required fields in each assignment
+    for (const assignment of assignments) {
+      if (!assignment.studentId || !assignment.courseId || !assignment.exerciseId || !assignment.dueDate) {
+        return NextResponse.json(
+          { success: false, error: "Missing required fields: studentId, courseId, exerciseId, and dueDate are required" },
+          { status: 400 }
+        );
+      }
+    }
+      return NextResponse.json(
+        { success: false, error: "Assignments array is required" },
+        { status: 400 }
+      );
+    }
+
     // Security check: Verify all students and courses belong to the same center
     // Security check: Verify all students and courses belong to valid centers
     const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
