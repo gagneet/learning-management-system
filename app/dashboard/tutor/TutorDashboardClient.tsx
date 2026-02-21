@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CollapsibleSection } from "@/components/dashboard/CollapsibleSection";
 import { ActionCardsSection } from "@/components/dashboard/ActionCardsSection";
 import { getActionCardsForRole } from "@/components/dashboard/config/dashboardActions";
+import { ProgressBar } from "@/components/ProgressBar";
 import type {
   Course,
   Enrollment,
@@ -260,17 +261,12 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
                       {enrollment.course.title}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[100px]">
-                          <div
-                            className="bg-orange-500 h-2 rounded-full transition-all"
-                            style={{ width: `${enrollment.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-gray-700 dark:text-gray-300 min-w-[40px]">
-                          {enrollment.progress.toFixed(0)}%
-                        </span>
-                      </div>
+                      <ProgressBar
+                        progress={enrollment.progress}
+                        showLabel={true}
+                        color="bg-orange-500"
+                        className="max-w-[150px]"
+                      />
                     </td>
                     <td className="px-4 py-3 text-sm">
                       <span className="px-2 py-1 bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200 rounded text-xs">
@@ -470,17 +466,11 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
                       {enrollment.course.title}
                     </td>
                     <td className="px-4 py-3 text-sm">
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2 max-w-[100px]">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${enrollment.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-gray-700 dark:text-gray-300 min-w-[40px]">
-                          {enrollment.progress.toFixed(0)}%
-                        </span>
-                      </div>
+                      <ProgressBar
+                        progress={enrollment.progress}
+                        showLabel={true}
+                        className="max-w-[150px]"
+                      />
                     </td>
                     <td className="px-4 py-3 text-sm text-gray-600 dark:text-gray-400">
                       {new Date(enrollment.enrolledAt).toLocaleDateString()}
