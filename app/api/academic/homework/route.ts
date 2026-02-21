@@ -1,6 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
+import { preventCentreIdInjection } from "@/lib/tenancy";
+import { auditCreate } from "@/lib/audit";
+import { Role } from "@prisma/client";
 
 // GET /api/v1/homework - List homework assignments
 export async function GET(request: NextRequest) {
@@ -161,6 +164,10 @@ export async function POST(request: NextRequest) {
 
   try {
     const body = await request.json();
+
+    // Security check: Prevent centreId injection
+    preventCentreIdInjection(body);
+
     const {
       studentId,
       courseId,
@@ -227,7 +234,7 @@ export async function POST(request: NextRequest) {
       data: {
         studentId,
         courseId,
-        centreId: user.centerId!,
+        centreId: student.centerId, // Derived from student
         exerciseId,
         sessionEnrollmentId,
         notes,
@@ -267,6 +274,23 @@ export async function POST(request: NextRequest) {
         },
       },
     });
+
+    // Audit logging
+    await auditCreate(
+      user.id,
+      user.name || "Unknown",
+      user.role as Role,
+      "HomeworkAssignment",
+      homework.id,
+      {
+        studentId,
+        courseId,
+        exerciseId,
+        dueDate: homework.dueDate,
+      },
+      student.centerId,
+      request.headers.get("x-forwarded-for") || undefined
+    );
 
     return NextResponse.json(
       {

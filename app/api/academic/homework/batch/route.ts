@@ -39,23 +39,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Validate required fields in each assignment
-    for (const assignment of assignments) {
-      if (!assignment.studentId || !assignment.courseId || !assignment.exerciseId || !assignment.dueDate) {
-        return NextResponse.json(
-          { success: false, error: "Missing required fields: studentId, courseId, exerciseId, and dueDate are required" },
-          { status: 400 }
-        );
-      }
-    }
-      return NextResponse.json(
-        { success: false, error: "Assignments array is required" },
-        { status: 400 }
-      );
-    }
-
     // Security check: Verify all students and courses belong to the same center
-    // Security check: Verify all students and courses belong to valid centers
     const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
     const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
 
@@ -81,40 +65,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, error: "One or more courses not found" }, { status: 404 });
     }
 
-    if (user.role !== "SUPER_ADMIN") {
-      if (students.some(s => s.centerId !== user.centerId) ||
-          courses.some(c => c.centerId !== user.centerId)) {
-        return NextResponse.json({ success: false, error: "Forbidden: Cross-center assignment detected" }, { status: 403 });
-      }
+    const studentMap = new Map(students.map(s => [s.id, s.centerId]));
+    const courseMap = new Map(courses.map(c => [c.id, c.centerId]));
+
+    // Batch must belong to a single center for data integrity and audit logging
+    const targetCenterId = students[0].centerId;
+
+    if (user.role !== "SUPER_ADMIN" && targetCenterId !== user.centerId) {
+      return NextResponse.json({ success: false, error: "Forbidden: Target center mismatch" }, { status: 403 });
     }
-      const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(id => id !== null && id !== undefined)));
-      const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
 
-      const [students, courses] = await Promise.all([
-        prisma.user.findMany({
-          where: {
-            id: { in: uniqueStudentIds as string[] },
-            role: "STUDENT"
-          },
-          select: { id: true, centerId: true }
-        }),
-        prisma.course.findMany({
-          where: { id: { in: uniqueCourseIds as string[] } },
-          select: { id: true, centerId: true }
-        })
-      ]);
+    for (const a of assignments) {
+      const studentCenterId = studentMap.get(a.studentId);
+      const courseCenterId = courseMap.get(a.courseId);
 
-      if (students.length !== uniqueStudentIds.length) {
-        return NextResponse.json({ success: false, error: "One or more students not found or invalid" }, { status: 404 });
+      if (studentCenterId !== targetCenterId) {
+        return NextResponse.json({ success: false, error: "Batch assignments must belong to the same center" }, { status: 400 });
       }
 
-      if (courses.length !== uniqueCourseIds.length) {
-        return NextResponse.json({ success: false, error: "One or more courses not found" }, { status: 404 });
-      }
-
-      if (students.some(s => s.centerId !== user.centerId) ||
-          courses.some(c => c.centerId !== user.centerId)) {
-        return NextResponse.json({ success: false, error: "Forbidden: Cross-center assignment detected" }, { status: 403 });
+      if (courseCenterId !== studentCenterId) {
+        return NextResponse.json({
+          success: false,
+          error: `Conflict: Student ${a.studentId} and course ${a.courseId} belong to different centers`
+        }, { status: 400 });
       }
     }
 
@@ -122,7 +95,7 @@ export async function POST(request: NextRequest) {
     const homeworkData = assignments.map((a: any) => ({
       studentId: a.studentId,
       courseId: a.courseId,
-      centreId: user.centerId!,
+      centreId: targetCenterId, // Derived from assignments
       exerciseId: a.exerciseId,
       sessionEnrollmentId: a.sessionEnrollmentId || null,
       notes: a.notes || null,
@@ -145,7 +118,7 @@ export async function POST(request: NextRequest) {
       resourceType: "HomeworkAssignment",
       resourceId: "batch",
       afterState: { count: result.count, studentCount: assignments.length },
-      centreId: user.centerId!,
+      centreId: targetCenterId, // Derived from assignments
       ipAddress: request.headers.get("x-forwarded-for") || undefined,
       metadata: { isBatch: true }
     });
