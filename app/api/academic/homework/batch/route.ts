@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({ success: false, error: "Forbidden: Cross-center assignment detected" }, { status: 403 });
       }
     }
-      const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
+      const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(id => id !== null && id !== undefined)));
       const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
 
       const [students, courses] = await Promise.all([
