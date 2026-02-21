@@ -40,7 +40,38 @@ export async function POST(request: NextRequest) {
     }
 
     // Security check: Verify all students and courses belong to the same center
+    // Security check: Verify all students and courses belong to valid centers
+    const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
+    const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
+
+    const [students, courses] = await Promise.all([
+      prisma.user.findMany({
+        where: {
+          id: { in: uniqueStudentIds as string[] },
+          role: "STUDENT"
+        },
+        select: { id: true, centerId: true }
+      }),
+      prisma.course.findMany({
+        where: { id: { in: uniqueCourseIds as string[] } },
+        select: { id: true, centerId: true }
+      })
+    ]);
+
+    if (students.length !== uniqueStudentIds.length) {
+      return NextResponse.json({ success: false, error: "One or more students not found or invalid" }, { status: 404 });
+    }
+
+    if (courses.length !== uniqueCourseIds.length) {
+      return NextResponse.json({ success: false, error: "One or more courses not found" }, { status: 404 });
+    }
+
     if (user.role !== "SUPER_ADMIN") {
+      if (students.some(s => s.centerId !== user.centerId) ||
+          courses.some(c => c.centerId !== user.centerId)) {
+        return NextResponse.json({ success: false, error: "Forbidden: Cross-center assignment detected" }, { status: 403 });
+      }
+    }
       const uniqueStudentIds = Array.from(new Set(assignments.map((a: any) => a.studentId).filter(Boolean)));
       const uniqueCourseIds = Array.from(new Set(assignments.map((a: any) => a.courseId).filter(Boolean)));
 
