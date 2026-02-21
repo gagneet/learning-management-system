@@ -9,3 +9,7 @@
 ## 2025-05-20 - [Input Utilities and Password Visibility]
 **Learning:** Modern login experiences expect basic utilities like password visibility toggles, especially for accessibility on mobile devices. Implementing this in a relative container with an absolute-positioned semantic button ensures it fits within the existing layout without breaking flow.
 **Action:** Always include a show/hide toggle for password fields. Use absolute positioning inside a relative container and ensure right-side padding on the input to prevent text overlap. Use dynamic ARIA labels for the toggle button.
+
+## 2026-02-18 - [Standardized and Accessible Progress Visualization]
+**Learning:** Fragmented UI patterns for common elements like progress bars often lead to inconsistent accessibility and visual experience. Creating a centralized `ProgressBar` component with proper WAI-ARIA attributes (`role="progressbar"`, `aria-valuenow`, etc.) and smooth CSS transitions ensures a cohesive and inclusive user interface.
+**Action:** Always use the centralized `ProgressBar` component for visualizing progress. Avoid manual `div`-based bars to maintain accessibility standards and visual consistency across dashboards.

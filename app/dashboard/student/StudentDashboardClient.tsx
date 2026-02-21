@@ -4,6 +4,7 @@ import Link from "next/link";
 import { CollapsibleSection } from "@/components/dashboard/CollapsibleSection";
 import { ActionCardsSection } from "@/components/dashboard/ActionCardsSection";
 import { getActionCardsForRole } from "@/components/dashboard/config/dashboardActions";
+import { ProgressBar } from "@/components/ProgressBar";
 import type {
   AcademicProfile,
   GamificationProfile,
@@ -404,17 +405,10 @@ export function StudentDashboardClient({
                       <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                         Instructor: {enrollment.course.teacher.name}
                       </p>
-                      <div className="flex items-center gap-2">
-                        <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-2">
-                          <div
-                            className="bg-blue-600 h-2 rounded-full transition-all"
-                            style={{ width: `${enrollment.progress}%` }}
-                          />
-                        </div>
-                        <span className="text-sm font-semibold text-gray-700 dark:text-gray-300">
-                          {enrollment.progress.toFixed(0)}%
-                        </span>
-                      </div>
+                      <ProgressBar
+                        progress={enrollment.progress}
+                        showLabel={true}
+                      />
                     </div>
                     <Link
                       href={`/courses/${enrollment.course.slug}`}

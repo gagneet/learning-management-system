@@ -1,6 +1,7 @@
 import { auth } from "@/lib/auth";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { ProgressBar } from "@/components/ProgressBar";
 import Link from "next/link";
 
 interface CoursePageProps {
@@ -137,15 +138,14 @@ export default async function CoursePage({ params }: CoursePageProps) {
                   <div className="flex justify-between text-sm text-gray-600 dark:text-gray-400 mb-2">
                     <span>Your Progress</span>
                     <span>
-                      {completedLessons} / {totalLessons} lessons completed ({enrollment.progress.toFixed(0)}%)
+                      {completedLessons} / {totalLessons} lessons completed
                     </span>
                   </div>
-                  <div className="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-3">
-                    <div
-                      className="bg-blue-600 h-3 rounded-full transition-all"
-                      style={{ width: `${enrollment.progress}%` }}
-                    />
-                  </div>
+                  <ProgressBar
+                    progress={enrollment.progress}
+                    showLabel={true}
+                    height="h-3"
+                  />
                 </div>
               )}
             </div>
