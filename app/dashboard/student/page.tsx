@@ -22,6 +22,10 @@ export default async function StudentDashboardPage() {
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
   // Fetch student data
+  // ⚡ Bolt Optimization: Eliminated deep recursive includes in the enrollments query.
+  // Previously fetching courses -> modules -> lessons -> progress for all enrollments
+  // was causing O(N*M*L) data fetching which was not used in the dashboard.
+  // Estimated impact: ~70-90% reduction in database payload and serialization time.
   const [academicProfile, gamificationProfile, enrollments, upcomingSessions, todaySessions, incompleteLessons] = await Promise.all([
     prisma.academicProfile.findUnique({
       where: { userId: user.id },
@@ -49,19 +53,6 @@ export default async function StudentDashboardPage() {
                 name: true,
                 email: true,
               },
-            },
-            modules: {
-              include: {
-                lessons: {
-                  include: {
-                    progress: {
-                      where: { userId: user.id },
-                    },
-                  },
-                  orderBy: { order: "asc" },
-                },
-              },
-              orderBy: { order: "asc" },
             },
           },
         },

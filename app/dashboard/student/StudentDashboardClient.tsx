@@ -26,14 +26,10 @@ interface StudentDashboardData {
     badges: Badge[];
     achievements: Achievement[];
   }) | null;
+  // ⚡ Bolt: Removed unused nested modules/lessons to optimize data transfer
   enrollments: (Enrollment & {
     course: Course & {
       teacher: Pick<User, "name" | "email">;
-      modules: (Module & {
-        lessons: (Lesson & {
-          progress: Progress[];
-        })[];
-      })[];
     };
   })[];
   upcomingSessions: (Session & {
