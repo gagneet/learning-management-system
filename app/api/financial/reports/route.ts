@@ -12,8 +12,8 @@ export async function GET(request: NextRequest) {
 
   const { user } = session;
 
-  // Only admins and supervisors can view financial reports
-  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+  // Only admins, supervisors, and finance admins can view financial reports
+  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "FINANCE_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
