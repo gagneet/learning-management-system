@@ -33,11 +33,34 @@ export async function GET(request: NextRequest) {
       where.centerId = centerId;
     }
 
-    // Students can only see their own transactions
-    if (user.role === "STUDENT") {
+    // Role-based record filtering
+    if (["SUPER_ADMIN", "CENTER_ADMIN", "CENTER_SUPERVISOR", "FINANCE_ADMIN"].includes(user.role)) {
+      // Admins can see any user's transactions in their center
+      if (userId) {
+        where.userId = userId;
+      }
+    } else if (user.role === "PARENT") {
+      // Parents can see their own or their children's transactions
+      const children = await prisma.user.findMany({
+        where: { parentId: user.id },
+        select: { id: true },
+      });
+      const allowedIds = [user.id, ...children.map((c) => c.id)];
+
+      if (userId) {
+        if (!allowedIds.includes(userId)) {
+          return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+        }
+        where.userId = userId;
+      } else {
+        where.userId = { in: allowedIds };
+      }
+    } else {
+      // Students, Teachers, and other roles can only see their own transactions
+      if (userId && userId !== user.id) {
+        return NextResponse.json({ error: "Forbidden" }, { status: 403 });
+      }
       where.userId = user.id;
-    } else if (userId) {
-      where.userId = userId;
     }
 
     if (type) {
@@ -105,8 +128,8 @@ export async function POST(request: NextRequest) {
 
   const { user } = session;
 
-  // Only admins and supervisors can create transactions
-  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
+  // Only admins, supervisors, and finance admins can create transactions
+  if (!["CENTER_SUPERVISOR", "CENTER_ADMIN", "FINANCE_ADMIN", "SUPER_ADMIN"].includes(user.role)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 

@@ -17,3 +17,8 @@
 **Vulnerability:** A logic error occurred where `centreId` was derived from the user's session instead of the student's record. For `SUPER_ADMIN` users without a bound `centerId`, this led to `null` value insertions into mandatory columns, causing database constraint violations and potential denial of service for administrative tasks.
 **Learning:** Never trust the session to provide valid tenant context for administrative users (like `SUPER_ADMIN`) who operate across tenants. Security-sensitive fields like `centreId` must always be derived from the target resource (student/course) rather than the actor's session.
 **Prevention:** Always derive tenant IDs from the primary resource being acted upon. Implement mandatory checks that ensure all resources in a batch belong to the same tenant before deriving the `centreId` from the first item.
+
+## 2026-02-25 - [IDOR in Financial Transactions & Info Disclosure in Admin APIs]
+**Vulnerability:** The financial transactions API lacked role-based record filtering, allowing `PARENT` users to see all transactions in their center (IDOR). Additionally, administrative transfer APIs leaked raw `error.message`, exposing internal system details.
+**Learning:** Generic "admin" checks are often insufficient when multiple non-admin roles (Parent, Student, Teacher) share the same endpoint. Granular filtering must be applied explicitly to each role. Furthermore, high-privilege APIs (like Export/Import) are high-value targets and must be hardened against even minor information leaks.
+**Prevention:** Implement strict `where` clause injection based on user role for all list endpoints. Always suppress detailed error messages in production-ready API responses.

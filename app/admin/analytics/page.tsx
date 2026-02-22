@@ -115,7 +115,7 @@ export default async function AdminAnalyticsPage() {
               Users by Role
             </h3>
             <div className="space-y-3">
-              {usersByRole.map((item) => (
+              {usersByRole.map((item: any) => (
                 <div key={item.role} className="flex justify-between items-center">
                   <span className="text-gray-700 dark:text-gray-300">{item.role}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">{item._count}</span>
@@ -130,7 +130,7 @@ export default async function AdminAnalyticsPage() {
               Courses by Status
             </h3>
             <div className="space-y-3">
-              {coursesByStatus.map((item) => (
+              {coursesByStatus.map((item: any) => (
                 <div key={item.status} className="flex justify-between items-center">
                   <span className="text-gray-700 dark:text-gray-300">{item.status}</span>
                   <span className="font-semibold text-gray-900 dark:text-white">{item._count}</span>
