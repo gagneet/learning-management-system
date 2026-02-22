@@ -22,26 +22,23 @@ export default async function TutorDashboardPage() {
   const todayEnd = new Date(todayStart.getTime() + 24 * 60 * 60 * 1000);
 
   // Fetch tutor data
+  // ⚡ Bolt Optimization: Eliminated redundant and deep includes.
+  // Using _count for enrollments and lessons instead of fetching full arrays.
+  // Removed unused attendance user names.
   const [courses, enrollments, upcomingSessions, todaySessions] = await Promise.all([
     prisma.course.findMany({
       where: { teacherId: user.id },
       include: {
-        enrollments: {
-          include: {
-            user: {
-              select: {
-                id: true,
-                name: true,
-                email: true,
-              },
-            },
-          },
+        _count: {
+          select: { enrollments: true, modules: true }
         },
         modules: {
           include: {
-            lessons: true,
-          },
-        },
+            _count: {
+              select: { lessons: true }
+            }
+          }
+        }
       },
     }),
     prisma.enrollment.findMany({
@@ -83,7 +80,7 @@ export default async function TutorDashboardPage() {
             lesson: { select: { title: true } },
           },
         },
-        attendance: true,
+        attendance: true, // Only .length used in client
       },
       orderBy: {
         startTime: "asc",
@@ -104,11 +101,7 @@ export default async function TutorDashboardPage() {
             lesson: { select: { title: true } },
           },
         },
-        attendance: {
-          include: {
-            user: { select: { name: true } },
-          },
-        },
+        attendance: true, // Only .length used in client
       },
       orderBy: { startTime: "asc" },
     }),

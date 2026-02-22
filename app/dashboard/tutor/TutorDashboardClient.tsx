@@ -18,11 +18,14 @@ import type {
 interface TutorDashboardData {
   userName: string;
   courses: (Course & {
-    enrollments: (Enrollment & {
-      user: Pick<User, "id" | "name" | "email">;
-    })[];
+    _count: {
+      enrollments: number;
+      modules: number;
+    };
     modules: (Module & {
-      lessons: Lesson[];
+      _count: {
+        lessons: number;
+      };
     })[];
   })[];
   enrollments: (Enrollment & {
@@ -44,9 +47,7 @@ interface TutorDashboardData {
       course: { title: string } | null;
       lesson: { title: string } | null;
     }[];
-    attendance: (SessionAttendance & {
-      user: { name: string };
-    })[];
+    attendance: SessionAttendance[];
   })[];
   totalStudents: number;
   avgProgress: number;
@@ -375,7 +376,7 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
           <div className="space-y-4">
             {courses.map((course) => {
               const totalLessons = course.modules.reduce(
-                (sum, module) => sum + module.lessons.length,
+                (sum, module) => sum + module._count.lessons,
                 0
               );
               return (
@@ -389,9 +390,9 @@ export function TutorDashboardClient({ data }: { data: TutorDashboardData }) {
                         {course.title}
                       </h4>
                       <div className="flex items-center gap-4 text-sm text-gray-600 dark:text-gray-400 mb-2">
-                        <span>{course.enrollments.length} students</span>
+                        <span>{course._count.enrollments} students</span>
                         <span>{totalLessons} lessons</span>
-                        <span>{course.modules.length} modules</span>
+                        <span>{course._count.modules} modules</span>
                       </div>
                       <span className={`inline-block px-2 py-1 text-xs rounded ${
                         course.status === "PUBLISHED"
