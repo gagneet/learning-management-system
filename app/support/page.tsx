@@ -12,7 +12,7 @@ export default function SupportPage() {
     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex flex-col">
       <Header />
 
-      <main className="container mx-auto px-4 py-12 flex-1">
+      <main id="main-content" className="container mx-auto px-4 py-12 flex-1 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             Help & Support
@@ -27,7 +27,7 @@ export default function SupportPage() {
               href="/docs"
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
             >
-              <div className="text-4xl mb-4">📚</div>
+              <div className="text-4xl mb-4"><span aria-hidden="true">📚</span></div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Documentation
               </h3>
@@ -40,7 +40,7 @@ export default function SupportPage() {
               href="/contact"
               className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 hover:shadow-xl transition-shadow"
             >
-              <div className="text-4xl mb-4">💬</div>
+              <div className="text-4xl mb-4"><span aria-hidden="true">💬</span></div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Contact Us
               </h3>
@@ -50,7 +50,7 @@ export default function SupportPage() {
             </Link>
 
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
-              <div className="text-4xl mb-4">🎥</div>
+              <div className="text-4xl mb-4"><span aria-hidden="true">🎥</span></div>
               <h3 className="text-xl font-semibold text-gray-900 dark:text-white mb-2">
                 Video Tutorials
               </h3>

@@ -35,7 +35,7 @@ export default function ContactPage() {
         </div>
       </nav>
 
-      <main className="container mx-auto px-4 py-12 flex-1">
+      <main id="main-content" className="container mx-auto px-4 py-12 flex-1 scroll-mt-20">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl font-bold text-gray-900 dark:text-white mb-4 text-center">
             Contact Us
@@ -128,7 +128,7 @@ export default function ContactPage() {
                 </h2>
                 <div className="space-y-4">
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl">📧</div>
+                    <div className="text-2xl"><span aria-hidden="true">📧</span></div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">Email</h3>
                       <p className="text-gray-600 dark:text-gray-300">
@@ -137,14 +137,14 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl">📞</div>
+                    <div className="text-2xl"><span aria-hidden="true">📞</span></div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">Phone</h3>
                       <p className="text-gray-600 dark:text-gray-300">+1 (555) 123-4567</p>
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl">🏢</div>
+                    <div className="text-2xl"><span aria-hidden="true">🏢</span></div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">Office</h3>
                       <p className="text-gray-600 dark:text-gray-300">
@@ -157,7 +157,7 @@ export default function ContactPage() {
                     </div>
                   </div>
                   <div className="flex items-start gap-4">
-                    <div className="text-2xl">⏰</div>
+                    <div className="text-2xl"><span aria-hidden="true">⏰</span></div>
                     <div>
                       <h3 className="font-semibold text-gray-900 dark:text-white">
                         Business Hours
