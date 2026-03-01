@@ -24,6 +24,9 @@ import {
   LayoutList,
   Video,
   Ticket,
+  Grid3x3,
+  TrendingUp,
+  LineChart,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -102,6 +105,12 @@ export function getActionCardsForRole(
           description: "Review missed session materials",
           icon: createElement(PackageOpen, { className: "w-6 h-6" }),
           href: "/dashboard/student/catchups",
+        },
+        {
+          title: "My Assessment",
+          description: "View assessment levels and progress",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/student/assessment",
         },
       ];
 
@@ -185,6 +194,12 @@ export function getActionCardsForRole(
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/tickets",
         },
+        {
+          title: "Assessment Grid",
+          description: "View all students' assessment age levels",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/assessment",
+        },
       ];
 
     case "CENTER_SUPERVISOR":
@@ -219,6 +234,12 @@ export function getActionCardsForRole(
           description: "Review tutor metrics",
           icon: createElement(GraduationCap, { className: "w-6 h-6" }),
           href: "/dashboard/supervisor/tutors",
+        },
+        {
+          title: "Assessment Analytics",
+          description: "Age-band distribution and promotion stats",
+          icon: createElement(LineChart, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/assessment-analytics",
         },
         {
           title: "Transactions",
@@ -378,6 +399,12 @@ export function getActionCardsForRole(
           description: "Submit and track support requests",
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/parent/tickets",
+        },
+        {
+          title: "Assessment Progress",
+          description: "View children's assessment age levels",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/parent/assessment",
         },
       ];
 

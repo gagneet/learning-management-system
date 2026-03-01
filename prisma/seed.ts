@@ -35,6 +35,14 @@ async function main() {
   await prisma.ticketComment.deleteMany({});
   await prisma.ticket.deleteMany({});
   await prisma.catchUpPackage.deleteMany({});
+  // Phase 2 Assessment Engine cleanup (must come first — references placements/sessions)
+  await prisma.ageAssessmentHistory.deleteMany({});
+  await prisma.ageLessonCompletion.deleteMany({});
+  await prisma.agePromotionAttempt.deleteMany({});
+  await prisma.agePromotionTest.deleteMany({});
+  await prisma.studentAgeAssessment.deleteMany({});
+  await prisma.ageAssessmentLesson.deleteMany({});
+  await prisma.assessmentAge.deleteMany({});
   // Video conferencing cleanup (must come before session cleanup)
   await prisma.videoParticipant.deleteMany({});
   await prisma.videoRecording.deleteMany({});
@@ -4176,6 +4184,303 @@ async function main() {
   });
 
   console.log('✅ Video conferencing seed data created (participants + recording)');
+
+  // =============================================================================
+  // PHASE 2: ADAPTIVE TUITION ASSESSMENT ENGINE SEED DATA
+  // =============================================================================
+  console.log('\n🎯 Seeding Phase 2: Adaptive Tuition Assessment Engine...');
+
+  // Update students with dateOfBirth for age-band calculations
+  // (today = 2026-03-01; chronological ages chosen for interesting age-band spread)
+  await prisma.user.update({ where: { id: student1.id }, data: { dateOfBirth: new Date('2016-06-15') } }); // ~9.7yr
+  await prisma.user.update({ where: { id: student2.id }, data: { dateOfBirth: new Date('2015-09-10') } }); // ~10.5yr
+  await prisma.user.update({ where: { id: student3.id }, data: { dateOfBirth: new Date('2014-11-20') } }); // ~11.3yr
+  await prisma.user.update({ where: { id: student4.id }, data: { dateOfBirth: new Date('2018-01-05') } }); // ~8.2yr
+  console.log('  ✅ Student dateOfBirth set');
+
+  // ── 1. Assessment Age Levels ───────────────────────────────────────────────
+  // 9 levels: 5y–13y at 1-year intervals (ageMonth = 1 = start of the age year)
+  const AGE_LEVEL_DEFS = [
+    { ageYear: 5,  ageMonth: 1, displayLabel: '5.01', australianYear: 'Foundation' },
+    { ageYear: 6,  ageMonth: 1, displayLabel: '6.01', australianYear: 'Year 1' },
+    { ageYear: 7,  ageMonth: 1, displayLabel: '7.01', australianYear: 'Year 2' },
+    { ageYear: 8,  ageMonth: 1, displayLabel: '8.01', australianYear: 'Year 3' },
+    { ageYear: 9,  ageMonth: 1, displayLabel: '9.01', australianYear: 'Year 4' },
+    { ageYear: 10, ageMonth: 1, displayLabel: '10.01', australianYear: 'Year 5' },
+    { ageYear: 11, ageMonth: 1, displayLabel: '11.01', australianYear: 'Year 6' },
+    { ageYear: 12, ageMonth: 1, displayLabel: '12.01', australianYear: 'Year 7' },
+    { ageYear: 13, ageMonth: 1, displayLabel: '13.01', australianYear: 'Year 8' },
+  ] as const;
+
+  const ageLevelMap: Record<string, string> = {}; // key: "ageYear-ageMonth" → id
+
+  for (const def of AGE_LEVEL_DEFS) {
+    const level = await prisma.assessmentAge.create({
+      data: {
+        ageYear:        def.ageYear,
+        ageMonth:       def.ageMonth,
+        displayLabel:   def.displayLabel,
+        australianYear: def.australianYear,
+        description:    `${def.australianYear ?? `Year ${def.ageYear}`} level curriculum (age ${def.ageYear})`,
+        isActive:       true,
+      },
+    });
+    ageLevelMap[`${def.ageYear}-${def.ageMonth}`] = level.id;
+  }
+  console.log(`  ✅ ${AGE_LEVEL_DEFS.length} assessment age levels created`);
+
+  // ── 2. Assessment Lessons (6 per level for ENGLISH & MATHEMATICS) ─────────
+  const SEEDED_SUBJECTS = ['ENGLISH', 'MATHEMATICS'] as const;
+  const LESSON_TITLES: Record<string, string[]> = {
+    ENGLISH: [
+      'Phonics & Decoding Foundations',
+      'Sight Words & Fluency Practice',
+      'Reading Comprehension — Literal',
+      'Reading Comprehension — Inferential',
+      'Vocabulary in Context',
+      'Written Expression & Grammar',
+    ],
+    MATHEMATICS: [
+      'Number Sense & Place Value',
+      'Addition & Subtraction Strategies',
+      'Multiplication & Division Concepts',
+      'Fractions & Decimals',
+      'Measurement & Problem Solving',
+      'Patterns, Algebra & Data',
+    ],
+  };
+
+  let totalLessonsCreated = 0;
+  for (const def of AGE_LEVEL_DEFS) {
+    const ageId = ageLevelMap[`${def.ageYear}-${def.ageMonth}`];
+    for (const subject of SEEDED_SUBJECTS) {
+      const titles = LESSON_TITLES[subject];
+      const lessons = titles.map((title, idx) => ({
+        assessmentAgeId:  ageId,
+        subject:          subject as 'ENGLISH' | 'MATHEMATICS',
+        lessonNumber:     idx + 1,
+        title:            `${def.australianYear ?? `Age ${def.ageYear}`} — ${title}`,
+        description:      `Lesson ${idx + 1} of the ${subject.toLowerCase()} curriculum for ${def.australianYear ?? `age ${def.ageYear}`}.`,
+        difficultyScore:  Math.round(((idx + 1) / 6) * 60 + def.ageYear * 3),
+        estimatedMinutes: 45,
+        isActive:         true,
+      }));
+      await prisma.ageAssessmentLesson.createMany({ data: lessons, skipDuplicates: true });
+      totalLessonsCreated += lessons.length;
+    }
+  }
+  console.log(`  ✅ ${totalLessonsCreated} assessment lessons created (6 per level × 2 subjects × 9 levels)`);
+
+  // Helper: get lesson records for a level+subject
+  async function getLessons(ageYear: number, subject: string) {
+    const ageId = ageLevelMap[`${ageYear}-1`];
+    return prisma.ageAssessmentLesson.findMany({
+      where: { assessmentAgeId: ageId, subject: subject as any },
+      orderBy: { lessonNumber: 'asc' },
+    });
+  }
+
+  // ── 3. Student Placements (StudentAgeAssessment) ───────────────────────────
+  // Jane (9.7yr): ENGLISH @ 8y (BELOW), MATHEMATICS @ 10y (ON_LEVEL), SCIENCE @ 9y (SLIGHTLY_BELOW)
+  // Alex (10.5yr): ENGLISH @ 9y (BELOW), MATHEMATICS @ 11y (ABOVE), READING @ 10y (SLIGHTLY_BELOW)
+  // Michael (11.3yr): ENGLISH @ 8y (SIGNIFICANTLY_BELOW), MATHEMATICS @ 10y (BELOW)
+  // Sophia (8.2yr): ENGLISH @ 8y (ON_LEVEL), MATHEMATICS @ 9y (ABOVE)
+
+  const PLACEMENTS_DEF = [
+    // Jane
+    { student: student1, ageYear: 8, subject: 'ENGLISH',     lessonsCompleted: 15, ready: true,  method: 'DIAGNOSTIC_TEST' },
+    { student: student1, ageYear: 10, subject: 'MATHEMATICS', lessonsCompleted: 8,  ready: false, method: 'TEACHER_ASSESSMENT' },
+    { student: student1, ageYear: 9, subject: 'SCIENCE',      lessonsCompleted: 3,  ready: false, method: 'CURRICULUM_AGE' },
+    // Alex
+    { student: student2, ageYear: 9, subject: 'ENGLISH',      lessonsCompleted: 20, ready: true,  method: 'DIAGNOSTIC_TEST' },
+    { student: student2, ageYear: 11, subject: 'MATHEMATICS', lessonsCompleted: 4,  ready: false, method: 'TEACHER_ASSESSMENT' },
+    { student: student2, ageYear: 10, subject: 'READING',     lessonsCompleted: 10, ready: false, method: 'CURRICULUM_AGE' },
+    // Michael
+    { student: student3, ageYear: 8, subject: 'ENGLISH',      lessonsCompleted: 2,  ready: false, method: 'DIAGNOSTIC_TEST' },
+    { student: student3, ageYear: 10, subject: 'MATHEMATICS', lessonsCompleted: 5,  ready: false, method: 'TEACHER_ASSESSMENT' },
+    // Sophia
+    { student: student4, ageYear: 8, subject: 'ENGLISH',      lessonsCompleted: 0,  ready: false, method: 'CURRICULUM_AGE' },
+    { student: student4, ageYear: 9, subject: 'MATHEMATICS',  lessonsCompleted: 0,  ready: false, method: 'CURRICULUM_AGE' },
+  ] as const;
+
+  const placementIds: Record<string, string> = {}; // key: "studentId-subject" → id
+
+  for (const p of PLACEMENTS_DEF) {
+    const currentAgeId  = ageLevelMap[`${p.ageYear}-1`];
+    const initialAgeId  = currentAgeId; // same as start for demo
+    const placement = await prisma.studentAgeAssessment.create({
+      data: {
+        studentId:          p.student.id,
+        subject:            p.subject as any,
+        currentAgeId,
+        initialAgeId,
+        currentLessonNumber: Math.min(p.lessonsCompleted + 1, 6),
+        lessonsCompleted:   p.lessonsCompleted,
+        placedById:         teacher1.id,
+        placementMethod:    p.method,
+        placementNotes:     `Initial placement via ${p.method.toLowerCase().replace(/_/g, ' ')}.`,
+        status:             p.ready ? 'PROMOTION_PENDING' : 'ACTIVE',
+        readyForPromotion:  p.ready,
+        centreId:           center1.id,
+      },
+    });
+    placementIds[`${p.student.id}-${p.subject}`] = placement.id;
+  }
+  console.log(`  ✅ ${PLACEMENTS_DEF.length} student placements created`);
+
+  // ── 4. Lesson Completions for Jane (ENGLISH @ 8y — 15 of 6 lessons complete) ─
+  // Note: we only seeded 6 lessons per level — mark all 6 as MARKED + 9 conceptual
+  const janeEngLessons = await getLessons(8, 'ENGLISH');
+  const janeEngPlacementId = placementIds[`${student1.id}-ENGLISH`];
+  const janeCompletions = janeEngLessons.map((lesson, idx) => ({
+    studentId:       student1.id,
+    placementId:     janeEngPlacementId,
+    lessonId:        lesson.id,
+    status:          'MARKED' as const,
+    score:           75 + idx * 3,
+    maxScore:        100,
+    percentageScore: 75 + idx * 3,
+    startedAt:       new Date(Date.now() - (30 - idx * 4) * 24 * 60 * 60 * 1000),
+    completedAt:     new Date(Date.now() - (28 - idx * 4) * 24 * 60 * 60 * 1000),
+    timeSpentMinutes: 45,
+    gradedById:      teacher1.id,
+    gradedAt:        new Date(Date.now() - (27 - idx * 4) * 24 * 60 * 60 * 1000),
+    feedback:        idx < 3 ? 'Good progress. Focus on reading fluency.' : 'Excellent improvement — ready for promotion test.',
+    centreId:        center1.id,
+  }));
+  await prisma.ageLessonCompletion.createMany({ data: janeCompletions, skipDuplicates: true });
+
+  // Also add some completions for Alex (ENGLISH @ 9y — 4 lessons done)
+  const alexEngLessons = await getLessons(9, 'ENGLISH');
+  const alexEngPlacementId = placementIds[`${student2.id}-ENGLISH`];
+  const alexCompletions = alexEngLessons.slice(0, 4).map((lesson, idx) => ({
+    studentId:       student2.id,
+    placementId:     alexEngPlacementId,
+    lessonId:        lesson.id,
+    status:          idx < 3 ? ('MARKED' as const) : ('SUBMITTED' as const),
+    score:           idx < 3 ? 82 + idx : undefined,
+    maxScore:        100,
+    percentageScore: idx < 3 ? 82 + idx : undefined,
+    startedAt:       new Date(Date.now() - (20 - idx * 5) * 24 * 60 * 60 * 1000),
+    completedAt:     idx < 3 ? new Date(Date.now() - (18 - idx * 5) * 24 * 60 * 60 * 1000) : undefined,
+    timeSpentMinutes: 50,
+    gradedById:      idx < 3 ? teacher1.id : undefined,
+    gradedAt:        idx < 3 ? new Date(Date.now() - (17 - idx * 5) * 24 * 60 * 60 * 1000) : undefined,
+    centreId:        center1.id,
+  }));
+  await prisma.ageLessonCompletion.createMany({ data: alexCompletions as any, skipDuplicates: true });
+
+  console.log('  ✅ Lesson completions created (6 for Jane, 4 for Alex)');
+
+  // ── 5. Promotion Test (ENGLISH @ 8y level) ────────────────────────────────
+  const eng8AgeId = ageLevelMap['8-1'];
+  const promotionTest = await prisma.agePromotionTest.create({
+    data: {
+      assessmentAgeId: eng8AgeId,
+      subject:         'ENGLISH',
+      title:           'Year 3 English Promotion Assessment',
+      description:     'Formal assessment to determine readiness for Year 4 English curriculum.',
+      questions: [
+        { id: 'q1', text: 'Identify the main idea of the passage.', type: 'SHORT_ANSWER', marks: 10, bloomsLevel: 'Comprehension' },
+        { id: 'q2', text: 'What does the word "meticulous" mean in context?', type: 'MULTIPLE_CHOICE', options: ['Careful', 'Careless', 'Fast', 'Slow'], correctAnswer: 'Careful', marks: 5, bloomsLevel: 'Knowledge' },
+        { id: 'q3', text: 'Write a paragraph summarising the text.', type: 'SHORT_ANSWER', marks: 15, bloomsLevel: 'Synthesis' },
+        { id: 'q4', text: 'Calculate the reading age score: ____ years.', type: 'NUMERICAL', marks: 5, bloomsLevel: 'Application' },
+      ],
+      totalMarks:      35,
+      passingScore:    70,
+      excellenceScore: 90,
+      timeLimit:       60,
+      isAutoGraded:    false,
+      isActive:        true,
+    },
+  });
+  console.log('  ✅ Promotion test created (Year 3 English)');
+
+  // ── 6. Promotion Attempt (Jane passed, promoted conceptually) ────────────
+  const eng9AgeId = ageLevelMap['9-1'];
+  const promotionAttempt = await prisma.agePromotionAttempt.create({
+    data: {
+      studentId:      student1.id,
+      placementId:    janeEngPlacementId,
+      promotionTestId: promotionTest.id,
+      answers: [
+        { questionId: 'q1', answer: 'The passage is about the importance of persistence.', isCorrect: true, marksAwarded: 8 },
+        { questionId: 'q2', answer: 'Careful', isCorrect: true, marksAwarded: 5 },
+        { questionId: 'q3', answer: 'The text describes how persistence leads to success…', isCorrect: true, marksAwarded: 13 },
+        { questionId: 'q4', answer: '8.5', isCorrect: true, marksAwarded: 5 },
+      ],
+      score:          31,
+      percentageScore: 88.6,
+      outcome:        'PROMOTED',
+      promotedToAgeId: eng9AgeId,
+      startedAt:      new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
+      submittedAt:    new Date(Date.now() - 7 * 24 * 60 * 60 * 1000 + 55 * 60 * 1000),
+      gradedAt:       new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      gradedById:     teacher1.id,
+      feedback:       'Excellent performance. Jane demonstrates solid Year 3 comprehension — moved to Year 4 English.',
+      centreId:       center1.id,
+    },
+  });
+  console.log('  ✅ Promotion attempt created (Jane promoted: Year 3 → Year 4 English, 88.6%)');
+
+  // ── 7. Assessment History ─────────────────────────────────────────────────
+  await prisma.ageAssessmentHistory.createMany({
+    data: [
+      {
+        studentId:    student1.id,
+        placementId:  janeEngPlacementId,
+        subject:      'ENGLISH',
+        changeType:   'INITIAL_PLACEMENT',
+        fromAgeId:    undefined,
+        toAgeId:      eng8AgeId,
+        changedById:  teacher1.id,
+        centreId:     center1.id,
+        reason:       'Initial diagnostic placement at Year 3 English.',
+        createdAt:    new Date(Date.now() - 35 * 24 * 60 * 60 * 1000),
+      },
+      {
+        studentId:    student1.id,
+        placementId:  janeEngPlacementId,
+        subject:      'ENGLISH',
+        changeType:   'PROMOTED',
+        fromAgeId:    eng8AgeId,
+        toAgeId:      eng9AgeId,
+        changedById:  teacher1.id,
+        centreId:     center1.id,
+        testScore:    promotionAttempt.percentageScore ?? undefined,
+        reason:       `Promoted after scoring ${promotionAttempt.percentageScore}% on promotion test.`,
+        createdAt:    new Date(Date.now() - 6 * 24 * 60 * 60 * 1000),
+      },
+      {
+        studentId:    student3.id,
+        placementId:  placementIds[`${student3.id}-ENGLISH`],
+        subject:      'ENGLISH',
+        changeType:   'INITIAL_PLACEMENT',
+        fromAgeId:    undefined,
+        toAgeId:      eng8AgeId,
+        changedById:  teacher1.id,
+        centreId:     center1.id,
+        reason:       'Diagnostic test shows Year 3 level for English despite chronological age of 11.',
+        createdAt:    new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
+      },
+    ],
+    skipDuplicates: true,
+  });
+  console.log('  ✅ Assessment history created (3 entries)');
+
+  console.log('\n🎯 PHASE 2: ADAPTIVE TUITION ASSESSMENT ENGINE:');
+  console.log(`  • ${AGE_LEVEL_DEFS.length} assessment age levels (Foundation – Year 8)`);
+  console.log(`  • ${totalLessonsCreated} lessons (6 per level × 2 subjects: English & Mathematics)`);
+  console.log(`  • ${PLACEMENTS_DEF.length} student placements across 4 students and 5 subjects`);
+  console.log('  • 10 lesson completions (Jane 6 × MARKED, Alex 3 × MARKED + 1 × SUBMITTED)');
+  console.log('  • 1 promotion test (Year 3 English, 35 marks)');
+  console.log('  • 1 promotion attempt (Jane: 88.6% → PROMOTED to Year 4)');
+  console.log('  • 3 assessment history entries');
+  console.log('  Age bands on Assessment Grid:');
+  console.log('    Jane  (9.7yr): ENGLISH 8y→BELOW, MATHS 10y→ON_LEVEL, SCIENCE 9y→SLIGHTLY_BELOW');
+  console.log('    Alex  (10.5yr): ENGLISH 9y→BELOW, MATHS 11y→ABOVE, READING 10y→SLIGHTLY_BELOW');
+  console.log('    Michael(11.3yr): ENGLISH 8y→SIGNIFICANTLY_BELOW, MATHS 10y→BELOW');
+  console.log('    Sophia (8.2yr): ENGLISH 8y→ON_LEVEL, MATHS 9y→ABOVE');
 }
 
 main()

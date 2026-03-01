@@ -50,14 +50,33 @@ npx playwright show-report
 
 ### Jest API Tests
 ```bash
-# Run Jest API tests
-npx jest tests/api/
+# Run all Jest tests (api/ + db/)
+npm run test:api
+
+# Run Phase 2 assessment API unit tests only
+npm run test:api:assessment
+
+# Run Phase 2 database schema tests only
+npm run test:db
+
+# Run all Phase 2 assessment tests (api + db)
+npm run test:assessment
 
 # Run a specific API test
 npx jest tests/api/classes.test.ts
 
 # Run with coverage
-npx jest --coverage tests/api/
+npx jest --coverage tests/api/ tests/db/
+```
+
+### Phase 2 Assessment E2E (Playwright)
+```bash
+# Run all Phase 2 assessment E2E tests
+npm run test:e2e:assessment
+
+# Or individually
+npx playwright test tests/assessment-ui.spec.ts    # Frontend UI tests
+npx playwright test tests/assessment-api.spec.ts   # API integration tests
 ```
 
 ## Test Files
@@ -76,8 +95,11 @@ npx jest --coverage tests/api/
 | `catchup-pages.spec.ts` | Student catch-up packages, tutor catch-up management |
 | `admin-classes.spec.ts` | Admin class cohort management, RBAC access control |
 | `v1-api.spec.ts` | Phase 1 v1 API: help requests, goals, awards, homework, tutor notes, assessments, student-traits, tickets |
-| `video-sessions.spec.ts` | Multi-student video conferencing: Daily.co integration, RBAC, navigation, API auth, session details Start Video button (fixed to show for all ONLINE sessions) |
+| `video-sessions.spec.ts` | Multi-student video conferencing: Daily.co integration, RBAC, navigation, API auth, session details |
 | `supervisor-pages.spec.ts` | Supervisor dashboard, financial page, finance admin access, redirect behaviours, action cards |
+| `assessment-ui.spec.ts` | **Phase 2** Assessment Grid (tutor), Student Assessment Progress, Parent Assessment, RBAC redirects, action card links |
+| `assessment-api.spec.ts` | **Phase 2** All assessment API endpoints: levels, placements, lesson-completions, promotion tests, grid — auth, RBAC, validation, response shapes |
+| `assessment-phase3-ui.spec.ts` | **Phase 3** Promotion Workflow UI, Assessment Analytics page, CSV Export button, seed data verification, RBAC guards |
 
 ### API Tests (Jest - `tests/api/`)
 
@@ -85,6 +107,18 @@ npx jest --coverage tests/api/
 |------|----------|
 | `api/classes.test.ts` | Classes API CRUD operations |
 | `api/presence.test.ts` | Session presence tracking (join/leave events) |
+| `api/next-content.test.ts` | Auto-sequenced next-content recommendation |
+| `api/verify-optimizations.test.ts` | Query optimisation verification |
+| `api/assessment-levels.test.ts` | **Phase 2** Assessment age levels: GET (public), POST RBAC, validation, duplicate check, 201 creation |
+| `api/assessment-grid.test.ts` | **Phase 2** Assessment grid: auth, RBAC, multi-tenancy, age-gap/band calculation, row shape, filters |
+| `api/student-placements.test.ts` | **Phase 2** Student placements: auth, RBAC, multi-tenancy scoping, 409 duplicate, 201 creation via transaction |
+
+### Database / Schema Tests (Jest - `tests/db/`)
+
+| File | Coverage |
+|------|----------|
+| `db/assessment-schema.test.ts` | **Phase 2** Prisma type-shape tests for all 7 new models; age-gap/band calculation logic; promotion readiness; lesson status state machine |
+| `db/assessment-phase3.test.ts` | **Phase 3** Promotion outcome classification; seed data age-band expectations for all 4 students; analytics aggregation; CSV export shape; promotion test structure |
 
 ## Demo Credentials
 
