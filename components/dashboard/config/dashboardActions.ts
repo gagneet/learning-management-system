@@ -257,6 +257,12 @@ export function getActionCardsForRole(
           href: "/admin/classes",
         },
         {
+          title: "Assessment Levels",
+          description: "Manage age-band levels, lessons and promotion tests",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/admin/assessments",
+        },
+        {
           title: "Support Tickets",
           description: "View and manage support requests",
           icon: createElement(Ticket, { className: "w-6 h-6" }),
@@ -350,6 +356,12 @@ export function getActionCardsForRole(
           description: "Manage class cohorts across centers",
           icon: createElement(LayoutList, { className: "w-6 h-6" }),
           href: "/admin/classes",
+        },
+        {
+          title: "Assessment Levels",
+          description: "Manage age-band levels, lessons and promotion tests",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/admin/assessments",
         },
       ];
 

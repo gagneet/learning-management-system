@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { auth } from "@/lib/auth";
 import { hasPermission, Permissions } from "@/lib/rbac";
+import { NOTIFICATION_TEMPLATES } from "@/lib/notifications";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -198,8 +199,7 @@ export async function GET(
             ...attempt,
             answers: Array.isArray(attempt.answers)
               ? (attempt.answers as any[]).map(
-                  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                  ({ correctAnswer, ...rest }: any) => rest
+                  ({ correctAnswer: _ca, ...rest }: any) => rest
                 )
               : attempt.answers,
           }))
@@ -524,6 +524,41 @@ export async function POST(
       });
 
       attempt = updated;
+    }
+
+    // ── Notify student of promotion outcome ─────────────────────────────────
+    if (attempt.outcome === "PROMOTED" || attempt.outcome === "LEVEL_SKIPPED") {
+      try {
+        // Fetch placement for fromLevel/toLevel info
+        const promotionPlacement = await prisma.studentAgeAssessment.findUnique({
+          where: { id: attempt.placementId },
+          select: {
+            subject: true,
+            currentAge: { select: { displayLabel: true } },
+            initialAge: { select: { displayLabel: true } },
+          },
+        });
+        const tmpl = NOTIFICATION_TEMPLATES['ASSESSMENT_PROMOTED'];
+        const notifData = {
+          subject:   promotionPlacement?.subject ?? "",
+          fromLevel: attempt.outcome === "LEVEL_SKIPPED" ? "previous level" : (promotionPlacement?.initialAge?.displayLabel ?? "previous level"),
+          toLevel:   promotionPlacement?.currentAge?.displayLabel ?? "new level",
+        };
+        await prisma.notification.create({
+          data: {
+            type:     'ASSESSMENT_PROMOTED',
+            userId:   attempt.studentId,
+            title:    tmpl.title,
+            message:  tmpl.getMessage(notifData),
+            link:     tmpl.getLink?.(notifData) ?? null,
+            priority: tmpl.priority,
+            read:     false,
+            data:     notifData,
+          },
+        });
+      } catch {
+        /* non-critical — swallow notification errors */
+      }
     }
 
     // Reload the attempt with relations for the response

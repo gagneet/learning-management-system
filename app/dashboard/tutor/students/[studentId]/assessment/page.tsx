@@ -149,12 +149,20 @@ export default async function TutorStudentAssessmentPage({ params }: Props) {
               {chronoAge !== null && ` · Age ${chronoAge}`}
             </p>
           </div>
-          <Link
-            href={`/dashboard/tutor/students/${studentId}`}
-            className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-          >
-            ← Back to profile
-          </Link>
+          <div className="flex items-center gap-3">
+            <Link
+              href={`/dashboard/tutor/students/${studentId}/assessment/report`}
+              className="px-3 py-1.5 text-sm bg-indigo-600 hover:bg-indigo-700 text-white rounded-md transition-colors"
+            >
+              Print Report
+            </Link>
+            <Link
+              href={`/dashboard/tutor/students/${studentId}`}
+              className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+            >
+              ← Back to profile
+            </Link>
+          </div>
         </div>
 
         <StudentAssessmentClient

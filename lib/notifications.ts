@@ -20,7 +20,11 @@ export type NotificationType =
   | 'TUTOR_NOTE'
   | 'GOAL_ACHIEVED'
   | 'AWARD_REDEEMED'
-  | 'AWARD_FULFILLED';
+  | 'AWARD_FULFILLED'
+  // Phase 4 — Assessment Engine
+  | 'ASSESSMENT_READY_FOR_PROMOTION'
+  | 'ASSESSMENT_LESSON_SUBMITTED'
+  | 'ASSESSMENT_PROMOTED';
 
 export interface Notification {
   id: string;
@@ -119,6 +123,33 @@ export const NOTIFICATION_TEMPLATES: Record<NotificationType, NotificationTempla
     getLink: () => `/dashboard/student/awards`,
     priority: 'LOW',
   },
+  // Phase 4 — Assessment Engine
+  ASSESSMENT_READY_FOR_PROMOTION: {
+    type: 'ASSESSMENT_READY_FOR_PROMOTION',
+    title: '🎯 Student Ready for Promotion',
+    getMessage: (data) =>
+      `${data.studentName} has completed all lessons in ${data.subject} (${data.levelLabel}) and is ready for a promotion test.`,
+    getLink: (data) =>
+      `/dashboard/tutor/students/${data.studentId}/promote?subject=${data.subject}`,
+    priority: 'HIGH',
+  },
+  ASSESSMENT_LESSON_SUBMITTED: {
+    type: 'ASSESSMENT_LESSON_SUBMITTED',
+    title: '📖 Lesson Submitted for Marking',
+    getMessage: (data) =>
+      `${data.studentName} submitted "${data.lessonTitle}" (${data.subject} Lesson ${data.lessonNumber}) for marking.`,
+    getLink: (data) =>
+      `/dashboard/tutor/students/${data.studentId}/assessment`,
+    priority: 'MEDIUM',
+  },
+  ASSESSMENT_PROMOTED: {
+    type: 'ASSESSMENT_PROMOTED',
+    title: '🏆 Assessment Level Promoted!',
+    getMessage: (data) =>
+      `Great news! You have been promoted in ${data.subject} from ${data.fromLevel} to ${data.toLevel}.`,
+    getLink: () => `/dashboard/student/assessment`,
+    priority: 'HIGH',
+  },
 };
 
 /**
@@ -159,6 +190,9 @@ export function getNotificationIcon(type: NotificationType): string {
     GOAL_ACHIEVED: '🎯',
     AWARD_REDEEMED: '🎁',
     AWARD_FULFILLED: '✨',
+    ASSESSMENT_READY_FOR_PROMOTION: '🎯',
+    ASSESSMENT_LESSON_SUBMITTED: '📖',
+    ASSESSMENT_PROMOTED: '🏆',
   };
 
   return icons[type];

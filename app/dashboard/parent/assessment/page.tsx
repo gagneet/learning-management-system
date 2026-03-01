@@ -129,7 +129,7 @@ export default async function ParentAssessmentPage() {
             <p className="text-gray-500 dark:text-gray-400">No children found on your account.</p>
           </div>
         ) : (
-          <ParentAssessmentClient children={childrenData as any} />
+          <ParentAssessmentClient childrenData={childrenData as any} />
         )}
       </main>
     </div>

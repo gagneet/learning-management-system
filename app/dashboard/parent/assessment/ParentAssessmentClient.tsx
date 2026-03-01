@@ -14,7 +14,7 @@ type ChildData = {
 };
 
 interface Props {
-  children: ChildData[];
+  childrenData: ChildData[];
 }
 
 function ChildSection({ child }: { child: ChildData }) {
@@ -68,7 +68,8 @@ function ChildSection({ child }: { child: ChildData }) {
   );
 }
 
-export function ParentAssessmentClient({ children }: Props) {
+export function ParentAssessmentClient({ childrenData }: Props) {
+  const children = childrenData;
   if (children.length === 0) {
     return (
       <div className="bg-white dark:bg-gray-800 rounded-xl p-12 border border-gray-200 dark:border-gray-700 text-center">

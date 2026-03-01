@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { auth } from "@/lib/auth";
 import { prisma } from "@/lib/prisma";
 import { hasPermission, hasAnyPermission, Permissions } from "@/lib/rbac";
+import { NOTIFICATION_TEMPLATES } from "@/lib/notifications";
 
 // GET /api/v1/student-placements/:id/lesson-completions - Get lesson completions for a placement
 export async function GET(
@@ -292,15 +293,81 @@ export async function POST(
         lessonsCompleted: completedCount,
       };
 
-      // If all 25 lessons are completed, set readyForPromotion
-      if (completedCount >= 25 && !placement.readyForPromotion) {
+      const becameReady = completedCount >= 25 && !placement.readyForPromotion;
+      if (becameReady) {
         placementUpdateData.readyForPromotion = true;
+        placementUpdateData.status = "PROMOTION_PENDING";
       }
 
       await prisma.studentAgeAssessment.update({
         where: { id: placementId },
         data: placementUpdateData,
       });
+
+      // ── Notify the placing teacher when student becomes ready for promotion ──
+      if (becameReady) {
+        const [updatedPlacement, studentUser] = await Promise.all([
+          prisma.studentAgeAssessment.findUnique({
+            where: { id: placementId },
+            select: { placedById: true, currentAge: { select: { displayLabel: true, australianYear: true } } },
+          }),
+          prisma.user.findUnique({ where: { id: placement.studentId }, select: { name: true } }),
+        ]);
+        if (updatedPlacement?.placedById) {
+          const tmpl = NOTIFICATION_TEMPLATES['ASSESSMENT_READY_FOR_PROMOTION'];
+          const notifData = {
+            studentName: studentUser?.name ?? "Student",
+            studentId:   placement.studentId,
+            subject:     placement.subject,
+            levelLabel:  updatedPlacement.currentAge?.australianYear ?? updatedPlacement.currentAge?.displayLabel ?? placement.subject,
+          };
+          await prisma.notification.create({
+            data: {
+              type:     'ASSESSMENT_READY_FOR_PROMOTION',
+              userId:   updatedPlacement.placedById,
+              title:    tmpl.title,
+              message:  tmpl.getMessage(notifData),
+              link:     tmpl.getLink?.(notifData) ?? null,
+              priority: tmpl.priority,
+              read:     false,
+              data:     notifData,
+            },
+          }).catch(() => {/* non-critical — swallow notification errors */});
+        }
+      }
+    }
+
+    // ── Notify tutor when student submits a lesson for marking ──────────────
+    if (status === "SUBMITTED" && user.role === "STUDENT") {
+      const [placingTeacher, studentUser] = await Promise.all([
+        prisma.studentAgeAssessment.findUnique({
+          where: { id: placementId },
+          select: { placedById: true },
+        }),
+        prisma.user.findUnique({ where: { id: placement.studentId }, select: { name: true } }),
+      ]);
+      if (placingTeacher?.placedById) {
+        const tmpl = NOTIFICATION_TEMPLATES['ASSESSMENT_LESSON_SUBMITTED'];
+        const notifData = {
+          studentName:  studentUser?.name ?? "Student",
+          studentId:    placement.studentId,
+          subject:      placement.subject,
+          lessonTitle:  completion.lesson.title,
+          lessonNumber: completion.lesson.lessonNumber,
+        };
+        await prisma.notification.create({
+          data: {
+            type:     'ASSESSMENT_LESSON_SUBMITTED',
+            userId:   placingTeacher.placedById,
+            title:    tmpl.title,
+            message:  tmpl.getMessage(notifData),
+            link:     tmpl.getLink?.(notifData) ?? null,
+            priority: tmpl.priority,
+            read:     false,
+            data:     notifData,
+          },
+        }).catch(() => {/* non-critical */});
+      }
     }
 
     return NextResponse.json(
