@@ -2,6 +2,21 @@
 
 A comprehensive web-based platform for managing courses, users, and learning content. Built with Next.js 16, React 19, TypeScript, Prisma, and PostgreSQL.
 
+## 🆕 Phase 3: Promotion Workflow + Analytics + Export (Mar 2026)
+
+**Completing the Assessment Engine with tutor workflows and supervisor oversight:**
+
+- **Promotion Workflow UI**: Tutors can conduct promotion tests directly from the student assessment page — select a placement, choose a promotion test, enter answers/scores, and record the outcome (PROMOTED / LEVEL_SKIPPED / BORDERLINE / FAILED) in one page
+- **CSV Export**: The Assessment Grid now has an "Export CSV" button to download filtered student×subject data (age levels, age gaps, bands, lesson counts, readiness)
+- **Assessment Analytics** (`/dashboard/supervisor/assessment-analytics`): Centre-wide analytics for supervisors and admins showing KPI cards, age-band distribution bar chart, per-subject breakdown table, and 30-day activity feed
+- **Demo Seed Data**: Phase 3 seeds 9 assessment age levels (Foundation–Year 8), 108 lessons (6 per level × 2 subjects), 10 student placements across 4 students showing all 5 age bands, lesson completions, promotion test, and history
+
+**New UI Pages (Phase 3):**
+- `/dashboard/tutor/students/[id]/promote` — Promotion Assessment workflow
+- `/dashboard/supervisor/assessment-analytics` — Centre assessment analytics
+
+---
+
 ## 🆕 Phase 2: Adaptive Tuition Assessment Engine (Mar 2026)
 
 **NEW — Age-Based Assessment System for Australian Tuition Centres:**

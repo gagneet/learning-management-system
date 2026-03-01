@@ -26,6 +26,7 @@ import {
   Ticket,
   Grid3x3,
   TrendingUp,
+  LineChart,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -233,6 +234,12 @@ export function getActionCardsForRole(
           description: "Review tutor metrics",
           icon: createElement(GraduationCap, { className: "w-6 h-6" }),
           href: "/dashboard/supervisor/tutors",
+        },
+        {
+          title: "Assessment Analytics",
+          description: "Age-band distribution and promotion stats",
+          icon: createElement(LineChart, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/assessment-analytics",
         },
         {
           title: "Transactions",

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import Link from "next/link";
 import {
   BookOpen,
   CheckCircle,
@@ -113,10 +114,12 @@ function PlacementCard({
   placement,
   chronoAge,
   canEdit,
+  studentId,
 }: {
   placement: Placement;
   chronoAge: number | null;
   canEdit: boolean;
+  studentId?: string;
 }) {
   const [showLessons, setShowLessons] = useState(false);
   const [showHistory, setShowHistory] = useState(false);
@@ -165,7 +168,7 @@ function PlacementCard({
             )}
           </div>
         </div>
-        <div className="text-right">
+        <div className="text-right flex flex-col items-end gap-1.5">
           {placement.readyForPromotion ? (
             <span className="inline-flex items-center gap-1 bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300 text-xs font-semibold px-2.5 py-1 rounded-full">
               <ArrowUpCircle className="w-3 h-3" />
@@ -175,6 +178,15 @@ function PlacementCard({
             <span className="text-xs text-gray-500 dark:text-gray-400">
               {placement.status}
             </span>
+          )}
+          {canEdit && placement.readyForPromotion && studentId && (
+            <Link
+              href={`/dashboard/tutor/students/${studentId}/promote?placementId=${placement.id}&subject=${placement.subject}`}
+              className="inline-flex items-center gap-1 bg-purple-600 hover:bg-purple-700 text-white text-xs font-medium px-2.5 py-1 rounded-full transition-colors"
+            >
+              <Trophy className="w-3 h-3" />
+              Conduct Promotion Test
+            </Link>
           )}
         </div>
       </div>
@@ -404,6 +416,7 @@ export function StudentAssessmentClient({ student, placements, assessmentAges, c
               placement={placement}
               chronoAge={student.chronoAge}
               canEdit={canEdit ?? false}
+              studentId={student.id}
             />
           ))}
         </div>

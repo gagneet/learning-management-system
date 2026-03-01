@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import Link from "next/link";
-import { Search, Filter, ChevronRight } from "lucide-react";
+import { Search, Download, ChevronRight } from "lucide-react";
 
 type Subject = "ENGLISH" | "MATHEMATICS" | "SCIENCE" | "STEM" | "READING" | "WRITING";
 
@@ -156,6 +156,54 @@ export function AssessmentGridClient({ initialData, subjects, classes }: Props) 
     );
   }, 0);
 
+  const exportToCsv = useCallback(() => {
+    const rows: string[] = [];
+
+    // Header row
+    const header = [
+      "Student Name",
+      "Chronological Age",
+      ...subjects.flatMap((s) => [
+        `${s} Level`,
+        `${s} Age Gap`,
+        `${s} Band`,
+        `${s} Lessons Done`,
+        `${s} Ready`,
+      ]),
+    ];
+    rows.push(header.map((h) => `"${h}"`).join(","));
+
+    // Data rows (use filtered for "what you see is what you export")
+    for (const student of filtered) {
+      const cells = [
+        student.name,
+        student.chronologicalAge ?? "",
+        ...subjects.flatMap((s) => {
+          const p = student.placements[s];
+          if (!p) return ["—", "", "", "", ""];
+          return [
+            p.displayLabel,
+            p.ageGap !== null ? p.ageGap : "",
+            AGE_BAND_LABELS[p.ageBand ?? ""] ?? p.ageBand ?? "",
+            p.lessonsCompleted,
+            p.readyForPromotion ? "Yes" : "No",
+          ];
+        }),
+      ];
+      rows.push(cells.map((c) => `"${c}"`).join(","));
+    }
+
+    const blob = new Blob([rows.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url  = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href  = url;
+    link.download = `assessment-grid-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }, [filtered, subjects]);
+
   return (
     <div className="space-y-6">
       {/* Summary cards */}
@@ -212,6 +260,14 @@ export function AssessmentGridClient({ initialData, subjects, classes }: Props) 
           <div className="text-sm text-gray-500 dark:text-gray-400">
             {filtered.length} of {initialData.length} students
           </div>
+          <button
+            onClick={exportToCsv}
+            className="flex items-center gap-1.5 px-3 py-2 rounded-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors"
+            title="Export current view as CSV"
+          >
+            <Download className="w-4 h-4" />
+            Export CSV
+          </button>
         </div>
 
         {/* Age band legend */}

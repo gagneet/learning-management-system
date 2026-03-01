@@ -99,6 +99,7 @@ npx playwright test tests/assessment-api.spec.ts   # API integration tests
 | `supervisor-pages.spec.ts` | Supervisor dashboard, financial page, finance admin access, redirect behaviours, action cards |
 | `assessment-ui.spec.ts` | **Phase 2** Assessment Grid (tutor), Student Assessment Progress, Parent Assessment, RBAC redirects, action card links |
 | `assessment-api.spec.ts` | **Phase 2** All assessment API endpoints: levels, placements, lesson-completions, promotion tests, grid — auth, RBAC, validation, response shapes |
+| `assessment-phase3-ui.spec.ts` | **Phase 3** Promotion Workflow UI, Assessment Analytics page, CSV Export button, seed data verification, RBAC guards |
 
 ### API Tests (Jest - `tests/api/`)
 
@@ -117,6 +118,7 @@ npx playwright test tests/assessment-api.spec.ts   # API integration tests
 | File | Coverage |
 |------|----------|
 | `db/assessment-schema.test.ts` | **Phase 2** Prisma type-shape tests for all 7 new models; age-gap/band calculation logic; promotion readiness; lesson status state machine |
+| `db/assessment-phase3.test.ts` | **Phase 3** Promotion outcome classification; seed data age-band expectations for all 4 students; analytics aggregation; CSV export shape; promotion test structure |
 
 ## Demo Credentials
 
