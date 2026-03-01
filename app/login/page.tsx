@@ -53,7 +53,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800 relative overflow-hidden">
+    <main id="main-content" className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-400 via-purple-500 to-pink-500 dark:from-gray-900 dark:via-purple-900 dark:to-gray-800 relative overflow-hidden scroll-mt-20">
       {/* Animated Background Elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
         <div className="absolute top-20 left-10 w-72 h-72 bg-yellow-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-blob"></div>
@@ -73,7 +73,7 @@ export default function LoginPage() {
         <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-md rounded-2xl shadow-2xl p-8 border border-white/20">
           {/* Fun Header */}
           <div className="text-center mb-8">
-            <div className="text-6xl mb-4 animate-bounce">🚀</div>
+            <div className="text-6xl mb-4 animate-bounce"><span aria-hidden="true">🚀</span></div>
             <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 bg-clip-text text-transparent">
               Welcome Back!
             </h1>
@@ -85,7 +85,7 @@ export default function LoginPage() {
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <label htmlFor="email" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                ✉️ Email Address
+                <span aria-hidden="true">✉️</span> Email Address
               </label>
               <input
                 id="email"
@@ -100,7 +100,7 @@ export default function LoginPage() {
 
             <div>
               <label htmlFor="password" className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
-                🔒 Password
+                <span aria-hidden="true">🔒</span> Password
               </label>
               <div className="relative">
                 <input
@@ -124,8 +124,12 @@ export default function LoginPage() {
             </div>
 
             {error && (
-              <div className="bg-red-50 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 p-3 rounded-xl text-sm flex items-center">
-                <span className="text-xl mr-2">⚠️</span>
+              <div
+                role="alert"
+                aria-live="polite"
+                className="bg-red-50 dark:bg-red-900/30 border-2 border-red-300 dark:border-red-700 text-red-700 dark:text-red-400 p-3 rounded-xl text-sm flex items-center"
+              >
+                <span className="text-xl mr-2"><span aria-hidden="true">⚠️</span></span>
                 {error}
               </div>
             )}
@@ -144,7 +148,9 @@ export default function LoginPage() {
                   Signing in...
                 </span>
               ) : (
-                "🎓 Sign In & Start Learning"
+                <>
+                  <span aria-hidden="true">🎓</span> Sign In & Start Learning
+                </>
               )}
             </button>
           </form>
@@ -152,14 +158,14 @@ export default function LoginPage() {
           {/* Quick Access Demo Accounts */}
           <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700">
             <p className="text-center text-sm font-semibold text-gray-700 dark:text-gray-300 mb-4">
-              🎮 Try Demo Accounts:
+              <span aria-hidden="true">🎮</span> Try Demo Accounts:
             </p>
             <div className="grid grid-cols-2 gap-2">
               <button
                 onClick={() => quickFill('student')}
                 className="px-3 py-2 bg-blue-100 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 rounded-lg hover:bg-blue-200 dark:hover:bg-blue-900/50 transition-colors text-xs font-medium"
               >
-                🎓 Student
+                <span aria-hidden="true">🎓</span> Student
               </button>
               <button
                 onClick={() => quickFill('teacher')}
@@ -191,7 +197,7 @@ export default function LoginPage() {
 
         {/* Fun Footer Message */}
         <p className="text-center text-white mt-6 text-sm drop-shadow-lg">
-          ✨ Every great learning journey begins with a single login ✨
+          <span aria-hidden="true">✨</span> Every great learning journey begins with a single login <span aria-hidden="true">✨</span>
         </p>
       </div>
 
@@ -220,6 +226,6 @@ export default function LoginPage() {
           animation-delay: 4s;
         }
       `}</style>
-    </div>
+    </main>
   );
 }

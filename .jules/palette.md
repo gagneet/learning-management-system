@@ -13,3 +13,7 @@
 ## 2026-02-18 - [Standardized and Accessible Progress Visualization]
 **Learning:** Fragmented UI patterns for common elements like progress bars often lead to inconsistent accessibility and visual experience. Creating a centralized `ProgressBar` component with proper WAI-ARIA attributes (`role="progressbar"`, `aria-valuenow`, etc.) and smooth CSS transitions ensures a cohesive and inclusive user interface.
 **Action:** Always use the centralized `ProgressBar` component for visualizing progress. Avoid manual `div`-based bars to maintain accessibility standards and visual consistency across dashboards.
+
+## 2025-05-22 - [Public Page Accessibility and Skip Link Support]
+**Learning:** Many public pages (Home, Support, Contact, Login) were missing the 'main-content' ID target for the global skip link, rendering it non-functional. Additionally, decorative emojis in labels and headers were being announced by screen readers, creating audio clutter.
+**Action:** Standardize use of <main id="main-content" className="... scroll-mt-20"> on all primary pages. Wrap decorative emojis in <span aria-hidden="true">. Add aria-live="polite" to form error messages to ensure immediate feedback for screen reader users.

@@ -7,7 +7,7 @@ export default function Home() {
     <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-gray-800 flex flex-col">
       <Header />
 
-      <main className="container mx-auto px-4 py-16 flex-1">
+      <main id="main-content" className="container mx-auto px-4 py-16 flex-1 scroll-mt-20">
         <div className="text-center">
           <h2 className="text-5xl font-bold text-gray-900 dark:text-white mb-4">
             Intelligent Multi-Centre Learning Platform
@@ -51,7 +51,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-blue-500 cursor-pointer"
               >
-                <div className="text-5xl mb-4">🏢</div>
+                <div className="text-5xl mb-4"><span aria-hidden="true">🏢</span></div>
                 <h3 className="text-2xl font-semibold mb-4 text-blue-600 dark:text-blue-400 group-hover:text-blue-700 dark:group-hover:text-blue-300">
                   Multi-Centre Support
                 </h3>
@@ -68,7 +68,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-purple-500 cursor-pointer"
               >
-                <div className="text-5xl mb-4">🔐</div>
+                <div className="text-5xl mb-4"><span aria-hidden="true">🔐</span></div>
                 <h3 className="text-2xl font-semibold mb-4 text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300">
                   Role-Based Access
                 </h3>
@@ -85,7 +85,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 border-2 border-transparent hover:border-green-500 cursor-pointer"
               >
-                <div className="text-5xl mb-4">🧠</div>
+                <div className="text-5xl mb-4"><span aria-hidden="true">🧠</span></div>
                 <h3 className="text-2xl font-semibold mb-4 text-green-600 dark:text-green-400 group-hover:text-green-700 dark:group-hover:text-green-300">
                   Academic Intelligence
                 </h3>
@@ -110,7 +110,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-blue-400 cursor-pointer"
               >
-                <div className="text-4xl mb-3">📚</div>
+                <div className="text-4xl mb-3"><span aria-hidden="true">📚</span></div>
                 <h4 className="font-semibold text-lg mb-2 text-blue-600 dark:text-blue-400 group-hover:text-blue-700">
                   Course Management
                 </h4>
@@ -127,7 +127,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-purple-400 cursor-pointer"
               >
-                <div className="text-4xl mb-3">🎮</div>
+                <div className="text-4xl mb-3"><span aria-hidden="true">🎮</span></div>
                 <h4 className="font-semibold text-lg mb-2 text-purple-600 dark:text-purple-400 group-hover:text-purple-700">
                   Gamification
                 </h4>
@@ -144,7 +144,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-green-400 cursor-pointer"
               >
-                <div className="text-4xl mb-3">📹</div>
+                <div className="text-4xl mb-3"><span aria-hidden="true">📹</span></div>
                 <h4 className="font-semibold text-lg mb-2 text-green-600 dark:text-green-400 group-hover:text-green-700">
                   Live Sessions
                 </h4>
@@ -161,7 +161,7 @@ export default function Home() {
                 prefetch={false}
                 className="group bg-white dark:bg-gray-800 p-6 rounded-xl shadow hover:shadow-xl transition-all border-2 border-transparent hover:border-orange-400 cursor-pointer"
               >
-                <div className="text-4xl mb-3">💰</div>
+                <div className="text-4xl mb-3"><span aria-hidden="true">💰</span></div>
                 <h4 className="font-semibold text-lg mb-2 text-orange-600 dark:text-orange-400 group-hover:text-orange-700">
                   Financial Tracking
                 </h4>
