@@ -2,7 +2,44 @@
 
 A comprehensive web-based platform for managing courses, users, and learning content. Built with Next.js 16, React 19, TypeScript, Prisma, and PostgreSQL.
 
-## 🆕 Major Update: Multi-Student Session Model (Feb 2026)
+## 🆕 Phase 2: Adaptive Tuition Assessment Engine (Mar 2026)
+
+**NEW — Age-Based Assessment System for Australian Tuition Centres:**
+
+The system now includes a complete assessment age level tracking engine modelled after the Australian curriculum year system:
+
+- **Assessment Age Levels**: Each student is placed at an `AssessmentAge` level (e.g. 7y6m = Year 2) per subject independently
+- **6 tracked subjects**: English, Mathematics, Science, STEM, Reading, Writing
+- **25 lessons per level**: Structured curriculum with difficulty scoring, time estimates, and pass marks
+- **Promotion Engine**: Automated promotion tests with PROMOTED / LEVEL_SKIPPED / FAILED / BORDERLINE outcomes; history fully audited
+- **Assessment Grid**: Tutor overview of all students × all subjects with age-gap colour bands (Above / On Level / Slightly Below / Below / Significantly Below)
+- **Session Integration**: Lesson completions can be linked to tutoring sessions via `sessionId`
+
+**New API Endpoints (Phase 2):**
+- `GET /api/v1/assessment-levels` — public, list all age levels
+- `POST /api/v1/assessment-levels` — create level (CENTER_ADMIN only)
+- `GET/PUT /api/v1/assessment-levels/:id` — manage individual level
+- `GET /api/v1/assessment-levels/:id/lessons` — list lessons for a level
+- `GET /api/v1/student-placements` — list placements (RBAC-scoped per role)
+- `POST /api/v1/student-placements` — place student at a level
+- `GET/PUT/DELETE /api/v1/student-placements/:id` — manage placement
+- `GET/POST /api/v1/student-placements/:id/lesson-completions` — lesson progress
+- `GET /api/v1/promotion-tests` — list promotion tests
+- `POST /api/v1/promotion-tests` — create promotion test
+- `POST /api/v1/promotion-tests/:id/attempt` — record promotion test attempt
+- `GET /api/v1/assessment-grid` — full student × subject grid with age-band data
+
+**New UI Pages (Phase 2):**
+- `/dashboard/tutor/assessment` — Assessment Grid (all students × all subjects)
+- `/dashboard/tutor/students/[id]/assessment` — Per-student assessment detail
+- `/dashboard/student/assessment` — Student's own assessment progress
+- `/dashboard/parent/assessment` — Parent's view of all children's assessment progress
+
+**New Schema Models (Phase 2):** `AssessmentAge`, `AgeAssessmentLesson`, `StudentAgeAssessment`, `AgeLessonCompletion` (with optional `sessionId`), `AgePromotionTest`, `AgePromotionAttempt`, `AgeAssessmentHistory`
+
+---
+
+## 🆕 Phase 1: Multi-Student Session Model (Feb 2026)
 
 **MAJOR PIVOT in Session Architecture:**
 

@@ -5,5 +5,9 @@ module.exports = {
   moduleNameMapper: {
     '^@/(.*)$': '<rootDir>/$1',
   },
-  testMatch: ['**/tests/api/**/*.test.ts'],
+  // Picks up tests/api/**/*.test.ts and tests/db/**/*.test.ts
+  testMatch: [
+    '**/tests/api/**/*.test.ts',
+    '**/tests/db/**/*.test.ts',
+  ],
 };
