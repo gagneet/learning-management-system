@@ -48,6 +48,12 @@ model Center {
   
   // Phase 1: In-built video conferencing
   videoRecordings VideoRecording[]   @relation("CentreVideoRecordings")
+
+  // Phase 2: Australian Tuition Centre Assessment System
+  centreAgeAssessments   StudentAgeAssessment[] @relation("CentreAgeAssessments")
+  centreLessonCompletions AgeLessonCompletion[]  @relation("CentreLessonCompletions")
+  centrePromotionAttempts AgePromotionAttempt[]  @relation("CentrePromotionAttempts")
+  centreAssessmentHistory AgeAssessmentHistory[] @relation("CentreAssessmentHistory")
 }
 
 // User model with role-based access
@@ -186,6 +192,16 @@ model User {
   
   // Phase 1: In-built video conferencing
   videoParticipations     VideoParticipant[]    @relation("UserVideoParticipants")
+
+  // Phase 2: Australian Tuition Centre Assessment System
+  studentAgeAssessments   StudentAgeAssessment[] @relation("StudentAgeAssessments")
+  placedAgeAssessments    StudentAgeAssessment[] @relation("PlacedByTeacher")
+  studentLessonCompletions AgeLessonCompletion[] @relation("StudentLessonCompletions")
+  gradedLessonCompletions  AgeLessonCompletion[] @relation("GradedLessonCompletions")
+  studentPromotionAttempts AgePromotionAttempt[] @relation("StudentPromotionAttempts")
+  gradedPromotionAttempts  AgePromotionAttempt[] @relation("GradedPromotionAttempts")
+  studentAssessmentHistory AgeAssessmentHistory[] @relation("StudentAssessmentHistory")
+  changedAssessmentHistory AgeAssessmentHistory[] @relation("ChangedByUser")
 
   @@index([centerId])
   @@index([email])
@@ -2173,4 +2189,284 @@ model VideoRecording {
   @@index([status])
   @@index([centreId])
   @@index([recordingId])
+}
+
+// =============================================================================
+// PHASE 2: AUSTRALIAN TUITION CENTRE ASSESSMENT SYSTEM
+// Architecture: Age-based assessment levels (5.1 → 18.12), 25 lessons per level,
+//              promotion tests, subject-specific tracking, assessment grid
+// Aligned with Australian Curriculum (Foundation → Year 12)
+// =============================================================================
+
+// Subjects offered in the tuition centre assessment system
+enum TuitionSubject {
+  ENGLISH      // Reading, writing, comprehension
+  MATHEMATICS  // Number, algebra, measurement, statistics
+  SCIENCE      // Physical, biological, chemical sciences
+  STEM         // Integrated STEM project-based learning
+  READING      // Focused reading/literacy program
+  WRITING      // Focused writing/composition program
+}
+
+// Outcome of a promotion test attempt
+enum PromotionOutcome {
+  PENDING        // Not yet graded
+  PROMOTED       // Passed - moved to next assessment age month
+  LEVEL_SKIPPED  // Excellent score - skipped one or more levels
+  FAILED         // Did not pass - continues at current level
+  BORDERLINE     // Score at boundary - teacher discretion required
+}
+
+// Australian Curriculum year level mapping
+// Foundation (Prep/Kindy) → Year 12
+// Ages 5–18 with monthly granularity (5.1, 5.2, ..., 5.12, 6.1, ..., 18.12)
+model AssessmentAge {
+  id             String   @id @default(cuid())
+  ageYear        Int      // 5-18 (chronological age year)
+  ageMonth       Int      // 1-12 (month within that age year)
+  displayLabel   String   // "5.1", "5.2", ... "18.12"
+  australianYear String?  // "Foundation", "Year 1", "Year 2", ... "Year 12"
+  description    String?  @db.Text
+  isActive       Boolean  @default(true)
+  createdAt      DateTime @default(now())
+
+  lessons              AgeAssessmentLesson[]
+  promotionTests       AgePromotionTest[]
+  currentPlacements    StudentAgeAssessment[]   @relation("CurrentAge")
+  initialPlacements    StudentAgeAssessment[]   @relation("InitialAge")
+  promotionOutcomes    AgePromotionAttempt[]    @relation("PromotedToAge")
+  historyFromAge       AgeAssessmentHistory[]   @relation("HistoryFromAge")
+  historyToAge         AgeAssessmentHistory[]   @relation("HistoryToAge")
+
+  @@unique([ageYear, ageMonth])
+  @@index([ageYear, ageMonth])
+  @@index([ageYear])
+}
+
+// 25 progressive lessons per assessment age level per subject
+// Lessons increase in difficulty from lesson 1 (easiest) to lesson 25 (hardest)
+model AgeAssessmentLesson {
+  id                String         @id @default(cuid())
+  assessmentAgeId   String
+  subject           TuitionSubject
+  lessonNumber      Int            // 1–25 (progressive difficulty)
+  title             String
+  description       String?        @db.Text
+  learningObjectives Json?         // [{objective: string, bloomsLevel: string}]
+  difficultyScore   Int            // 1–100 auto-computed: (lessonNumber/25)*100 + age factor
+  estimatedMinutes  Int            @default(45)
+
+  // Australian Curriculum alignment
+  curriculumCode    String?        // e.g., "ACELA1470", "ACMNA023"
+  strandArea        String?        // e.g., "Language", "Number and Algebra"
+
+  // Content references (linked to existing Exercise/Content models)
+  exerciseIds       String[]       // IDs of Exercise records to use
+  contentData       Json?          // Additional content config: videos, worksheets, docs
+
+  isActive          Boolean        @default(true)
+  createdAt         DateTime       @default(now())
+  updatedAt         DateTime       @updatedAt
+
+  assessmentAge     AssessmentAge      @relation(fields: [assessmentAgeId], references: [id], onDelete: Cascade)
+  completions       AgeLessonCompletion[]
+
+  @@unique([assessmentAgeId, subject, lessonNumber])
+  @@index([assessmentAgeId, subject])
+  @@index([subject])
+}
+
+// Student's current assessment age placement per subject
+// A student may be at 5.3 in English but 6.1 in Mathematics
+model StudentAgeAssessment {
+  id                  String         @id @default(cuid())
+  studentId           String
+  subject             TuitionSubject
+
+  // Current level and progress
+  currentAgeId        String         // Which AssessmentAge they're at
+  currentLessonNumber Int            @default(1)  // 1–25
+  lessonsCompleted    Int            @default(0)
+
+  // Placement details
+  placedAt            DateTime       @default(now())
+  placedById          String         // Teacher/admin who placed or last updated
+  placementMethod     String         @default("DIAGNOSTIC")
+  // Values: DIAGNOSTIC_TEST, TEACHER_ASSESSMENT, CURRICULUM_AGE, TRANSFER, MANUAL_OVERRIDE
+  placementNotes      String?        @db.Text
+
+  // Status tracking
+  status              String         @default("ACTIVE")
+  // Values: ACTIVE, PROMOTION_PENDING, PROMOTED, PAUSED, COMPLETED
+  readyForPromotion   Boolean        @default(false)
+
+  // History tracking
+  initialAgeId        String?        // Original placement level (for reporting)
+
+  centreId            String
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  student            User                 @relation("StudentAgeAssessments", fields: [studentId], references: [id], onDelete: Cascade)
+  currentAge         AssessmentAge        @relation("CurrentAge", fields: [currentAgeId], references: [id])
+  initialAge         AssessmentAge?       @relation("InitialAge", fields: [initialAgeId], references: [id])
+  placedBy           User                 @relation("PlacedByTeacher", fields: [placedById], references: [id])
+  centre             Center               @relation("CentreAgeAssessments", fields: [centreId], references: [id])
+  lessonCompletions  AgeLessonCompletion[]
+  promotionAttempts  AgePromotionAttempt[]
+  historyLog         AgeAssessmentHistory[]
+
+  @@unique([studentId, subject])
+  @@index([studentId])
+  @@index([centreId])
+  @@index([currentAgeId])
+  @@index([status])
+}
+
+// Tracks student completion of each individual lesson within their placement
+model AgeLessonCompletion {
+  id          String  @id @default(cuid())
+  studentId   String
+  placementId String  // StudentAgeAssessment.id
+  lessonId    String  // AgeAssessmentLesson.id
+
+  // Progress
+  status           String    @default("NOT_STARTED")
+  // Values: NOT_STARTED, IN_PROGRESS, SUBMITTED, MARKED, NEEDS_REVISION
+  score            Float?
+  maxScore         Float?    @default(100)
+  percentageScore  Float?
+
+  // Timing
+  startedAt        DateTime?
+  completedAt      DateTime?
+  timeSpentMinutes Int?
+
+  // Teacher grading
+  feedback         String?   @db.Text
+  gradedById       String?
+  gradedAt         DateTime?
+
+  centreId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student    User                 @relation("StudentLessonCompletions", fields: [studentId], references: [id], onDelete: Cascade)
+  placement  StudentAgeAssessment @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  lesson     AgeAssessmentLesson  @relation(fields: [lessonId], references: [id])
+  gradedBy   User?                @relation("GradedLessonCompletions", fields: [gradedById], references: [id])
+  centre     Center               @relation("CentreLessonCompletions", fields: [centreId], references: [id])
+
+  @@unique([studentId, placementId, lessonId])
+  @@index([placementId])
+  @@index([studentId])
+  @@index([status])
+  @@index([centreId])
+}
+
+// Promotion test administered at the end of all 25 lessons in a level
+// Pass → promoted to next assessment age month
+// Excellence → may skip one or more levels
+model AgePromotionTest {
+  id              String         @id @default(cuid())
+  assessmentAgeId String
+  subject         TuitionSubject
+  title           String
+  description     String?        @db.Text
+
+  // Test configuration
+  questions       Json
+  // [{id, text, type, options?, correctAnswer?, marks, bloomsLevel, curriculumCode?}]
+  totalMarks      Int            @default(100)
+  passingScore    Int            @default(70)    // Minimum % to pass to next level
+  excellenceScore Int            @default(90)    // % to skip ahead a level
+
+  timeLimit       Int            @default(60)    // Minutes
+  isAutoGraded    Boolean        @default(false) // Can questions be auto-graded?
+  isActive        Boolean        @default(true)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+
+  assessmentAge   AssessmentAge      @relation(fields: [assessmentAgeId], references: [id], onDelete: Cascade)
+  attempts        AgePromotionAttempt[]
+
+  @@unique([assessmentAgeId, subject])
+  @@index([assessmentAgeId])
+  @@index([subject])
+}
+
+// Student's attempt at a level promotion test
+model AgePromotionAttempt {
+  id              String           @id @default(cuid())
+  studentId       String
+  placementId     String           // StudentAgeAssessment.id
+  promotionTestId String
+
+  // Answers and scores
+  answers         Json             // [{questionId, answer, isCorrect?, marksAwarded}]
+  score           Float?
+  percentageScore Float?
+
+  // Outcome
+  outcome         PromotionOutcome @default(PENDING)
+  promotedToAgeId String?          // AssessmentAge.id of new level (if promoted)
+
+  // Timing
+  startedAt       DateTime         @default(now())
+  submittedAt     DateTime?
+
+  // Grading
+  gradedAt        DateTime?
+  gradedById      String?
+  feedback        String?          @db.Text
+
+  centreId  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  student         User                 @relation("StudentPromotionAttempts", fields: [studentId], references: [id], onDelete: Cascade)
+  placement       StudentAgeAssessment @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  promotionTest   AgePromotionTest     @relation(fields: [promotionTestId], references: [id])
+  promotedToAge   AssessmentAge?       @relation("PromotedToAge", fields: [promotedToAgeId], references: [id])
+  gradedBy        User?                @relation("GradedPromotionAttempts", fields: [gradedById], references: [id])
+  centre          Center               @relation("CentrePromotionAttempts", fields: [centreId], references: [id])
+
+  @@index([studentId])
+  @@index([placementId])
+  @@index([promotionTestId])
+  @@index([centreId])
+  @@index([outcome])
+}
+
+// Audit history of all assessment level changes for a student
+model AgeAssessmentHistory {
+  id          String         @id @default(cuid())
+  studentId   String
+  placementId String         // StudentAgeAssessment.id
+  subject     TuitionSubject
+
+  // Level change
+  fromAgeId   String?        // Previous AssessmentAge (null for initial placement)
+  toAgeId     String         // New AssessmentAge
+
+  // Change details
+  changeType  String         // INITIAL_PLACEMENT, PROMOTED, LEVEL_SKIPPED, REGRESSED, MANUAL_OVERRIDE
+  reason      String?        @db.Text
+  testScore   Float?         // Score if change was due to promotion test
+
+  changedById String
+  centreId    String
+  createdAt   DateTime       @default(now())
+
+  student     User                 @relation("StudentAssessmentHistory", fields: [studentId], references: [id], onDelete: Cascade)
+  placement   StudentAgeAssessment @relation(fields: [placementId], references: [id], onDelete: Cascade)
+  fromAge     AssessmentAge?       @relation("HistoryFromAge", fields: [fromAgeId], references: [id])
+  toAge       AssessmentAge        @relation("HistoryToAge", fields: [toAgeId], references: [id])
+  changedBy   User                 @relation("ChangedByUser", fields: [changedById], references: [id])
+  centre      Center               @relation("CentreAssessmentHistory", fields: [centreId], references: [id])
+
+  @@index([studentId, subject])
+  @@index([placementId])
+  @@index([centreId])
+  @@index([createdAt])
 }
