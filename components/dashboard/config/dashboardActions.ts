@@ -24,6 +24,8 @@ import {
   LayoutList,
   Video,
   Ticket,
+  Grid3x3,
+  TrendingUp,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -102,6 +104,12 @@ export function getActionCardsForRole(
           description: "Review missed session materials",
           icon: createElement(PackageOpen, { className: "w-6 h-6" }),
           href: "/dashboard/student/catchups",
+        },
+        {
+          title: "My Assessment",
+          description: "View assessment levels and progress",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/student/assessment",
         },
       ];
 
@@ -184,6 +192,12 @@ export function getActionCardsForRole(
           description: "Submit and track IT or maintenance requests",
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/tickets",
+        },
+        {
+          title: "Assessment Grid",
+          description: "View all students' assessment age levels",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/assessment",
         },
       ];
 
@@ -378,6 +392,12 @@ export function getActionCardsForRole(
           description: "Submit and track support requests",
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/parent/tickets",
+        },
+        {
+          title: "Assessment Progress",
+          description: "View children's assessment age levels",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/parent/assessment",
         },
       ];
 

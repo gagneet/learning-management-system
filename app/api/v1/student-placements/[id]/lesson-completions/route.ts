@@ -164,7 +164,7 @@ export async function POST(
     }
 
     const body = await request.json();
-    const { lessonId, status, score, feedback, timeSpentMinutes } = body;
+    const { lessonId, status, score, feedback, timeSpentMinutes, sessionId } = body;
 
     // Validate required fields
     if (!lessonId || !status) {
@@ -210,6 +210,7 @@ export async function POST(
     const completionData: Record<string, unknown> = {
       status,
       timeSpentMinutes: timeSpentMinutes ?? null,
+      sessionId: sessionId ?? null,
     };
 
     if (score !== undefined) {

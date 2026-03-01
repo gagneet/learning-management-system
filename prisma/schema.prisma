@@ -499,6 +499,9 @@ model Session {
   videoParticipants VideoParticipant[] @relation("VideoParticipants")
   videoRecordings   VideoRecording[]   @relation("VideoRecordings")
 
+  // Phase 2: Assessment lesson completions recorded during this session
+  lessonCompletions AgeLessonCompletion[] @relation("LessonCompletionSession")
+
   @@index([tutorId])
   @@index([startTime])
   @@index([status])
@@ -2347,6 +2350,9 @@ model AgeLessonCompletion {
   gradedById       String?
   gradedAt         DateTime?
 
+  // Session context (optional - links lesson completion to a tutoring session)
+  sessionId        String?   // Session.id if completed during a live session
+
   centreId  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -2355,6 +2361,7 @@ model AgeLessonCompletion {
   placement  StudentAgeAssessment @relation(fields: [placementId], references: [id], onDelete: Cascade)
   lesson     AgeAssessmentLesson  @relation(fields: [lessonId], references: [id])
   gradedBy   User?                @relation("GradedLessonCompletions", fields: [gradedById], references: [id])
+  session    Session?             @relation("LessonCompletionSession", fields: [sessionId], references: [id])
   centre     Center               @relation("CentreLessonCompletions", fields: [centreId], references: [id])
 
   @@unique([studentId, placementId, lessonId])
