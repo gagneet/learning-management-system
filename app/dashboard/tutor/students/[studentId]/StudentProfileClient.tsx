@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 // Type definitions based on Prisma schema
 type Student = {
@@ -456,7 +457,7 @@ export function StudentProfileClient({
               </div>
             </div>
           </div>
-          <div className="text-right">
+          <div className="text-right space-y-3">
             {gamificationProfile && (
               <div className="space-y-1">
                 <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
@@ -470,6 +471,12 @@ export function StudentProfileClient({
                 </div>
               </div>
             )}
+            <Link
+              href={`/dashboard/tutor/students/${student.id}/assessment`}
+              className="inline-flex items-center gap-1.5 bg-blue-50 dark:bg-blue-900/20 text-blue-700 dark:text-blue-300 hover:bg-blue-100 dark:hover:bg-blue-900/40 text-sm font-medium px-3 py-1.5 rounded-lg border border-blue-200 dark:border-blue-700 transition-colors"
+            >
+              📊 Tuition Assessment
+            </Link>
           </div>
         </div>
       </div>

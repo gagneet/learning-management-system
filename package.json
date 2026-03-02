@@ -14,6 +14,10 @@
     "db:seed": "ts-node --compiler-options {\\\"module\\\":\\\"CommonJS\\\"} prisma/seed.ts",
     "test": "playwright test",
     "test:api": "jest",
+    "test:api:assessment": "jest tests/api/assessment",
+    "test:db": "jest tests/db/",
+    "test:assessment": "jest tests/api/assessment tests/db/assessment",
+    "test:e2e:assessment": "playwright test tests/assessment-ui.spec.ts tests/assessment-api.spec.ts tests/assessment-phase3-ui.spec.ts",
     "test:ui": "playwright test --ui",
     "test:headed": "playwright test --headed"
   },

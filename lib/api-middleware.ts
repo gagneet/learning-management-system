@@ -41,7 +41,7 @@ export async function requireAuth(): Promise<
  */
 export function checkRole(
   userRole: string,
-  allowedRoles: string[]
+  allowedRoles: readonly string[]
 ): NextResponse | null {
   if (!allowedRoles.includes(userRole)) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
