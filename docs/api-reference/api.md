@@ -23,6 +23,61 @@ NextAuth.js authentication handler for login/logout.
 
 ---
 
+### Administration
+
+#### GET /api/admin/login-logs
+List admin login attempts.
+
+**Authorization:**
+- SUPER_ADMIN, CENTER_ADMIN (center admins are scoped to their center)
+
+**Query Parameters:**
+- `page` (optional): Page number (default: 1)
+- `perPage` (optional): Items per page (default: 20)
+- `success` (optional): `true` or `false`
+- `email` (optional): Filter by email (partial match)
+- `userId` (optional): Filter by user ID
+- `startDate` (optional): ISO timestamp filter start
+- `endDate` (optional): ISO timestamp filter end
+- `centreId` (optional): Super Admin only
+
+**Response:**
+```json
+{
+  "success": true,
+  "data": {
+    "items": [
+      {
+        "id": "log_id",
+        "userId": "user_id",
+        "userName": "Admin Name",
+        "email": "admin@example.com",
+        "role": "CENTER_ADMIN",
+        "centreId": "center_id",
+        "ipAddress": "203.0.113.10",
+        "ipCountry": "AU",
+        "forwardedFor": "203.0.113.10",
+        "userAgent": "Mozilla/5.0",
+        "cfRay": "7a8b9c1234",
+        "success": true,
+        "failureReason": null,
+        "createdAt": "2026-03-02T14:00:00.000Z"
+      }
+    ],
+    "pagination": {
+      "total": 45,
+      "page": 1,
+      "perPage": 20,
+      "totalPages": 3,
+      "hasNext": true,
+      "hasPrevious": false
+    }
+  }
+}
+```
+
+---
+
 ### Users
 
 #### GET /api/users

@@ -230,6 +230,12 @@ export function getActionCardsForRole(
           href: "/admin/users",
         },
         {
+          title: "Admin Login Logs",
+          description: "Review admin sign-in history",
+          icon: createElement(ClipboardList, { className: "w-6 h-6" }),
+          href: "/admin/login-logs",
+        },
+        {
           title: "Attendance",
           description: "Monitor attendance trends",
           icon: createElement(Calendar, { className: "w-6 h-6" }),
@@ -344,6 +350,12 @@ export function getActionCardsForRole(
           description: "View platform-wide metrics",
           icon: createElement(BarChart3, { className: "w-6 h-6" }),
           href: "/admin/analytics",
+        },
+        {
+          title: "Admin Login Logs",
+          description: "Review admin sign-in history",
+          icon: createElement(ClipboardList, { className: "w-6 h-6" }),
+          href: "/admin/login-logs",
         },
         {
           title: "All Courses",

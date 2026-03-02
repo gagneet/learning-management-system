@@ -2,6 +2,34 @@
 
 ---
 
+## Version 1.2.2 - 2026-03-02
+
+### 🔐 Admin Login Logging (NEW)
+- Added **AdminLoginLog** model to capture admin sign-in attempts (IP, country, user agent, Cloudflare ray).
+- NextAuth credentials flow now records success/failure for SUPER_ADMIN and CENTER_ADMIN.
+- New admin page at `/admin/login-logs` (latest 100 attempts, role-gated).
+- New API endpoint `GET /api/admin/login-logs` with filters for date range, email, userId, and success.
+- Admin/Super Admin action cards include "Admin Login Logs" entry.
+
+### 🌐 Deployment & Security
+- Nginx now forwards Cloudflare client headers (CF-Connecting-IP, CF-IPCountry, CF-Ray) to the app.
+- Deployment guide updated with required header forwarding snippet.
+
+### 📝 Files Changed
+- `prisma/schema.prisma` — AdminLoginLog model + relations
+- `lib/auth.ts` — admin login logging integration
+- `lib/admin-login-log.ts` — helper for log creation/context
+- `app/admin/login-logs/page.tsx` — admin log viewer
+- `app/api/admin/login-logs/route.ts` — paginated log API
+- `components/dashboard/config/dashboardActions.ts` — action card
+- `config/nginx/lms` — Cloudflare header forwarding
+- `docs/deployment-operations/deployment-production.md` — header forwarding doc
+
+### 📦 Commit
+- (pending) — feat: Add admin login logs and deployment header forwarding
+
+---
+
 ## Version 1.2.1 - 2026-02-18 (Session 2)
 
 ### 🔧 Navigation & Feature Completeness

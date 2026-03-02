@@ -35,6 +35,7 @@ model Center {
   feePlans        FeePlan[]          @relation("FeePlans")
   studentAccounts StudentAccount[]   @relation("StudentAccounts")
   invoices        Invoice[]          @relation("Invoices")
+  adminLoginLogs  AdminLoginLog[]    @relation("AdminLoginLogs")
 
   // Phase 1: Individualized Tutoring Platform
   awards          Award[]            @relation("CentreAwards")
@@ -189,6 +190,7 @@ model User {
   studentWhiteboards      WhiteboardState[]     @relation("StudentWhiteboards")
   sessionPresenceLogs     SessionPresenceLog[]
   activityLogs            ActivityLog[]
+  adminLoginLogs          AdminLoginLog[]         @relation("AdminLoginLogs")
   
   // Phase 1: In-built video conferencing
   videoParticipations     VideoParticipant[]    @relation("UserVideoParticipants")
@@ -812,6 +814,35 @@ model AuditEvent {
   @@index([resourceType, resourceId])
   @@index([action])
   @@index([createdAt])
+}
+
+model AdminLoginLog {
+  id            String   @id @default(cuid())
+  userId        String?
+  userName      String?
+  email         String
+  role          Role
+  centreId      String
+  centre        Center   @relation("AdminLoginLogs", fields: [centreId], references: [id], onDelete: Cascade)
+
+  ipAddress     String?
+  ipCountry     String?
+  forwardedFor  String?
+  userAgent     String?
+  cfRay         String?
+
+  success       Boolean  @default(true)
+  failureReason String?
+
+  createdAt     DateTime @default(now())
+
+  user          User?    @relation("AdminLoginLogs", fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([centreId])
+  @@index([userId])
+  @@index([email])
+  @@index([createdAt])
+  @@index([success])
 }
 
 // Governance Domain - Approval Workflow
