@@ -870,6 +870,19 @@ chmod 755 logs/
 
 ### Nginx Security
 
+### Forwarding Client IP Headers
+
+Ensure the Nginx proxy forwards Cloudflare headers so the application can log real client IPs:
+
+```nginx
+proxy_set_header CF-Connecting-IP $http_cf_connecting_ip;
+proxy_set_header CF-IPCountry $http_cf_ipcountry;
+proxy_set_header CF-Ray $http_cf_ray;
+proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+proxy_set_header X-Real-IP $remote_addr;
+```
+
+
 The nginx configuration includes:
 - Rate limiting on login and API endpoints
 - Security headers (X-Frame-Options, X-Content-Type-Options, etc.)
