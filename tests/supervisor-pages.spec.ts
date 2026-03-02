@@ -13,24 +13,24 @@ import { test, expect, Page } from "@playwright/test";
 
 async function loginAsSupervisor(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("supervisor@lms.com");
-  await page.getByLabel("Password").fill("admin123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("supervisor@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("admin123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }
 
 async function loginAsCenterAdmin(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("centeradmin@lms.com");
-  await page.getByLabel("Password").fill("admin123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("centeradmin@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("admin123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }
 
 async function loginAsFinanceAdmin(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("finance@lms.com");
-  await page.getByLabel("Password").fill("admin123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("finance@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("admin123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }

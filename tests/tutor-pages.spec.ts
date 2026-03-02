@@ -10,8 +10,8 @@ import { test, expect, Page } from "@playwright/test";
 
 async function loginAsTeacher(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("teacher@lms.com");
-  await page.getByLabel("Password").fill("teacher123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("teacher@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("teacher123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }

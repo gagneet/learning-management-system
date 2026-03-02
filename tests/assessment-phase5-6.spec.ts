@@ -19,8 +19,8 @@ import { test, expect, Page } from "@playwright/test";
 
 async function loginAs(page: Page, email: string, password: string) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByRole("textbox", { name: /Email Address/i }).fill(email);
+  await page.getByRole("textbox", { name: /Password/i }).fill(password);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15_000 });
 }

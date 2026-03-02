@@ -120,7 +120,6 @@ export async function GET(request: NextRequest) {
     // Build the student query
     const studentWhere: any = {
       role: "STUDENT",
-      isActive: true,
     };
 
     if (centreId) {

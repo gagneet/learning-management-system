@@ -28,8 +28,8 @@ async function loginAndGetCookies(
   password: string
 ): Promise<string> {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill(email);
-  await page.getByLabel("Password").fill(password);
+  await page.getByRole("textbox", { name: /Email Address/i }).fill(email);
+  await page.getByRole("textbox", { name: /Password/i }).fill(password);
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15_000 });
   const cookies = await page.context().cookies();
@@ -99,15 +99,14 @@ test.describe("GET /api/v1/assessment-levels", () => {
     const res = await request.post("/api/v1/assessment-levels", {
       headers: { Cookie: cookies, "Content-Type": "application/json" },
       data: {
-        ageYear: 99,
-        ageMonth: 0,
-        displayLabel: "TEST-99y0m",
+        ageYear: 17,
+        ageMonth: 1,
+        displayLabel: "TEST-17.01",
         australianYear: "TEST Year",
-        isActive: false,
       },
     });
-    // Either 200 (created) or 409 (already exists) — not 5xx
-    expect([200, 201, 409]).toContain(res.status());
+    // Either 201 (created) or 409 (already exists) — not 5xx
+    expect([201, 409]).toContain(res.status());
   });
 });
 
@@ -133,7 +132,7 @@ test.describe("GET /api/v1/assessment-levels/:id", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body.level).toHaveProperty("id", levelId);
+    expect(body.data).toHaveProperty("id", levelId);
   });
 
   test("returns 404 for unknown id", async ({ page, request }) => {
@@ -152,7 +151,7 @@ test.describe("GET /api/v1/assessment-levels/:id", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body.lessons)).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
   });
 });
 
@@ -166,8 +165,8 @@ test.describe("GET /api/v1/student-placements", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("placements");
-    expect(Array.isArray(body.placements)).toBe(true);
+    expect(body).toHaveProperty("data");
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test("returns 401 for unauthenticated request", async ({ request }) => {
@@ -182,9 +181,10 @@ test.describe("GET /api/v1/student-placements", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
+    const placements = body.data ?? [];
     // Every placement returned must belong to this student
-    if (body.placements.length > 0) {
-      const allOwnData = body.placements.every(
+    if (placements.length > 0) {
+      const allOwnData = placements.every(
         (p: { student?: { email: string } }) =>
           !p.student || p.student.email === "student@lms.com"
       );
@@ -199,7 +199,7 @@ test.describe("GET /api/v1/student-placements", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("placements");
+    expect(body).toHaveProperty("data");
   });
 
   test("POST /api/v1/student-placements returns 400 if required fields missing", async ({
@@ -226,7 +226,7 @@ test.describe("GET /api/v1/student-placements/:id", () => {
       headers: { Cookie: cookies },
     });
     const body = await res.json();
-    placementId = body.placements?.[0]?.id ?? "nonexistent";
+    placementId = body.data?.[0]?.id ?? "nonexistent";
   });
 
   test("returns 200 with placement detail for valid id", async ({ page, request }) => {
@@ -237,7 +237,7 @@ test.describe("GET /api/v1/student-placements/:id", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body.placement).toHaveProperty("id", placementId);
+    expect(body.data).toHaveProperty("id", placementId);
   });
 
   test("returns 404 for unknown placement id", async ({ page, request }) => {
@@ -263,7 +263,7 @@ test.describe("POST /api/v1/student-placements/:id/lesson-completions", () => {
       headers: { Cookie: cookiesTeacher },
     });
     const listBody = await listRes.json();
-    const pid = listBody.placements?.[0]?.id;
+    const pid = listBody.data?.[0]?.id;
     if (!pid) test.skip();
 
     const res = await request.post(
@@ -288,7 +288,7 @@ test.describe("POST /api/v1/student-placements/:id/lesson-completions", () => {
       headers: { Cookie: cookiesTeacher },
     });
     const listBody = await listRes.json();
-    const pid = listBody.placements?.[0]?.id;
+    const pid = listBody.data?.[0]?.id;
     if (!pid) test.skip();
 
     const res = await request.post(
@@ -314,7 +314,7 @@ test.describe("POST /api/v1/student-placements/:id/lesson-completions", () => {
       headers: { Cookie: cookiesTeacher },
     });
     const listBody = await listRes.json();
-    const pid = listBody.placements?.[0]?.id;
+    const pid = listBody.data?.[0]?.id;
     if (!pid) test.skip();
 
     const res = await request.get(
@@ -323,7 +323,7 @@ test.describe("POST /api/v1/student-placements/:id/lesson-completions", () => {
     );
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(Array.isArray(body.completions)).toBe(true);
+    expect(Array.isArray(body.data)).toBe(true);
   });
 });
 
@@ -337,8 +337,8 @@ test.describe("GET /api/v1/promotion-tests", () => {
     });
     expect(res.status()).toBe(200);
     const body = await res.json();
-    expect(body).toHaveProperty("tests");
-    expect(Array.isArray(body.tests)).toBe(true);
+    expect(body).toHaveProperty("data");
+    expect(Array.isArray(body.data)).toBe(true);
   });
 
   test("returns 401 for unauthenticated request", async ({ request }) => {
