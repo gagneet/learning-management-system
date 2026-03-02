@@ -200,6 +200,12 @@ export function getActionCardsForRole(
           icon: createElement(Grid3x3, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/assessment",
         },
+        {
+          title: "Class Assessment",
+          description: "Compare assessment levels across a class",
+          icon: createElement(Users, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/class-assessment",
+        },
       ];
 
     case "CENTER_SUPERVISOR":
@@ -240,6 +246,12 @@ export function getActionCardsForRole(
           description: "Age-band distribution and promotion stats",
           icon: createElement(LineChart, { className: "w-6 h-6" }),
           href: "/dashboard/supervisor/assessment-analytics",
+        },
+        {
+          title: "Class Assessment",
+          description: "View assessment levels across classes",
+          icon: createElement(Users, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/class-assessment",
         },
         {
           title: "Transactions",

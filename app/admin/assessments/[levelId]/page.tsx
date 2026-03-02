@@ -127,6 +127,7 @@ export default async function AssessmentLevelDetailPage({
           estimatedMinutes: l.estimatedMinutes,
           curriculumCode: l.curriculumCode,
           strandArea: l.strandArea,
+          exerciseIds: (l as any).exerciseIds ?? [],
           isActive: l.isActive,
           createdAt: l.createdAt.toISOString(),
         })),

@@ -291,7 +291,59 @@ async function main() {
     },
   });
 
-  console.log('✅ Users created (14 total: 1 super admin, 1 center admin, 1 supervisor, 1 finance admin, 2 teachers, 3 parents, 4 students)');
+  // Student 5 - (DOB: 2013-04-15, ~12.9yr)
+  const student5 = await prisma.user.upsert({
+    where: { email: 'student5@lms.com' },
+    update: {},
+    create: {
+      email: 'student5@lms.com',
+      name: 'Liam Chen',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  // Student 6 - (DOB: 2011-08-22, ~14.5yr)
+  const student6 = await prisma.user.upsert({
+    where: { email: 'student6@lms.com' },
+    update: {},
+    create: {
+      email: 'student6@lms.com',
+      name: 'Aisha Patel',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  // Student 7 - Older student (DOB: 2008-11-03, ~17.2yr)
+  const student7 = await prisma.user.upsert({
+    where: { email: 'student7@lms.com' },
+    update: {},
+    create: {
+      email: 'student7@lms.com',
+      name: 'Noah Williams',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  // Student 8 - (DOB: 2015-02-10, ~11yr)
+  const student8 = await prisma.user.upsert({
+    where: { email: 'student8@lms.com' },
+    update: {},
+    create: {
+      email: 'student8@lms.com',
+      name: 'Priya Sharma',
+      password: studentPassword,
+      role: 'STUDENT',
+      centerId: center1.id,
+    },
+  });
+
+  console.log('✅ Users created (18 total: 1 super admin, 1 center admin, 1 supervisor, 1 finance admin, 2 teachers, 3 parents, 8 students)');
 
   // Create Academic Profiles for students
   await prisma.academicProfile.upsert({

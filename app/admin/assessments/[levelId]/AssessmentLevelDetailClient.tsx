@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import { ChevronDown, ChevronUp, X, Plus, Save, Pencil } from "lucide-react";
 
 // ---------------------------------------------------------------------------
 // Types
@@ -17,6 +18,7 @@ type Lesson = {
   estimatedMinutes: number | null;
   curriculumCode: string | null;
   strandArea: string | null;
+  exerciseIds: string[];
   isActive: boolean;
   createdAt: string;
 };
@@ -156,21 +158,294 @@ function statusBadge(status: string): string {
 }
 
 // ---------------------------------------------------------------------------
-// Sub-components
+// ExerciseIdChip — a single removable exercise ID chip
+// ---------------------------------------------------------------------------
+
+function ExerciseIdChip({
+  id,
+  onRemove,
+}: {
+  id: string;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-mono font-medium bg-indigo-100 text-indigo-700 dark:bg-indigo-900/40 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-700">
+      {id}
+      <button
+        type="button"
+        onClick={() => onRemove(id)}
+        className="ml-0.5 hover:text-red-600 dark:hover:text-red-400 focus:outline-none focus:ring-1 focus:ring-red-400 rounded-full transition-colors"
+        aria-label={`Remove exercise ID ${id}`}
+      >
+        <X className="w-3 h-3" />
+      </button>
+    </span>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LessonInlineEditPanel — expandable edit panel for a lesson row
+// ---------------------------------------------------------------------------
+
+type LessonEditState = {
+  description: string;
+  curriculumCode: string;
+  strandArea: string;
+  exerciseIds: string[];
+  newExerciseInput: string;
+};
+
+function LessonInlineEditPanel({
+  lesson,
+  onClose,
+  onSaved,
+}: {
+  lesson: Lesson;
+  onClose: () => void;
+  onSaved: (updated: Lesson) => void;
+}) {
+  const [form, setForm] = useState<LessonEditState>({
+    description: lesson.description ?? "",
+    curriculumCode: lesson.curriculumCode ?? "",
+    strandArea: lesson.strandArea ?? "",
+    exerciseIds: [...(lesson.exerciseIds ?? [])],
+    newExerciseInput: "",
+  });
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  function addExerciseId() {
+    const raw = form.newExerciseInput.trim();
+    if (!raw) return;
+    // support comma-separated input
+    const ids = raw
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    const deduped = Array.from(new Set([...form.exerciseIds, ...ids]));
+    setForm((f) => ({ ...f, exerciseIds: deduped, newExerciseInput: "" }));
+  }
+
+  function removeExerciseId(id: string) {
+    setForm((f) => ({ ...f, exerciseIds: f.exerciseIds.filter((x) => x !== id) }));
+  }
+
+  async function handleSave() {
+    setError(null);
+    setSuccess(false);
+    setSaving(true);
+    try {
+      const body: Record<string, unknown> = {
+        exerciseIds: form.exerciseIds,
+        curriculumCode: form.curriculumCode.trim() || null,
+        strandArea: form.strandArea.trim() || null,
+        description: form.description.trim() || null,
+      };
+
+      const res = await fetch(`/api/v1/lessons/${lesson.id}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.error ?? `Server error: ${res.status}`);
+      }
+
+      const { data } = await res.json();
+      setSuccess(true);
+      onSaved({
+        ...lesson,
+        description: data.description ?? null,
+        curriculumCode: data.curriculumCode ?? null,
+        strandArea: data.strandArea ?? null,
+        exerciseIds: data.exerciseIds ?? [],
+      });
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to save lesson.");
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="bg-indigo-50 dark:bg-indigo-950/30 border-t border-indigo-200 dark:border-indigo-800 px-4 py-4 space-y-4">
+      <div className="flex items-center justify-between">
+        <h4 className="text-sm font-semibold text-indigo-800 dark:text-indigo-200">
+          Edit Lesson {lesson.lessonNumber}: {lesson.title}
+        </h4>
+        <button
+          type="button"
+          onClick={onClose}
+          className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+          aria-label="Cancel editing"
+        >
+          <X className="w-4 h-4" />
+        </button>
+      </div>
+
+      {error && (
+        <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 text-red-700 dark:text-red-300 rounded-lg px-3 py-2 text-xs">
+          {error}
+        </div>
+      )}
+      {success && (
+        <div className="bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 rounded-lg px-3 py-2 text-xs">
+          Lesson saved successfully.
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Curriculum Code */}
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Curriculum Code
+          </label>
+          <input
+            type="text"
+            value={form.curriculumCode}
+            onChange={(e) => setForm((f) => ({ ...f, curriculumCode: e.target.value }))}
+            placeholder="e.g. AC9E6LY01"
+            className="w-full px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* Strand Area */}
+        <div>
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Strand / Area
+          </label>
+          <input
+            type="text"
+            value={form.strandArea}
+            onChange={(e) => setForm((f) => ({ ...f, strandArea: e.target.value }))}
+            placeholder="e.g. Language — Phonics"
+            className="w-full px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
+          />
+        </div>
+
+        {/* Description */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Description
+          </label>
+          <textarea
+            rows={2}
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Optional lesson description..."
+            className="w-full px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+          />
+        </div>
+
+        {/* Exercise IDs */}
+        <div className="sm:col-span-2">
+          <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
+            Linked Exercise IDs
+            <span className="ml-1 font-normal text-gray-400">(comma-separated to add multiple)</span>
+          </label>
+
+          {/* Current chips */}
+          {form.exerciseIds.length > 0 ? (
+            <div className="flex flex-wrap gap-1.5 mb-2">
+              {form.exerciseIds.map((id) => (
+                <ExerciseIdChip key={id} id={id} onRemove={removeExerciseId} />
+              ))}
+            </div>
+          ) : (
+            <p className="text-xs text-gray-400 dark:text-gray-500 italic mb-2">
+              No exercise IDs linked yet.
+            </p>
+          )}
+
+          {/* Input row */}
+          <div className="flex gap-2">
+            <input
+              type="text"
+              value={form.newExerciseInput}
+              onChange={(e) => setForm((f) => ({ ...f, newExerciseInput: e.target.value }))}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  addExerciseId();
+                }
+              }}
+              placeholder="Enter exercise ID(s) and press Enter or click Add"
+              className="flex-1 px-3 py-1.5 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-white text-sm font-mono focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            />
+            <button
+              type="button"
+              onClick={addExerciseId}
+              disabled={!form.newExerciseInput.trim()}
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-40 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              Add
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex items-center gap-3 pt-1">
+        <button
+          type="button"
+          onClick={handleSave}
+          disabled={saving}
+          className="inline-flex items-center gap-1.5 px-4 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed text-white text-sm font-medium rounded-lg transition-colors"
+        >
+          <Save className="w-3.5 h-3.5" />
+          {saving ? "Saving..." : "Save Changes"}
+        </button>
+        <button
+          type="button"
+          onClick={onClose}
+          className="px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200 transition-colors"
+        >
+          Cancel
+        </button>
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------
+// LessonsTab — now with expandable rows and inline exercise linking
 // ---------------------------------------------------------------------------
 
 function LessonsTab({
-  lessonsBySubject,
+  lessonsBySubject: initialLessonsBySubject,
 }: {
   lessonsBySubject: Record<string, Lesson[]>;
 }) {
+  const [lessonsBySubject, setLessonsBySubject] = useState<Record<string, Lesson[]>>(
+    initialLessonsBySubject
+  );
   const availableSubjects = SUBJECTS.filter((s) => (lessonsBySubject[s]?.length ?? 0) > 0);
   const [selectedSubject, setSelectedSubject] = useState<SubjectKey>(
     availableSubjects[0] ?? "ENGLISH"
   );
+  const [expandedLessonId, setExpandedLessonId] = useState<string | null>(null);
 
   const lessons = lessonsBySubject[selectedSubject] ?? [];
   const progressPct = Math.min((lessons.length / 25) * 100, 100);
+
+  function toggleLesson(lessonId: string) {
+    setExpandedLessonId((prev) => (prev === lessonId ? null : lessonId));
+  }
+
+  function handleLessonSaved(updated: Lesson) {
+    setLessonsBySubject((prev) => {
+      const subj = updated.subject as SubjectKey;
+      const list = prev[subj] ?? [];
+      return {
+        ...prev,
+        [subj]: list.map((l) => (l.id === updated.id ? updated : l)),
+      };
+    });
+  }
 
   return (
     <div className="space-y-5">
@@ -182,7 +457,10 @@ function LessonsTab({
           return (
             <button
               key={subject}
-              onClick={() => setSelectedSubject(subject)}
+              onClick={() => {
+                setSelectedSubject(subject);
+                setExpandedLessonId(null);
+              }}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                 isSelected
                   ? SUBJECT_BUTTON_ACTIVE[subject]
@@ -235,7 +513,7 @@ function LessonsTab({
         </p>
       </div>
 
-      {/* Lessons grid */}
+      {/* Lessons list — rows with inline expand */}
       {lessons.length === 0 ? (
         <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-12 text-center">
           <p className="text-gray-400 dark:text-gray-500 text-sm">
@@ -267,57 +545,130 @@ function LessonsTab({
                   <th className="px-4 py-3 text-left text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider">
                     Strand / Area
                   </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-28">
+                    Exercises
+                  </th>
+                  <th className="px-4 py-3 text-center text-xs font-semibold text-gray-500 dark:text-gray-300 uppercase tracking-wider w-20">
+                    Edit
+                  </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {lessons.map((lesson) => {
                   const diff = difficultyLabel(lesson.difficultyScore);
+                  const isExpanded = expandedLessonId === lesson.id;
+                  const exerciseCount = lesson.exerciseIds?.length ?? 0;
+
                   return (
-                    <tr
-                      key={lesson.id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-750 transition-colors"
-                    >
-                      <td className="px-4 py-3">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300">
-                          {lesson.lessonNumber}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        <div className="text-sm font-medium text-gray-900 dark:text-white">
-                          {lesson.title}
-                        </div>
-                        {lesson.description && (
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
-                            {lesson.description}
-                          </div>
-                        )}
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className={`text-xs font-semibold ${diff.color}`}>
-                          {diff.label}
-                        </span>
-                        <div className="text-xs text-gray-400 mt-0.5">({lesson.difficultyScore})</div>
-                      </td>
-                      <td className="px-4 py-3 text-center">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {lesson.estimatedMinutes ?? "—"}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3">
-                        {lesson.curriculumCode ? (
-                          <span className="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">
-                            {lesson.curriculumCode}
+                    <>
+                      <tr
+                        key={lesson.id}
+                        className={`transition-colors ${
+                          isExpanded
+                            ? "bg-indigo-50 dark:bg-indigo-950/20"
+                            : "hover:bg-gray-50 dark:hover:bg-gray-750"
+                        }`}
+                      >
+                        <td className="px-4 py-3">
+                          <span className="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-gray-100 dark:bg-gray-700 text-xs font-bold text-gray-700 dark:text-gray-300">
+                            {lesson.lessonNumber}
                           </span>
-                        ) : (
-                          <span className="text-xs text-gray-400 italic">—</span>
-                        )}
-                      </td>
-                      <td className="px-4 py-3">
-                        <span className="text-sm text-gray-700 dark:text-gray-300">
-                          {lesson.strandArea ?? <span className="text-gray-400 italic">—</span>}
-                        </span>
-                      </td>
-                    </tr>
+                        </td>
+                        <td className="px-4 py-3">
+                          <div className="text-sm font-medium text-gray-900 dark:text-white">
+                            {lesson.title}
+                          </div>
+                          {lesson.description && (
+                            <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5 line-clamp-1">
+                              {lesson.description}
+                            </div>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className={`text-xs font-semibold ${diff.color}`}>
+                            {diff.label}
+                          </span>
+                          <div className="text-xs text-gray-400 mt-0.5">
+                            ({lesson.difficultyScore})
+                          </div>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {lesson.estimatedMinutes ?? "—"}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3">
+                          {lesson.curriculumCode ? (
+                            <span className="text-xs font-mono text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-0.5 rounded">
+                              {lesson.curriculumCode}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400 italic">—</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3">
+                          <span className="text-sm text-gray-700 dark:text-gray-300">
+                            {lesson.strandArea ?? (
+                              <span className="text-gray-400 italic">—</span>
+                            )}
+                          </span>
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          {exerciseCount > 0 ? (
+                            <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-indigo-100 dark:bg-indigo-900/40 text-indigo-700 dark:text-indigo-300 text-xs font-bold">
+                              {exerciseCount}
+                            </span>
+                          ) : (
+                            <span className="text-xs text-gray-400">none</span>
+                          )}
+                        </td>
+                        <td className="px-4 py-3 text-center">
+                          <button
+                            type="button"
+                            onClick={() => toggleLesson(lesson.id)}
+                            aria-expanded={isExpanded}
+                            aria-label={
+                              isExpanded
+                                ? `Collapse lesson ${lesson.lessonNumber}`
+                                : `Edit lesson ${lesson.lessonNumber}`
+                            }
+                            className={`inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-medium transition-colors ${
+                              isExpanded
+                                ? "bg-indigo-200 dark:bg-indigo-800 text-indigo-700 dark:text-indigo-200"
+                                : "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 hover:bg-indigo-100 dark:hover:bg-indigo-900/40 hover:text-indigo-700 dark:hover:text-indigo-300"
+                            }`}
+                          >
+                            {isExpanded ? (
+                              <>
+                                <ChevronUp className="w-3.5 h-3.5" />
+                                Close
+                              </>
+                            ) : (
+                              <>
+                                <Pencil className="w-3.5 h-3.5" />
+                                Edit
+                              </>
+                            )}
+                          </button>
+                        </td>
+                      </tr>
+
+                      {/* Inline edit panel */}
+                      {isExpanded && (
+                        <tr key={`${lesson.id}-edit`}>
+                          <td colSpan={8} className="p-0">
+                            <LessonInlineEditPanel
+                              lesson={lesson}
+                              onClose={() => setExpandedLessonId(null)}
+                              onSaved={(updated) => {
+                                handleLessonSaved(updated);
+                                // keep expanded so user can see the saved state
+                              }}
+                            />
+                          </td>
+                        </tr>
+                      )}
+                    </>
                   );
                 })}
               </tbody>
@@ -328,6 +679,10 @@ function LessonsTab({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// PromotionTestsTab (unchanged from original)
+// ---------------------------------------------------------------------------
 
 function PromotionTestsTab({
   levelId,
@@ -678,7 +1033,12 @@ function PromotionTestsTab({
                   {test.isAutoGraded ? "Auto-graded" : "Manual grading required"}
                 </span>
                 <span className="text-xs text-gray-400">
-                  Created {new Date(test.createdAt).toLocaleDateString("en-AU", { day: "numeric", month: "short", year: "numeric" })}
+                  Created{" "}
+                  {new Date(test.createdAt).toLocaleDateString("en-AU", {
+                    day: "numeric",
+                    month: "short",
+                    year: "numeric",
+                  })}
                 </span>
               </div>
             </div>
@@ -688,6 +1048,10 @@ function PromotionTestsTab({
     </div>
   );
 }
+
+// ---------------------------------------------------------------------------
+// StudentsTab (unchanged from original)
+// ---------------------------------------------------------------------------
 
 function StudentsTab({ placements }: { placements: Placement[] }) {
   const subjectGroups = SUBJECTS.filter((s) => placements.some((p) => p.subject === s));
@@ -805,7 +1169,9 @@ function StudentsTab({ placements }: { placements: Placement[] }) {
                         <div className="w-20 bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                           <div
                             className="bg-blue-500 h-1.5 rounded-full"
-                            style={{ width: `${Math.min((placement.lessonsCompleted / 25) * 100, 100)}%` }}
+                            style={{
+                              width: `${Math.min((placement.lessonsCompleted / 25) * 100, 100)}%`,
+                            }}
                           />
                         </div>
                         <span className="text-xs text-gray-600 dark:text-gray-400 tabular-nums">
@@ -947,7 +1313,13 @@ export function AssessmentLevelDetailClient({ level }: { level: LevelData }) {
                   <div className="w-full bg-gray-100 dark:bg-gray-700 rounded-full h-1.5">
                     <div
                       className={`h-1.5 rounded-full ${
-                        count >= 25 ? "bg-green-500" : count >= 15 ? "bg-blue-500" : count >= 5 ? "bg-yellow-400" : "bg-red-400"
+                        count >= 25
+                          ? "bg-green-500"
+                          : count >= 15
+                          ? "bg-blue-500"
+                          : count >= 5
+                          ? "bg-yellow-400"
+                          : "bg-red-400"
                       }`}
                       style={{ width: `${pct}%` }}
                     />
@@ -995,9 +1367,7 @@ export function AssessmentLevelDetailClient({ level }: { level: LevelData }) {
         {activeTab === "promotionTests" && (
           <PromotionTestsTab levelId={level.id} promotionTests={level.promotionTests} />
         )}
-        {activeTab === "students" && (
-          <StudentsTab placements={level.placements} />
-        )}
+        {activeTab === "students" && <StudentsTab placements={level.placements} />}
       </div>
     </div>
   );
