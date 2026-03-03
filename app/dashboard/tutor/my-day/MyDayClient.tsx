@@ -13,6 +13,14 @@ export function MyDayClient({ initialData, tutorName }: MyDayClientProps) {
   const router = useRouter();
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
+  const [submittedLessons, setSubmittedLessons] = useState<any[]>([]);
+
+  // Fetch submitted lessons awaiting marking on mount
+  useEffect(() => {
+    fetch("/api/v1/lesson-marking-queue")
+      .then((r) => (r.ok ? r.json() : null))
+      .then((d) => d?.data && setSubmittedLessons(d.data.slice(0, 5)));
+  }, []);
 
   // Refresh data every 60 seconds
   useEffect(() => {
@@ -130,6 +138,77 @@ export function MyDayClient({ initialData, tutorName }: MyDayClientProps) {
           <div className="text-sm text-gray-600 dark:text-gray-400">Need Attention</div>
         </div>
       </div>
+
+      {/* Lessons to Mark Widget */}
+      {submittedLessons.length > 0 && (
+        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 border-l-4 border-indigo-500">
+          <div className="flex items-center justify-between mb-4">
+            <div className="flex items-center gap-3">
+              <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                Lessons to Mark
+              </h2>
+              <span className="inline-flex items-center justify-center min-w-[1.5rem] h-6 px-2 rounded-full text-xs font-bold bg-indigo-600 text-white">
+                {submittedLessons.length}
+              </span>
+            </div>
+            <Link
+              href="/dashboard/tutor/marking"
+              className="text-sm text-indigo-600 dark:text-indigo-400 hover:underline font-medium"
+            >
+              See all in Marking Queue →
+            </Link>
+          </div>
+
+          <div className="divide-y divide-gray-100 dark:divide-gray-700">
+            {submittedLessons.map((item: any) => {
+              const subjectColors: Record<string, string> = {
+                ENGLISH: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200",
+                MATHEMATICS: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200",
+                SCIENCE: "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200",
+                READING: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200",
+                WRITING: "bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-200",
+                STEM: "bg-cyan-100 text-cyan-800 dark:bg-cyan-900 dark:text-cyan-200",
+              };
+              const subjectClass =
+                subjectColors[item.lesson?.subject] ??
+                "bg-gray-100 text-gray-800 dark:bg-gray-700 dark:text-gray-200";
+
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-center justify-between py-3 gap-3"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <div className="w-8 h-8 shrink-0 rounded-full bg-indigo-100 dark:bg-indigo-900 flex items-center justify-center text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                      {item.student?.name?.[0] ?? "?"}
+                    </div>
+                    <div className="min-w-0">
+                      <div className="text-sm font-medium text-gray-900 dark:text-white truncate">
+                        {item.student?.name ?? "Unknown"}
+                      </div>
+                      <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                        #{item.lesson?.lessonNumber} — {item.lesson?.title}
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-2 shrink-0">
+                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${subjectClass}`}>
+                      {item.lesson?.subject}
+                    </span>
+                    <Link
+                      href="/dashboard/tutor/marking"
+                      className="text-xs font-medium px-3 py-1.5 rounded-md bg-indigo-600 text-white hover:bg-indigo-700 transition-colors whitespace-nowrap"
+                    >
+                      Mark →
+                    </Link>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Main Content Grid */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">

@@ -27,6 +27,7 @@ import {
   Grid3x3,
   TrendingUp,
   LineChart,
+  Gauge,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -252,6 +253,12 @@ export function getActionCardsForRole(
           description: "Age-band distribution and promotion stats",
           icon: createElement(LineChart, { className: "w-6 h-6" }),
           href: "/dashboard/supervisor/assessment-analytics",
+        },
+        {
+          title: "Assessment KPIs",
+          description: "Centre-wide KPIs: placements, promotions, risk",
+          icon: createElement(Gauge, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/assessment-kpis",
         },
         {
           title: "Class Assessment",
