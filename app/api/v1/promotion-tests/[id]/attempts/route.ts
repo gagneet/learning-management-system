@@ -326,17 +326,6 @@ export async function POST(
       );
     }
 
-    // Validate promotion test matches placement subject
-    if (test.subject !== placement.subject) {
-      return NextResponse.json(
-        {
-          success: false,
-          error: `Promotion test subject (${test.subject}) does not match placement subject (${placement.subject})`,
-        },
-        { status: 400 }
-      );
-    }
-
     // Fetch and validate the placement
     const placement = await prisma.studentAgeAssessment.findUnique({
       where: { id: placementId },
@@ -363,6 +352,17 @@ export async function POST(
     if (placement.studentId !== studentId) {
       return NextResponse.json(
         { success: false, error: "Placement does not belong to this student" },
+        { status: 400 }
+      );
+    }
+
+    // Validate promotion test matches placement subject
+    if (test.subject !== placement.subject) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Promotion test subject (${test.subject}) does not match placement subject (${placement.subject})`,
+        },
         { status: 400 }
       );
     }
