@@ -65,12 +65,20 @@ export default async function TutorCoursesPage() {
               Manage your courses, modules, and lessons
             </p>
           </div>
-          <Link
-            href="/courses/create"
-            className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-          >
-            + Create New Course
-          </Link>
+          <div className="flex gap-3">
+            <Link
+              href="/dashboard/tutor/lessons"
+              className="px-6 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Build Lessons
+            </Link>
+            <Link
+              href="/courses/create"
+              className="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            >
+              + Create New Course
+            </Link>
+          </div>
         </div>
 
         {/* Courses List */}

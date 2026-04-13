@@ -41,6 +41,13 @@ export default async function CoursePage({ params }: CoursePageProps) {
           lessons: {
             include: {
               contents: true,
+              plan: {
+                select: {
+                  planType: true,
+                  objectives: true,
+                  estimatedDuration: true,
+                },
+              },
               _count: {
                 select: {
                   progress: {
@@ -91,13 +98,13 @@ export default async function CoursePage({ params }: CoursePageProps) {
             <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
               Course Details
             </h1>
-            <div className="flex items-center gap-4">
-              <a
+              <div className="flex items-center gap-4">
+              <Link
                 href="/courses"
                 className="px-4 py-2 text-gray-700 dark:text-gray-300 hover:text-blue-600"
               >
                 ← Back to Courses
-              </a>
+              </Link>
             </div>
           </div>
         </div>
@@ -198,12 +205,38 @@ export default async function CoursePage({ params }: CoursePageProps) {
                                       {lesson.description}
                                     </p>
                                   )}
-                                  <div className="flex gap-3 mt-2 text-xs text-gray-500 dark:text-gray-400">
+                                  <div className="mt-2 flex flex-wrap gap-3 text-xs text-gray-500 dark:text-gray-400">
                                     <span>{lesson.contents.length} content items</span>
+                                    {lesson.plan?.estimatedDuration ? (
+                                      <span>{lesson.plan.estimatedDuration} min</span>
+                                    ) : null}
+                                    {lesson.plan ? (
+                                      <span
+                                        className={`rounded-full px-2 py-1 font-semibold ${
+                                          lesson.plan.planType === "MATHEMATICS"
+                                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300"
+                                            : "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300"
+                                        }`}
+                                      >
+                                        {lesson.plan.planType === "MATHEMATICS"
+                                          ? "Mathematics lesson"
+                                          : "Lesson plan ready"}
+                                      </span>
+                                    ) : (
+                                      <span className="rounded-full bg-gray-100 px-2 py-1 font-semibold text-gray-600 dark:bg-gray-700 dark:text-gray-300">
+                                        Plan not authored
+                                      </span>
+                                    )}
                                   </div>
                                 </div>
                               </div>
                             </div>
+                            <Link
+                              href={`/courses/${course.slug}/lessons/${lesson.id}`}
+                              className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-blue-700"
+                            >
+                              Open Lesson
+                            </Link>
                           </div>
                         </div>
                       );

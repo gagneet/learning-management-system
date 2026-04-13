@@ -130,6 +130,12 @@ export function getActionCardsForRole(
           href: "/dashboard/tutor/planner",
         },
         {
+          title: "Lesson Builder",
+          description: "Author lesson plans and math formulas",
+          icon: createElement(LayoutList, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/lessons",
+        },
+        {
           title: "My Students",
           description: "View and manage students",
           icon: createElement(Users, { className: "w-6 h-6" }),

@@ -298,9 +298,39 @@ model Lesson {
 
   // Phase 1: Exercises
   exercises   Exercise[]   @relation("LessonExercises")
+  plan        LessonPlan?
 
   @@index([moduleId])
   @@index([unitId])
+}
+
+enum LessonPlanType {
+  STANDARD
+  MATHEMATICS
+}
+
+model LessonPlan {
+  id                  String         @id @default(cuid())
+  lessonId            String         @unique
+  planType            LessonPlanType @default(STANDARD)
+  estimatedDuration   Int?
+  objectives          Json?
+  overview            String?        @db.Text
+  warmUp              String?        @db.Text
+  directInstruction   String?        @db.Text
+  guidedPractice      String?        @db.Text
+  independentPractice String?        @db.Text
+  assessment          String?        @db.Text
+  homework            String?        @db.Text
+  resources           String?        @db.Text
+  teacherNotes        String?        @db.Text
+  mathExpressions     Json?
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+
+  lesson              Lesson         @relation(fields: [lessonId], references: [id], onDelete: Cascade)
+
+  @@index([planType])
 }
 
 // Content model - supports multiple content types
