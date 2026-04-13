@@ -88,8 +88,8 @@ test.describe("Public Pages", () => {
 
   test("login page should load", async ({ page }) => {
     await page.goto("/login");
-    await expect(page.getByLabel("Email Address")).toBeVisible();
-    await expect(page.getByLabel("Password")).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /Email Address/i })).toBeVisible();
+    await expect(page.getByRole("textbox", { name: /Password/i })).toBeVisible();
   });
 
   test("courses page should redirect to login when unauthenticated", async ({ page }) => {

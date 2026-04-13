@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import Header from "@/components/Header";
 import Link from "next/link";
+import LessonMarkingQueue from "./LessonMarkingQueue";
 
 export default async function TutorMarkingPage() {
   const session = await auth();
@@ -76,6 +77,45 @@ export default async function TutorMarkingPage() {
     },
   });
 
+  // Fetch submitted assessment lesson completions from this teacher's placements
+  const submittedLessonsRaw = await prisma.ageLessonCompletion.findMany({
+    where: {
+      status: "SUBMITTED",
+      placement: {
+        placedById: user.id,
+        centreId: user.centerId ?? undefined,
+      },
+    },
+    include: {
+      student: { select: { id: true, name: true, email: true } },
+      lesson: {
+        select: {
+          id: true,
+          lessonNumber: true,
+          title: true,
+          subject: true,
+          difficultyScore: true,
+          estimatedMinutes: true,
+        },
+      },
+      placement: {
+        select: {
+          id: true,
+          subject: true,
+          currentAge: { select: { displayLabel: true, australianYear: true } },
+        },
+      },
+    },
+    orderBy: { completedAt: "asc" }, // oldest submissions first
+    take: 50,
+  });
+
+  // Serialize dates to strings for client component compatibility
+  const submittedLessons = submittedLessonsRaw.map((item) => ({
+    ...item,
+    completedAt: item.completedAt ? item.completedAt.toISOString() : null,
+  }));
+
   // Fetch homework assignments that need grading (Phase 1 feature)
   const homeworkToGrade = await prisma.homeworkAssignment.findMany({
     where: {
@@ -123,7 +163,19 @@ export default async function TutorMarkingPage() {
         </div>
 
         {/* Summary Cards */}
-        <div className="grid md:grid-cols-3 gap-6 mb-8">
+        <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-6 mb-8">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
+            <div className="flex items-center gap-4">
+              <div className="text-4xl">📚</div>
+              <div>
+                <div className="text-3xl font-bold text-indigo-600 dark:text-indigo-400">
+                  {submittedLessons.length}
+                </div>
+                <div className="text-sm text-gray-600 dark:text-gray-400">Lessons to Mark</div>
+              </div>
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6">
             <div className="flex items-center gap-4">
               <div className="text-4xl">📝</div>
@@ -160,6 +212,9 @@ export default async function TutorMarkingPage() {
             </div>
           </div>
         </div>
+
+        {/* Assessment Lessons — rendered above homework (highest priority) */}
+        <LessonMarkingQueue submittedLessons={submittedLessons} />
 
         {/* Homework to Grade */}
         <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-6 mb-8">

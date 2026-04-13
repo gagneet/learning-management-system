@@ -12,16 +12,16 @@ import { test, expect, Page } from "@playwright/test";
 
 async function loginAsAdmin(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("centeradmin@lms.com");
-  await page.getByLabel("Password").fill("admin123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("centeradmin@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("admin123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }
 
 async function loginAsSuperAdmin(page: Page) {
   await page.goto("/login");
-  await page.getByLabel("Email Address").fill("admin@lms.com");
-  await page.getByLabel("Password").fill("admin123");
+  await page.getByRole("textbox", { name: /Email Address/i }).fill("admin@lms.com");
+  await page.getByRole("textbox", { name: /Password/i }).fill("admin123");
   await page.getByRole("button", { name: "Sign In" }).click();
   await page.waitForURL("**/dashboard**", { timeout: 15000 });
 }
@@ -61,7 +61,7 @@ test.describe("Admin Classes List Page", () => {
 
   test("should be accessible from Classes action card in supervisor dashboard", async ({ page }) => {
     await page.goto("/dashboard/supervisor");
-    const classesLink = page.getByRole("link", { name: /Classes/i }).first();
+    const classesLink = page.locator('a[href="/admin/classes"]').first();
     if (await classesLink.isVisible()) {
       await expect(classesLink).toHaveAttribute("href", "/admin/classes");
     }
@@ -82,7 +82,7 @@ test.describe("Super Admin Classes Access", () => {
 
   test("should show Classes action card in super admin dashboard", async ({ page }) => {
     await page.goto("/dashboard");
-    const classesLink = page.getByRole("link", { name: /Classes/i }).first();
+    const classesLink = page.locator('a[href="/admin/classes"]').first();
     if (await classesLink.isVisible()) {
       await expect(classesLink).toHaveAttribute("href", "/admin/classes");
     }
@@ -114,8 +114,8 @@ test.describe("Classes RBAC - Non-Admin Cannot Access", () => {
   test("student should be redirected from classes page", async ({ page }) => {
     // Login as student
     await page.goto("/login");
-    await page.getByLabel("Email Address").fill("student@lms.com");
-    await page.getByLabel("Password").fill("student123");
+    await page.getByRole("textbox", { name: /Email Address/i }).fill("student@lms.com");
+    await page.getByRole("textbox", { name: /Password/i }).fill("student123");
     await page.getByRole("button", { name: "Sign In" }).click();
     await page.waitForURL("**/dashboard**", { timeout: 15000 });
 
@@ -129,8 +129,8 @@ test.describe("Classes RBAC - Non-Admin Cannot Access", () => {
 
   test("teacher should be redirected from classes page", async ({ page }) => {
     await page.goto("/login");
-    await page.getByLabel("Email Address").fill("teacher@lms.com");
-    await page.getByLabel("Password").fill("teacher123");
+    await page.getByRole("textbox", { name: /Email Address/i }).fill("teacher@lms.com");
+    await page.getByRole("textbox", { name: /Password/i }).fill("teacher123");
     await page.getByRole("button", { name: "Sign In" }).click();
     await page.waitForURL("**/dashboard**", { timeout: 15000 });
 

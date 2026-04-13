@@ -24,6 +24,10 @@ import {
   LayoutList,
   Video,
   Ticket,
+  Grid3x3,
+  TrendingUp,
+  LineChart,
+  Gauge,
 } from "lucide-react";
 import { Role } from "@prisma/client";
 import { ActionCard } from "../ActionCardsSection";
@@ -102,6 +106,12 @@ export function getActionCardsForRole(
           description: "Review missed session materials",
           icon: createElement(PackageOpen, { className: "w-6 h-6" }),
           href: "/dashboard/student/catchups",
+        },
+        {
+          title: "My Assessment",
+          description: "View assessment levels and progress",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/student/assessment",
         },
       ];
 
@@ -185,6 +195,18 @@ export function getActionCardsForRole(
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/tutor/tickets",
         },
+        {
+          title: "Assessment Grid",
+          description: "View all students' assessment age levels",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/dashboard/tutor/assessment",
+        },
+        {
+          title: "Class Assessment",
+          description: "Compare assessment levels across a class",
+          icon: createElement(Users, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/class-assessment",
+        },
       ];
 
     case "CENTER_SUPERVISOR":
@@ -209,6 +231,12 @@ export function getActionCardsForRole(
           href: "/admin/users",
         },
         {
+          title: "Admin Login Logs",
+          description: "Review admin sign-in history",
+          icon: createElement(ClipboardList, { className: "w-6 h-6" }),
+          href: "/admin/login-logs",
+        },
+        {
           title: "Attendance",
           description: "Monitor attendance trends",
           icon: createElement(Calendar, { className: "w-6 h-6" }),
@@ -219,6 +247,24 @@ export function getActionCardsForRole(
           description: "Review tutor metrics",
           icon: createElement(GraduationCap, { className: "w-6 h-6" }),
           href: "/dashboard/supervisor/tutors",
+        },
+        {
+          title: "Assessment Analytics",
+          description: "Age-band distribution and promotion stats",
+          icon: createElement(LineChart, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/assessment-analytics",
+        },
+        {
+          title: "Assessment KPIs",
+          description: "Centre-wide KPIs: placements, promotions, risk",
+          icon: createElement(Gauge, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/assessment-kpis",
+        },
+        {
+          title: "Class Assessment",
+          description: "View assessment levels across classes",
+          icon: createElement(Users, { className: "w-6 h-6" }),
+          href: "/dashboard/supervisor/class-assessment",
         },
         {
           title: "Transactions",
@@ -234,6 +280,12 @@ export function getActionCardsForRole(
           description: "Manage class cohorts and schedules",
           icon: createElement(LayoutList, { className: "w-6 h-6" }),
           href: "/admin/classes",
+        },
+        {
+          title: "Assessment Levels",
+          description: "Manage age-band levels, lessons and promotion tests",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/admin/assessments",
         },
         {
           title: "Support Tickets",
@@ -307,6 +359,12 @@ export function getActionCardsForRole(
           href: "/admin/analytics",
         },
         {
+          title: "Admin Login Logs",
+          description: "Review admin sign-in history",
+          icon: createElement(ClipboardList, { className: "w-6 h-6" }),
+          href: "/admin/login-logs",
+        },
+        {
           title: "All Courses",
           description: "Browse courses across centers",
           icon: createElement(BookOpen, { className: "w-6 h-6" }),
@@ -329,6 +387,12 @@ export function getActionCardsForRole(
           description: "Manage class cohorts across centers",
           icon: createElement(LayoutList, { className: "w-6 h-6" }),
           href: "/admin/classes",
+        },
+        {
+          title: "Assessment Levels",
+          description: "Manage age-band levels, lessons and promotion tests",
+          icon: createElement(Grid3x3, { className: "w-6 h-6" }),
+          href: "/admin/assessments",
         },
       ];
 
@@ -378,6 +442,12 @@ export function getActionCardsForRole(
           description: "Submit and track support requests",
           icon: createElement(Ticket, { className: "w-6 h-6" }),
           href: "/dashboard/parent/tickets",
+        },
+        {
+          title: "Assessment Progress",
+          description: "View children's assessment age levels",
+          icon: createElement(TrendingUp, { className: "w-6 h-6" }),
+          href: "/dashboard/parent/assessment",
         },
       ];
 

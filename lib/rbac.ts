@@ -64,6 +64,17 @@ export const Permissions = {
   TICKET_UPDATE: "operations:ticket:update",
   TICKET_CLOSE: "operations:ticket:close",
 
+  // Tuition Assessment System (Phase 2)
+  ASSESSMENT_LEVEL_MANAGE: "tuition:assessment_level:manage",  // Manage age levels & content
+  STUDENT_PLACEMENT_CREATE: "tuition:placement:create",         // Place/update student level
+  STUDENT_PLACEMENT_VIEW: "tuition:placement:view",             // View placements
+  STUDENT_PLACEMENT_VIEW_OWN: "tuition:placement:view_own",     // Student/parent view own
+  LESSON_GRADE: "tuition:lesson:grade",                         // Mark/grade lessons
+  PROMOTION_TEST_CREATE: "tuition:promotion_test:create",       // Create promotion tests
+  PROMOTION_TEST_GRADE: "tuition:promotion_test:grade",         // Grade promotion tests
+  ASSESSMENT_GRID_VIEW: "tuition:assessment_grid:view",         // View assessment grid
+  ASSESSMENT_HISTORY_VIEW: "tuition:assessment_history:view",   // View level change history
+
   // Finance
   FINANCE_FEE_PLAN_CREATE: "finance:fee_plan:create",
   FINANCE_FEE_PLAN_VIEW: "finance:fee_plan:view",
@@ -102,6 +113,15 @@ const RolePermissions: Record<Role, string[]> = {
     Permissions.ATTENDANCE_MARK,
     Permissions.ATTENDANCE_VIEW_ALL,
     Permissions.CATCHUP_VIEW_ALL,
+    // Tuition Assessment
+    Permissions.ASSESSMENT_LEVEL_MANAGE,
+    Permissions.STUDENT_PLACEMENT_CREATE,
+    Permissions.STUDENT_PLACEMENT_VIEW,
+    Permissions.LESSON_GRADE,
+    Permissions.PROMOTION_TEST_CREATE,
+    Permissions.PROMOTION_TEST_GRADE,
+    Permissions.ASSESSMENT_GRID_VIEW,
+    Permissions.ASSESSMENT_HISTORY_VIEW,
     // Operations
     Permissions.TICKET_CREATE,
     Permissions.TICKET_VIEW_ALL,
@@ -125,21 +145,30 @@ const RolePermissions: Record<Role, string[]> = {
     Permissions.APPROVAL_VIEW,
     Permissions.APPROVAL_APPROVE,
     // Academic - Enhanced with tutor and assessor capabilities
-    Permissions.CLASS_CREATE, // NEW: Can create classes as tutor
+    Permissions.CLASS_CREATE,
     Permissions.CLASS_VIEW_ALL,
-    Permissions.CLASS_UPDATE, // NEW: Can update classes
-    Permissions.CLASS_MANAGE_MEMBERS, // NEW: Can manage class members
-    Permissions.SESSION_CREATE, // NEW: Can create sessions as tutor
-    Permissions.SESSION_CANCEL, // NEW: Can cancel sessions
+    Permissions.CLASS_UPDATE,
+    Permissions.CLASS_MANAGE_MEMBERS,
+    Permissions.SESSION_CREATE,
+    Permissions.SESSION_CANCEL,
     Permissions.SESSION_VIEW,
-    Permissions.SESSION_MANAGE_STUDENTS, // NEW: Can manage student session enrollments
-    Permissions.ATTENDANCE_MARK, // NEW: Can mark attendance as tutor
+    Permissions.SESSION_MANAGE_STUDENTS,
+    Permissions.ATTENDANCE_MARK,
     Permissions.ATTENDANCE_VIEW_ALL,
-    Permissions.ASSESSMENT_VIEW, // NEW: Can view all assessments
-    Permissions.ASSESSMENT_SUBMIT, // NEW: Can submit assessments for students
-    Permissions.ASSESSMENT_GRADE, // NEW: Can grade assessments
+    Permissions.ASSESSMENT_VIEW,
+    Permissions.ASSESSMENT_SUBMIT,
+    Permissions.ASSESSMENT_GRADE,
     Permissions.CATCHUP_VIEW_ALL,
-    Permissions.CATCHUP_UPDATE, // NEW: Can update catch-up packages
+    Permissions.CATCHUP_UPDATE,
+    // Tuition Assessment
+    Permissions.ASSESSMENT_LEVEL_MANAGE,
+    Permissions.STUDENT_PLACEMENT_CREATE,
+    Permissions.STUDENT_PLACEMENT_VIEW,
+    Permissions.LESSON_GRADE,
+    Permissions.PROMOTION_TEST_CREATE,
+    Permissions.PROMOTION_TEST_GRADE,
+    Permissions.ASSESSMENT_GRID_VIEW,
+    Permissions.ASSESSMENT_HISTORY_VIEW,
     // Operations
     Permissions.TICKET_CREATE,
     Permissions.TICKET_VIEW_ALL,
@@ -172,17 +201,25 @@ const RolePermissions: Record<Role, string[]> = {
     // Academic
     Permissions.CLASS_CREATE,
     Permissions.CLASS_VIEW_OWN,
-    Permissions.CLASS_UPDATE, // Own classes only
-    Permissions.SESSION_CREATE, // Own classes only
-    Permissions.SESSION_CANCEL, // Own sessions only
+    Permissions.CLASS_UPDATE,
+    Permissions.SESSION_CREATE,
+    Permissions.SESSION_CANCEL,
     Permissions.SESSION_VIEW,
-    Permissions.SESSION_MANAGE_STUDENTS, // NEW: Manage student enrollments in own sessions
-    Permissions.ATTENDANCE_MARK, // Own sessions only
+    Permissions.SESSION_MANAGE_STUDENTS,
+    Permissions.ATTENDANCE_MARK,
     Permissions.ATTENDANCE_VIEW_OWN,
-    Permissions.ASSESSMENT_VIEW, // NEW: View assessments for own students
-    Permissions.ASSESSMENT_SUBMIT, // NEW: Submit assessments for own students
-    Permissions.ASSESSMENT_GRADE, // NEW: Grade own students' assessments
-    Permissions.CATCHUP_VIEW_OWN, // Own students only
+    Permissions.ASSESSMENT_VIEW,
+    Permissions.ASSESSMENT_SUBMIT,
+    Permissions.ASSESSMENT_GRADE,
+    Permissions.CATCHUP_VIEW_OWN,
+    // Tuition Assessment
+    Permissions.STUDENT_PLACEMENT_CREATE,
+    Permissions.STUDENT_PLACEMENT_VIEW,
+    Permissions.LESSON_GRADE,
+    Permissions.PROMOTION_TEST_CREATE,
+    Permissions.PROMOTION_TEST_GRADE,
+    Permissions.ASSESSMENT_GRID_VIEW,
+    Permissions.ASSESSMENT_HISTORY_VIEW,
     // Operations
     Permissions.TICKET_CREATE,
     Permissions.TICKET_VIEW_OWN,
@@ -190,9 +227,11 @@ const RolePermissions: Record<Role, string[]> = {
 
   PARENT: [
     // Academic - View children's data only
-    Permissions.CLASS_VIEW_OWN, // Children's classes
-    Permissions.ATTENDANCE_VIEW_OWN, // Children's attendance
-    Permissions.CATCHUP_VIEW_OWN, // Children's catch-ups
+    Permissions.CLASS_VIEW_OWN,
+    Permissions.ATTENDANCE_VIEW_OWN,
+    Permissions.CATCHUP_VIEW_OWN,
+    // Tuition Assessment - view children's progress
+    Permissions.STUDENT_PLACEMENT_VIEW_OWN,
     // Finance - View children's invoices
     Permissions.FINANCE_INVOICE_VIEW_OWN,
     // Operations
@@ -205,7 +244,9 @@ const RolePermissions: Record<Role, string[]> = {
     Permissions.CLASS_VIEW_OWN,
     Permissions.ATTENDANCE_VIEW_OWN,
     Permissions.CATCHUP_VIEW_OWN,
-    Permissions.CATCHUP_UPDATE, // Update own catch-up status
+    Permissions.CATCHUP_UPDATE,
+    // Tuition Assessment - view own progress
+    Permissions.STUDENT_PLACEMENT_VIEW_OWN,
     // Finance - View own invoices
     Permissions.FINANCE_INVOICE_VIEW_OWN,
     // Operations

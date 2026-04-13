@@ -2,6 +2,12 @@ import NextAuth from "next-auth";
 import Credentials from "next-auth/providers/credentials";
 import { prisma } from "@/lib/prisma";
 import bcrypt from "bcryptjs";
+import type { Role } from "@prisma/client";
+import {
+  createAdminLoginLog,
+  extractAdminLoginContext,
+  isAdminRole,
+} from "@/lib/admin-login-log";
 
 export const { handlers, signIn, signOut, auth } = NextAuth({
   trustHost: true,
@@ -11,7 +17,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
-      async authorize(credentials) {
+      async authorize(credentials, request) {
         if (!credentials?.email || !credentials?.password) {
           return null;
         }
@@ -30,8 +36,34 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           user.password
         );
 
+        const context = extractAdminLoginContext(request);
+
         if (!isPasswordValid) {
+          if (isAdminRole(user.role as Role)) {
+            await createAdminLoginLog({
+              userId: user.id,
+              userName: user.name,
+              email: user.email,
+              role: user.role as Role,
+              centreId: user.centerId,
+              success: false,
+              failureReason: "INVALID_PASSWORD",
+              context,
+            });
+          }
           return null;
+        }
+
+        if (isAdminRole(user.role as Role)) {
+          await createAdminLoginLog({
+            userId: user.id,
+            userName: user.name,
+            email: user.email,
+            role: user.role as Role,
+            centreId: user.centerId,
+            success: true,
+            context,
+          });
         }
 
         return {
