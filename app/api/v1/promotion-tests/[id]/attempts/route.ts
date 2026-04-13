@@ -297,6 +297,7 @@ export async function POST(
     }
 
     // Fetch the promotion test
+    // Fetch the promotion test
     const test = await prisma.agePromotionTest.findUnique({
       where: { id: promotionTestId },
       include: {
@@ -321,6 +322,17 @@ export async function POST(
     if (!test.isActive) {
       return NextResponse.json(
         { success: false, error: "This promotion test is not currently active" },
+        { status: 400 }
+      );
+    }
+
+    // Validate promotion test matches placement subject
+    if (test.subject !== placement.subject) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: `Promotion test subject (${test.subject}) does not match placement subject (${placement.subject})`,
+        },
         { status: 400 }
       );
     }
