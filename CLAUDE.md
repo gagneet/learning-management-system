@@ -22,7 +22,13 @@ npm run lint:fix      # Auto-fix ESLint issues
 ### Database Operations
 ```bash
 npm run db:generate   # Generate Prisma client (run after schema changes)
-npm run db:push       # Push schema changes to database (no migrations)
+npm run db:migrate:dev     # Create a new migration during development
+npm run db:migrate:status  # Check migration status
+npm run db:migrate:deploy  # Apply committed migrations
+npm run db:prod:migrate    # Apply migrations using .env.production
+npm run db:archive:legacy  # Archive explicitly named unmanaged production tables before cleanup
+npm run db:restore:archive # Replay archived table data back into managed tables when needed
+npm run db:push            # Local-only schema sync for throwaway experimentation
 npm run db:seed       # Seed database with sample data
 npx prisma studio     # Open Prisma Studio for database GUI
 ```
@@ -334,8 +340,16 @@ validateCentreAccess(session, resource.centreId);
 ### Schema Changes
 1. Edit `prisma/schema.prisma`
 2. Run `npm run db:generate` to update Prisma client
-3. Run `npm run db:push` to apply to database
-4. **Note**: This project uses `db push` (no migrations) for rapid development
+3. Create a migration with `npm run db:migrate:dev -- --name your_change_name`
+4. Commit the generated files under `prisma/migrations/`
+5. Apply in production with `npm run db:prod:migrate` (or `npm run db:migrate:deploy`)
+
+### Migration Safety
+- Production schema changes use **Prisma Migrate**, not `db push`
+- `db push` is for local experimentation only and must not be used for production deployments
+- If legacy unmanaged tables exist in PostgreSQL, archive them first with `npm run db:archive:legacy -- public."OldTableName"`
+- `AdminLoginLog` and the Phase 2 assessment tables are active Prisma models and must not be treated as removable legacy drift
+- Destructive changes should be handled through reviewed migrations and backups, not interactive prompts during deployment
 
 ### Seeding
 - Run `npm run db:seed` to populate database with demo data
@@ -495,6 +509,7 @@ Use demo credentials from database seed (3-month history):
 - Always scope API queries by `centerId` unless user is SUPER_ADMIN
 - Course slugs are unique per center, not globally (composite unique constraint)
 - Use `npm run db:generate` after any schema changes
+- Create and commit Prisma migrations for production schema changes; do not rely on `db push`
 - PM2 runs on port 3001 (not 3000) in production
 - **PM2 Environment Variables**: PM2 does NOT load .env files automatically - all critical env vars (NEXTAUTH_URL, NEXTAUTH_SECRET, AUTH_TRUST_HOST, DATABASE_URL) MUST be explicitly defined in `ecosystem.config.cjs`
 - **Nginx with CloudFlare Tunnel**: Set `proxy_set_header X-Forwarded-Proto https;` (not `$scheme`) because CloudFlare terminates SSL and forwards HTTP to Nginx

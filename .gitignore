@@ -58,3 +58,4 @@ ecosystem.config.js.backup
 # Database dumps
 *.sql
 *.sql.gz
+!prisma/migrations/**/*.sql
