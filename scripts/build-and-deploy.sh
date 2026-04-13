@@ -17,7 +17,7 @@
 # Usage: ./scripts/build-and-deploy.sh [--skip-backup] [--skip-deps] [--skip-migrations]
 #######################################
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'
@@ -31,6 +31,26 @@ APP_NAME="lms-nextjs"
 APP_DIR="/home/gagneet/lms"
 BACKUP_DIR="$APP_DIR/backups"
 MAX_BACKUPS=5
+SCRIPT_PATH="$(readlink -f "$0")"
+APP_OWNER="$(stat -c '%U' "$APP_DIR" 2>/dev/null || echo gagneet)"
+
+# Always use the repository owner's PM2 daemon and workspace permissions.
+if [ "$(id -u)" -eq 0 ] && [ -z "${LMS_DEPLOY_REEXEC:-}" ]; then
+    TARGET_USER="${SUDO_USER:-$APP_OWNER}"
+    if [ "$TARGET_USER" = "root" ]; then
+        TARGET_USER="$APP_OWNER"
+    fi
+
+    if [ "$TARGET_USER" != "root" ]; then
+        for runtime_path in "$APP_DIR/.next" "$APP_DIR/logs"; do
+            if [ -e "$runtime_path" ]; then
+                chown -R "$TARGET_USER":"$TARGET_USER" "$runtime_path"
+            fi
+        done
+        export LMS_DEPLOY_REEXEC=1
+        exec sudo -u "$TARGET_USER" -H env LMS_DEPLOY_REEXEC=1 bash "$SCRIPT_PATH" "$@"
+    fi
+fi
 
 # Parse command line arguments
 SKIP_BACKUP=false
@@ -94,7 +114,7 @@ rollback() {
         LATEST_BACKUP=$(cat "$BACKUP_DIR/latest")
         if [ -d "$BACKUP_DIR/$LATEST_BACKUP" ]; then
             print_step "Rolling back to $LATEST_BACKUP"
-            ./scripts/rollback.sh "$LATEST_BACKUP" || {
+            ./scripts/rollback.sh --yes "$LATEST_BACKUP" || {
                 print_error "Rollback failed!"
                 exit 1
             }
@@ -265,25 +285,17 @@ npm run db:generate || {
 print_success "Prisma client generated"
 
 # Step 6: Database Schema Sync
-# This project uses "db push" (schema-first, no migration files) for rapid development.
+# Production uses Prisma Migrate so schema changes are tracked and non-interactive.
 if [ "$SKIP_MIGRATIONS" = false ]; then
     print_step "Step 6/9: Syncing database schema"
 
-    # Load production environment
-    export $(grep -v '^#' .env.production | xargs)
-
-    # Push schema changes (safe for additive changes; will prompt on destructive changes)
-    # --accept-data-loss is NOT used — fail loudly if schema change would destroy data
-    npx prisma db push --skip-generate || {
-        print_error "Failed to sync database schema"
-        print_error "If schema has destructive changes, run: npx prisma db push manually"
+    ./scripts/prisma-migrate-production.sh || {
+        print_error "Failed to apply Prisma migrations"
+        print_error "Check migration history and legacy-table archive status before retrying"
         exit 1
     }
 
     print_success "Database schema synced"
-
-    # Unset environment variables
-    unset $(grep -v '^#' .env.production | sed -E 's/(.*)=.*/\1/' | xargs)
 else
     print_warning "Step 6/9: Skipping database sync (--skip-migrations)"
 fi
@@ -294,7 +306,11 @@ print_step "Step 7/9: Building application"
 # Clean previous build for fresh CSS generation (Tailwind CSS)
 if [ -d ".next" ]; then
     print_step "Cleaning previous build (.next directory)"
-    rm -rf .next
+    rm -rf .next || {
+        print_error "Failed to remove .next"
+        print_error "Check file ownership in $APP_DIR/.next and rerun with sudo if needed"
+        exit 1
+    }
     print_success "Previous build cleaned"
 fi
 
@@ -379,8 +395,11 @@ else
 fi
 
 # Check PM2 status
-PM2_STATUS=$(pm2 jlist | jq -r ".[] | select(.name==\"$APP_NAME\") | .pm2_env.status" 2>/dev/null || echo "unknown")
-if [ "$PM2_STATUS" = "online" ]; then
+PM2_STATUS=$(pm2 jlist | jq -r ".[] | select(.name==\"$APP_NAME\") | .pm2_env.status" 2>/dev/null | sort -u | paste -sd, -)
+if [ -z "$PM2_STATUS" ]; then
+    print_error "PM2 status: no $APP_NAME processes found"
+    exit 1
+elif [ "$PM2_STATUS" = "online" ]; then
     print_success "PM2 status: online"
 else
     print_error "PM2 status: $PM2_STATUS"

@@ -12,7 +12,7 @@
 #   ./scripts/rollback.sh latest           # Restore from latest backup
 #######################################
 
-set -e
+set -euo pipefail
 
 # Colors
 RED='\033[0;31m'
@@ -25,9 +25,22 @@ NC='\033[0m'
 APP_NAME="lms-nextjs"
 APP_DIR="/home/gagneet/lms"
 BACKUP_DIR="$APP_DIR/backups"
+ASSUME_YES=false
 
 # Change to app directory
 cd "$APP_DIR"
+
+while [[ $# -gt 0 ]]; do
+    case $1 in
+        --yes|-y)
+            ASSUME_YES=true
+            shift
+            ;;
+        *)
+            break
+            ;;
+    esac
+done
 
 # Function to print step
 print_step() {
@@ -125,12 +138,16 @@ restore_backup() {
     fi
 
     # Confirm rollback
-    echo -e "${YELLOW}WARNING: This will restore the application to the backup state.${NC}"
-    echo -e "${YELLOW}Current state will be lost!${NC}"
-    read -p "Are you sure you want to continue? (yes/no): " -r
-    if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
-        echo -e "${RED}Rollback cancelled${NC}"
-        exit 1
+    if [ "$ASSUME_YES" = false ]; then
+        echo -e "${YELLOW}WARNING: This will restore the application to the backup state.${NC}"
+        echo -e "${YELLOW}Current state will be lost!${NC}"
+        read -p "Are you sure you want to continue? (yes/no): " -r
+        if [[ ! $REPLY =~ ^[Yy][Ee][Ss]$ ]]; then
+            echo -e "${RED}Rollback cancelled${NC}"
+            exit 1
+        fi
+    else
+        print_warning "Running rollback without confirmation (--yes)"
     fi
 
     # Step 1: Stop PM2
@@ -197,7 +214,7 @@ restore_backup() {
     # Step 5: Restart PM2
     print_step "Step 5/5: Restarting PM2 application"
 
-    pm2 restart ecosystem.config.js --env production || {
+    pm2 restart ecosystem.config.cjs --env production || {
         print_error "Failed to restart PM2"
         exit 1
     }

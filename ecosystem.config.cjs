@@ -39,9 +39,6 @@ module.exports = {
       min_uptime: '10s',
       listen_timeout: 10000,
       kill_timeout: 5000,
-      wait_ready: true,
-      // Graceful shutdown
-      shutdown_with_message: true,
       // Health check (optional - requires PM2 Plus or custom implementation)
       // health_check: {
       //   enabled: true,
